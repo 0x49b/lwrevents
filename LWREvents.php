@@ -50,7 +50,7 @@ if (!class_exists('LWREvents')) {
                 'https://github.com/lichtwellenreiter/lwrevents',
                 __FILE__,
                 'lwrevents',
-                '0.5'
+                1
                 );
             $puc->setBranch('master');
         }
