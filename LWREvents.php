@@ -51,7 +51,7 @@ if (!class_exists('LWREvents')) {
                 __FILE__,
                 'lwrevents',
                 '0.5'
-            );
+                );
             $puc->setBranch('master');
         }
 
@@ -166,7 +166,3 @@ if (isset($lwrPluginObject)) {
     add_shortcode( 'lwrevents-list', array('LWREventsCore', 'lwrShortcodeList') );
 
 }
-
-
-
-
