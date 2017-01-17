@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="05b24dcc-b801-4bef-991e-b1c1e2f5fa48" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LWREvents.php" afterPath="$PROJECT_DIR$/LWREvents.php" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -17,7 +17,7 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
+      <file leaf-file-name="README.md" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
@@ -26,6 +26,19 @@
                 <folding />
               </first_editor>
               <second_editor />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="LWREvents.php" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/LWREvents.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="7" column="14" lean-forward="false" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
+              <folding>
+                <marker date="1484653630323" expanded="true" signature="2781:3037" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
+                <marker date="1484653630323" expanded="true" signature="3854:3904" ph="DROP TABLE '... " />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -58,9 +71,9 @@
         <option value="$PROJECT_DIR$/views/assets/js/lwr-events-backend.min.js" />
         <option value="$PROJECT_DIR$/../WordPress-Admin-Style/inc/update.json" />
         <option value="$PROJECT_DIR$/core/LWREventsCore.php" />
-        <option value="$PROJECT_DIR$/LWREvents.php" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/README.md" />
+        <option value="$PROJECT_DIR$/LWREvents.php" />
       </list>
     </option>
   </component>
@@ -248,12 +261,12 @@
       <updated>1484565758879</updated>
       <workItem from="1484565762963" duration="12254000" />
       <workItem from="1484653288343" duration="11000" />
-      <workItem from="1484653440762" duration="152000" />
+      <workItem from="1484653440762" duration="187000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="12417000" />
+    <option name="totallyTimeSpent" value="12452000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1696" height="1036" extended-state="6" />
@@ -311,8 +324,8 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <marker date="1484652520593" expanded="true" signature="2781:3037" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
-            <marker date="1484652520593" expanded="true" signature="3854:3904" ph="DROP TABLE '... " />
+            <marker date="1484653630323" expanded="true" signature="2781:3037" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
+            <marker date="1484653630323" expanded="true" signature="3854:3904" ph="DROP TABLE '... " />
           </folding>
         </state>
       </provider>
@@ -380,17 +393,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/LWREvents.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="31" column="0" lean-forward="false" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
-          <folding>
-            <marker date="1484652520593" expanded="true" signature="2781:3037" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
-            <marker date="1484652520593" expanded="true" signature="3854:3904" ph="DROP TABLE '... " />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/LWREventsCore.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
@@ -414,6 +416,17 @@
             <folding />
           </first_editor>
           <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LWREvents.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="14" lean-forward="false" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
+          <folding>
+            <marker date="1484653630323" expanded="true" signature="2781:3037" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
+            <marker date="1484653630323" expanded="true" signature="3854:3904" ph="DROP TABLE '... " />
+          </folding>
         </state>
       </provider>
     </entry>
