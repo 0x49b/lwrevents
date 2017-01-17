@@ -1,0 +1,47 @@
+/**
+ *  Description: Stylesheet für das LWREvents Plugin
+ *  Version: 1.0
+ *  Autor: F. Thiévent, thievent.org
+ */
+
+
+/**
+ *  Ausgabe der single.php
+ */
+.lwr-event-detail-table,
+.lwr-event-detail-table tr,
+.lwr-event-detail-table tr td,
+.lwr-event-detail-user-table,
+.lwr-event-detail-user-table tr,
+.lwr-event-detail-user-table tr td {
+    border: none;
+}
+
+.lwr-event-detail-user-table tr {
+    line-height: 12px;
+}
+
+.lwr-event-detail-user-table tr td {
+    font-size: 12px;
+}
+
+.lwr-event-detail-user-table-first {
+    background: rgba(0, 205, 0, 0.27);
+}
+
+.lwr-event-detail-user-table-second {
+    background: rgba(205, 178, 0, 0.27);
+}
+
+.lwr-event-detail-user-table-third {
+    background: rgba(205, 62, 0, 0.27);
+}
+
+.lwr-event-detail-user-table-number {
+    width: 10px;
+    text-align: right;
+}
+
+.lwr-event-detail-user-table-title {
+    width: 135px;
+}
