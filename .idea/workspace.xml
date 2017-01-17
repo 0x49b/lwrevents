@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="05b24dcc-b801-4bef-991e-b1c1e2f5fa48" name="Default" comment="New Changes for LWREvents Plugin after announcement from T. Schneeberger, ESV Olten">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+    <list default="true" id="05b24dcc-b801-4bef-991e-b1c1e2f5fa48" name="Default" comment="">
       <change type="DELETED" beforePath="$PROJECT_DIR$/../../themes/spacious/404.php" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/../../themes/spacious/archive.php" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/../../themes/spacious/comments.php" afterPath="" />
@@ -412,6 +411,7 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../../languages/themes/twentysixteen-de_DE.po" afterPath="$PROJECT_DIR$/../../languages/themes/twentysixteen-de_DE.po" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../WordPress-Admin-Style/inc/update.json" afterPath="$PROJECT_DIR$/../WordPress-Admin-Style/inc/update.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../index.php" afterPath="$PROJECT_DIR$/../index.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LWREvents.php" afterPath="$PROJECT_DIR$/LWREvents.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/LWREventsCPT.php" afterPath="$PROJECT_DIR$/core/LWREventsCPT.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/LWREventsCore.php" afterPath="$PROJECT_DIR$/core/LWREventsCore.php" />
@@ -895,11 +895,12 @@
       <file leaf-file-name="LWREvents.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/LWREvents.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1841">
-              <caret line="18" column="60" lean-forward="false" selection-start-line="18" selection-start-column="60" selection-end-line="18" selection-end-column="60" />
+            <state relative-caret-position="34">
+              <caret line="31" column="0" lean-forward="true" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
               <folding>
-                <marker date="1484635401477" expanded="true" signature="2498:2754" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
-                <marker date="1484635401477" expanded="true" signature="3571:3621" ph="DROP TABLE '... " />
+                <element signature="e#6#463#0#PHP" expanded="true" />
+                <marker date="1484636272230" expanded="true" signature="2762:3018" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
+                <marker date="1484636272230" expanded="true" signature="3835:3885" ph="DROP TABLE '... " />
               </folding>
             </state>
           </provider>
@@ -923,7 +924,7 @@
     </findStrings>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -1139,18 +1140,18 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1484565758879</updated>
-      <workItem from="1484565762963" duration="11453000" />
+      <workItem from="1484565762963" duration="12254000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="11453000" />
+    <option name="totallyTimeSpent" value="12254000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1616" height="886" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.211875" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21375" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
@@ -1325,11 +1326,12 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/LWREvents.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1841">
-          <caret line="18" column="60" lean-forward="false" selection-start-line="18" selection-start-column="60" selection-end-line="18" selection-end-column="60" />
+        <state relative-caret-position="34">
+          <caret line="31" column="0" lean-forward="true" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
           <folding>
-            <marker date="1484635401477" expanded="true" signature="2498:2754" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
-            <marker date="1484635401477" expanded="true" signature="3571:3621" ph="DROP TABLE '... " />
+            <element signature="e#6#463#0#PHP" expanded="true" />
+            <marker date="1484636272230" expanded="true" signature="2762:3018" ph="CREATE TABLE... wp_prefixlwrevents_signin" />
+            <marker date="1484636272230" expanded="true" signature="3835:3885" ph="DROP TABLE '... " />
           </folding>
         </state>
       </provider>

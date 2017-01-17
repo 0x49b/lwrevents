@@ -5,7 +5,7 @@ Plugin URI: http://www.lichtwellenreiter.ch
 Description: LWREvents ist ein Plugin, um Kurse und Anlässe eines Vereins auf der Webseite darzustellen. Es bietet den registrierten Nutzern ebenfalls die Möglichkeit, sich direkt anzumelden. Ein Widget für die kommenden Anlässe und ein Excel Export der Anmeldungen steht ebenfalls zur Verfügung.
 Author: licht.wellen.reiter
 Author URI: http://www.lichtwellenreiter.ch
-Version: 1.4.0
+Version: 1.5.0
 */
 
 /**
@@ -44,7 +44,16 @@ if (!class_exists('LWREvents')) {
             register_activation_hook(__FILE__, array($this, 'lwr_events_activate'));
             register_deactivation_hook(__FILE__, array($this, 'lwr_events_deactivate'));
             register_uninstall_hook(__FILE__, array($this, 'lwr_events_uninstall'));
+
+            //Update Checker
+            $puc = Puc_v4_Factory::buildUpdateChecker(
+                'https://github.com/lichtwellenreiter/lwrevents.git',
+                __FILE__,
+                'lwrevents'
+            );
+            $puc->setBranch('master');
         }
+
 
         /**
          * @param mixed $lwrCore
