@@ -47,7 +47,7 @@ if (!class_exists('LWREvents')) {
 
             //Update Checker
             $puc = Puc_v4_Factory::buildUpdateChecker(
-                'https://github.com/lichtwellenreiter/lwrevents.git',
+                'https://github.com/lichtwellenreiter/lwrevents',
                 __FILE__,
                 'lwrevents'
             );
