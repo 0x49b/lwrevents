@@ -15,7 +15,7 @@ class LWREventsCore
 
         // Todo Admin Interface...
         // Admin Interface laden
-        //add_action('admin_menu', array($this, 'loadAdminInterface'));
+        add_action('admin_menu', array($this, 'loadAdminInterface'));
     }
 
     /**
@@ -23,17 +23,15 @@ class LWREventsCore
      * @return string
      */
     function lwrShortcodeList() {
-        global $wpdb;
-        $args = array(
-            'post_type' => 'lwrevents',
-            'order' => 'DESC',
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumVonSQL',
-        );
-
-        $custom_posts = new WP_Query( $args );
-        $returnstring = '<table><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr>';
         $lwr = new LWREventsCore();
+        $args = array('post_type' => 'lwrevents',
+                      'order' => $lwr->getSettingsFromDB('lwr_sort_list'),
+                      'orderby' => 'meta_value',
+                      'meta_key' => 'lwrDatumVonSQL',);
+
+        $custom_posts = new WP_Query($args);
+        $returnstring = '<table><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr>';
+
 
         if ($custom_posts->have_posts()) {
 
@@ -68,32 +66,21 @@ class LWREventsCore
      * @return string
      */
     function lwrShortcodeListFuture() {
-        global $wpdb;
-        $today = date( 'Y-m-d' );
-        $args = array(
-            'post_type'  => 'lwrevents',
-            'meta_query' => array(
-                'relation' => 'AND',
-                'lwrZeitVon' => array(
-                    'key'     => 'lwrZeitVon',
-                    'compare' => 'EXISTS',
-                ),
-                'lwrDatumVon' => array(
-                    'key'     => 'lwrDatumVonSQL',
-                    'compare' => '>=',
-                    'value'   => $today
-                ),
-            ),
-            'orderby' => array(
-                'lwrDatumVon' => 'ASC',
-                'lwrZeitVon' => 'ASC',
-            )
-        );
+        $lwr = new LWREventsCore();
+        $today = date('Y-m-d');
 
-        $custom_posts = new WP_Query( $args );
+        $args = array('post_type' => 'lwrevents',
+                      'meta_query' => array('relation' => 'AND',
+                                            'lwrZeitVon' => array('key' => 'lwrZeitVon',
+                                                                  'compare' => 'EXISTS',),
+                                            'lwrDatumVonSQL' => array('key' => 'lwrDatumVonSQL',
+                                                                   'compare' => '>=',
+                                                                   'value' => $today),),
+                      'orderby' => array('lwrDatumVonSQL' => $lwr->getSettingsFromDB('lwr_sort_list_future')));
+
+        $custom_posts = new WP_Query($args);
 
         $returnstring = '<table><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr>';
-        $lwr = new LWREventsCore();
 
         if ($custom_posts->have_posts()) {
 
@@ -102,8 +89,8 @@ class LWREventsCore
                 $term = get_the_terms(get_the_ID(), 'Sportart');
 
                 $bis = '';
-                if( $lwr->getEventMeta(get_the_ID(), 'lwrDatumBis') != '' ){
-                    $bis = '-'.$lwr->getEventMeta(get_the_ID(), 'lwrDatumBis');
+                if ($lwr->getEventMeta(get_the_ID(), 'lwrDatumBis') != '') {
+                    $bis = '-' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumBis');
                 }
 
                 $returnstring .= '
@@ -132,12 +119,11 @@ class LWREventsCore
      * Funktion Admin Interface laden
      */
     function loadAdminInterface() {
-        add_submenu_page('edit.php?post_type=lwrevents', 'Einstellungen', 'Einstellungen', 'manage_options', 'lwr-settings', array($this,
-                                                                                                                                   'lwr_settings_page'));
+        add_submenu_page('edit.php?post_type=lwrevents', 'Einstellungen', 'Einstellungen', 'manage_options', 'lwr-settings', array($this, 'lwr_settings_page'));
     }
 
     function lwr_settings_page() {
-        return (include_once(LWR_PLUGIN_PATH . '\views\backend\lwr-settings-view.php'));
+        return (include_once(LWR_PLUGIN_PATH . '/views/backend/lwr-settings-view.php'));
     }
 
     /**
@@ -385,11 +371,64 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
         return count($signquery);
     }
 
+    /**
+     * Status einer Anmeldung in der Datenbank suchen
+     * @param $postID
+     * @param $userID
+     * @return null|string
+     */
     function getEventUserState($postID, $userID) {
         global $wpdb;
 
         $state = $wpdb->get_var("SELECT status FROM " . $wpdb->prefix . "lwrevents_signin WHERE uid = '" . $userID . "' AND eid = '" . $postID . "'");
         return $state;
+    }
+
+    /**
+     * Einstellungen in der Datenbank speichern
+     * @param $post
+     */
+    function saveSettingsInDB($post) {
+        global $wpdb;
+
+        $wpdb->replace($wpdb->prefix . 'options', array('option_name' => 'lwr_sort_list_future',
+                                                        'option_value' => $post['lwr_sort_list_future']));
+
+        $wpdb->replace($wpdb->prefix . 'options', array('option_name' => 'lwr_sort_list',
+                                                        'option_value' => $post['lwr_sort_list']));
+
+    }
+
+    /**
+     * Einstellungen aus der Datenbank laden
+     * @return String
+     */
+    function getSettingsFromDB($option_name) {
+        global $wpdb;
+        $setting = $wpdb->get_row("SELECT * from " . $wpdb->prefix . "options WHERE option_name = '" . $option_name . "'", ARRAY_A);
+
+        return $setting['option_value'];
+    }
+
+    /**
+     * Select Liste für die Einstellungen laden und entsprechend prüfen welches Feld
+     * @param $list_name
+     * @return String $list_entry
+     */
+    function getSettingsSelectList($list_name) {
+
+        $setting = $this->getSettingsFromDB($list_name);
+
+        var_dump($setting);
+
+        if ($setting == 'DESC') {
+            $list_entry = '<option value="DESC" selected>absteigend</option><option value="ASC">aufsteigend</option>';
+        } elseif($setting=='ASC') {
+            $list_entry = '<option value="DESC">absteigend</option><option value="ASC" selected>aufsteigend</option>';
+        }else{
+            $list_entry = '<option value="DESC">absteigend</option><option value="ASC">aufsteigend</option>';
+        }
+        return $list_entry;
     }
 
 }
