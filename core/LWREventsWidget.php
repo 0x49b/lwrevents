@@ -80,7 +80,13 @@ class LWREventsWidget extends WP_Widget
                     </a>
 
                 </li>
-            <?php endwhile; ?>
+            <?php endwhile;
+
+            if( $custom_posts->have_comments() == '' ){
+                print $lwr->getSettingsFromDB('lwr_empty_events');
+            }
+
+            ?>
         </ul>
         </aside>
         <?php

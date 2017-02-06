@@ -52,6 +52,10 @@ class LWREventsCore
                 </td>
                 </tr>';
             }
+        }else {
+
+	        $returnstring .= "<tr><td colspan='3'>".$lwr->getSettingsFromDB('lwr_empty_events')."</td></tr>";
+
         }
 
         $returnstring .= '</table>';
@@ -106,6 +110,10 @@ class LWREventsCore
                 </td>
                 </tr>';
             }
+        } else {
+
+        	$returnstring .= "<tr><td colspan='3'>".$lwr->getSettingsFromDB('lwr_empty_events')."</td></tr>";
+
         }
 
         $returnstring .= '</table>';
@@ -397,6 +405,17 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
         $wpdb->replace($wpdb->prefix . 'options', array('option_name' => 'lwr_sort_list',
                                                         'option_value' => $post['lwr_sort_list']));
 
+	    $wpdb->replace($wpdb->prefix . 'options', array('option_name' => 'lwr_empty_events',
+	                                                    'option_value' => $post['lwr_empty_events']));
+
+	    if($post['lwr_signin_for_users'] == 1){
+		    $wpdb->replace($wpdb->prefix . 'options', array('option_name' => 'lwr_signin_for_users',
+		                                                    'option_value' => $post['lwr_signin_for_users']));
+	    } else {
+		    $wpdb->replace($wpdb->prefix . 'options', array('option_name' => 'lwr_signin_for_users',
+		                                                    'option_value' => 0));
+	    }
+
     }
 
     /**
@@ -430,5 +449,39 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
         }
         return $list_entry;
     }
+
+	/**
+	 * Liest die Checkboxstate aus und gibt diesen zurück
+	 * @param $state
+	 */
+    function getCheckboxState($checkbox){
+
+    	$state = $this->getSettingsFromDB($checkbox);
+
+    	if($state == 1){
+    		return 'checked';
+	    } else{
+    		return '';
+	    }
+
+    }
+
+	/**
+	 * Status einer Checkbox in den Settings als Boolsche Variable zurück liefern
+	 * @param $checkbox
+	 *
+	 * @return bool
+	 */
+	function getCheckboxStateBool($checkbox){
+
+		$state = $this->getSettingsFromDB($checkbox);
+
+		if($state == 1){
+			return true;
+		} else{
+			return false;
+		}
+
+	}
 
 }

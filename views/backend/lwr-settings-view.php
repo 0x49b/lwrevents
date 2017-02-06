@@ -9,7 +9,9 @@
     include_once(LWR_PLUGIN_PATH . '/core/LWREventsCore.php'); //Core Include
     $lwr = new LWREventsCore();
     if ($_POST) {
-        $lwr->saveSettingsInDB($_POST);
+        if($lwr->saveSettingsInDB($_POST)){
+            print('<div class="notice notice-success"><p>Einstellungen gespeichert.</p></div>');
+        }
     }
 ?>
 
@@ -32,6 +34,18 @@
                     <select name="lwr_sort_list">
                         <?php print($lwr->getSettingsSelectList('lwr_sort_list')); ?>
                     </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Hinweis wenn keine Anlässe verfügbar sind</td>
+                <td>
+                    <input name="lwr_empty_events" type="text" class="regular-text" value="<?php print($lwr->getSettingsFromDB('lwr_empty_events')); ?>">
+                </td>
+            </tr>
+            <tr>
+                <td>Anmeldung öffentlich</td>
+                <td>
+                    <input name="lwr_signin_for_users" type="checkbox" value="1" <?php print($lwr->getCheckboxState('lwr_signin_for_users')); ?>/>
                 </td>
             </tr>
             <tr>
