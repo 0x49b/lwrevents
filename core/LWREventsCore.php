@@ -484,4 +484,32 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
 
 	}
 
+	function getPagination() {
+
+		global $wp_query;
+
+		$big = 999999999; // need an unlikely integer
+
+		$paginate_links = paginate_links( array(
+			'base' => str_replace( $big, '%#%', esc_url( get_pagenum_link( $big ) ) ),
+			'format' => '?paged=%#%',
+			'current' => max( 1, get_query_var( 'paged' ) ),
+			'total' => $wp_query->max_num_pages,
+			'next_text' => '&raquo;',
+			'prev_text' => '&laquo',
+			'add_args' => false,
+		) );
+
+		// Display the pagination if more than one page is found
+		if ( $paginate_links ) : ?>
+
+			<div class="post-pagination clearfix">
+				<?php echo $paginate_links; ?>
+			</div>
+
+			<?php
+		endif;
+
+	}
+
 }

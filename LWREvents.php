@@ -138,11 +138,15 @@ if (!class_exists('LWREvents')) {
             wp_enqueue_style ('jquery-ui-datepicker', plugin_dir_url(__FILE__).'views/assets/css/jquery-ui.min.css');
         }
 
-        public static function portfolio_page_template($template) {
+        public static function lwr_frontview_templates($template) {
 
             //LWREvent Single Template laden
             if (is_singular('lwrevents')) {
                 $template = plugin_dir_path(__FILE__) . 'views/frontend/single-lwrevents.php';
+            }
+
+            if( is_archive('lwrevents') ){
+            	$template = plugin_dir_path(__FILE__) . 'views/frontend/archive-lwrevents.php';
             }
 
             return $template;
@@ -161,7 +165,7 @@ if (isset($lwrPluginObject)) {
     $lwrPluginObject->lwr_events_widget_init();
 
     add_action('init', array('LWREventsCPT', 'lwr_events_cpt_config'), 0);
-    add_filter('template_include', array('LWREvents', 'portfolio_page_template'), 0);
+    add_filter('template_include', array( 'LWREvents', 'lwr_frontview_templates' ), 0);
     add_shortcode( 'lwrevents-list-future',  array('LWREventsCore', 'lwrShortcodeListFuture') );
     add_shortcode( 'lwrevents-list', array('LWREventsCore', 'lwrShortcodeList') );
 

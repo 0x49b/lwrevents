@@ -224,7 +224,7 @@ get_header(); ?>
 							?>
                         </table>
 
-						<?php if ( $lwr->getCheckboxStateBool( 'lwr_signin_for_users' ) == true ) { ?>
+						<?php if ( $lwr->getCheckboxStateBool( 'lwr_signin_for_users' ) == true || is_user_logged_in() ) { ?>
 
                             <table class="lwr-event-detail-user-table">
                                 <tr class="lwr-event-detail-user-table-first">
