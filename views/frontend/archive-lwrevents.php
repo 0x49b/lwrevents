@@ -39,9 +39,31 @@ get_header(); ?>
                             <th>Kommentare</th>
                         </tr>
 
-						<?php if ( have_posts() ) :
 
-						while ( have_posts() ) : the_post(); ?>
+						<?php
+						global $wpdb;
+						$title_raw = get_the_archive_title();
+						$title     = explode( ': ', $title_raw );
+						$term_name = $title[1];
+
+						$term_id = $wpdb->get_var( "SELECT " . $wpdb->prefix . "terms.term_id FROM " . $wpdb->prefix . "terms where " . $wpdb->prefix . "terms.name = '$term_name'" );
+						// Use the new tax_query WP_Query argument (as of 3.1)
+						$taxonomy_query = new WP_Query( array(
+							'tax_query' => array(
+								array(
+									'taxonomy' => 'Sportart',
+									'field'    => 'id',
+									'terms'    => array( $term_id ),
+
+								),
+							),
+							'order'     => $lwr->getSettingsFromDB( 'lwr_sort_list_archive' )
+						) );
+						?>
+
+
+						<?php if ( $taxonomy_query->have_posts() ) :
+						while ( $taxonomy_query->have_posts() ) : $taxonomy_query->the_post(); ?>
 
 
                             <tr>

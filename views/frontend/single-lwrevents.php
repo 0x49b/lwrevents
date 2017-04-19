@@ -74,7 +74,7 @@ get_header(); ?>
 				?>
                 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-                    <h1 class="entry-title post-title"><?php echo get_the_term_list( $post->ID, 'Sportart', '', '', '' ) . ': ' . get_the_title(); ?></h1>
+                    <h1 class="entry-title post-title"><?php echo get_the_term_list( $post->ID, 'Sportart','', ', ', '' ) . ': ' . get_the_title(); ?></h1>
                     <div class="entry-meta postmeta clearfix"><?php dynamicnews_display_postmeta(); ?></div>
 
 					<?php dynamicnews_display_thumbnail_single(); ?>
@@ -85,31 +85,7 @@ get_header(); ?>
 
                         <h4>Details</h4>
                         <table class="lwr-event-detail-table">
-
-
-							<?php
-
-                            echo 'metadata<br/>';
-							echo $lwr->getEventMeta( $post->ID, 'lwrDatumVon' ).'<br/>';
-							echo $lwr->getEventMeta( $post->ID, 'lwrZeitVon' ).'<br/>';
-							echo $lwr->getEventMeta( $post->ID, 'lwrDatumBis' ).'<br/>';
-							echo $lwr->getEventMeta( $post->ID, 'lwrZeitBis' ).'<br/>';
-
-
-
-							if ( $lwr->getEventMeta( $post->ID, 'lwrZeitVon' ) != '' ) {
-								echo $lwr->getEventMeta( $post->ID, 'lwrDatumVon' ) . ', ' . $lwr->getEventMeta( $post->ID, 'lwrZeitVon' ) . ' Uhr';
-							} elseif ( $lwr->getEventMeta( $post->ID, 'lwrZeitVon' ) != '' || $lwr->getEventMeta( $post->ID, 'lwrZeitBis' ) != '' ) {
-								echo $lwr->getEventMeta( $post->ID, 'lwrDatumVon' ) . ', ' . $lwr->getEventMeta( $post->ID, 'lwrZeitVon' ) . ' - ' . $lwr->getEventMeta( $post->ID, 'lwrZeitBis' ) . ' Uhr';
-							} elseif ( $lwr->getEventMeta( $post->ID, 'lwrZeitVon' ) != '' && $lwr->getEventMeta( $post->ID, 'lwrZeitBis' ) != '' && $lwr->getEventMeta( $post->ID, 'lwrDatumBis' ) != '' ) {
-								echo $lwr->getEventMeta( $post->ID, 'lwrDatumVon' ) . ', ' . $lwr->getEventMeta( $post->ID, 'lwrZeitVon' ) . ' Uhr - ' . $lwr->getEventMeta( $post->ID, 'lwrDatumBis' ) . ', ' . $lwr->getEventMeta( $post->ID, 'lwrZeitBis' ) . ' Uhr';
-							} else {
-								echo $lwr->getEventMeta( $post->ID, 'lwrDatumVon' );
-							}
-
-							?>
-
-
+							<?php echo $lwr->getEventTime( $post->ID ) . '<br/>'; ?>
                             <br/>
 							<?php
 							$days = $lwr->getEventMeta( $post->ID, 'lwrTage' );

@@ -25,7 +25,7 @@ class LWREventsWidget extends WP_Widget
     // This is where the action happens
     public function widget($args, $instance) {
         $title = apply_filters('widget_title', $instance['title']);
-        $numOfEvents = $instance['numEvents'];
+        $numOfEvents = $instance['eventNum'];
 
         // before and after widget arguments are defined by themes
         echo $args['before_widget'];
@@ -97,7 +97,7 @@ class LWREventsWidget extends WP_Widget
     public function form($instance) {
         if (isset($instance['title'])) {
             $title = $instance['title'];
-            $numOfEvents = $instance['numEvents'];
+            $numOfEvents = $instance['eventNum'];
         } else {
             $title = __('Überschrift', 'LWREventsWidget_domain');
             $numOfEvents = __('5', 'LWREventsWidget_domain');
@@ -111,9 +111,9 @@ class LWREventsWidget extends WP_Widget
                    value="<?php echo esc_attr($title); ?>"/>
         </p>
         <p>
-            <label><label for="<?php echo $this->get_field_id('numEvents'); ?>"><?php _e('Anzahl Events:'); ?></label>
-                <input class="widefat" id="<?php echo $this->get_field_id('numEvents'); ?>"
-                       name="<?php echo $this->get_field_name('numEvents'); ?>"
+            <label><label for="<?php echo $this->get_field_id('eventNum'); ?>"><?php _e('Anzahl Events:'); ?></label>
+                <input class="widefat" id="<?php echo $this->get_field_id('eventNum'); ?>"
+                       name="<?php echo $this->get_field_name('eventNum'); ?>"
                        type="text"
                        value="<?php echo esc_attr($numOfEvents); ?>"/></label>
         </p>
@@ -124,7 +124,7 @@ class LWREventsWidget extends WP_Widget
     public function update($new_instance, $old_instance) {
         $instance = array();
         $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
-        $instance['numEvents'] = (!empty($new_instance['numEvents'])) ? strip_tags($new_instance['numEvents']) : '';
+        $instance['eventNum'] = (!empty($new_instance['eventNum'])) ? strip_tags($new_instance['eventNum']) : '';
 
         return $instance;
     }

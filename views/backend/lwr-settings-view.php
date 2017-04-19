@@ -37,6 +37,14 @@
                 </td>
             </tr>
             <tr>
+                <td>Sortierung Liste Archiv Pages</td>
+                <td>
+                    <select name="lwr_sort_list_archive">
+				        <?php print($lwr->getSettingsSelectList('lwr_sort_list_archive')); ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <td>Hinweis wenn keine Anlässe verfügbar sind</td>
                 <td>
                     <input name="lwr_empty_events" type="text" class="regular-text" value="<?php print($lwr->getSettingsFromDB('lwr_empty_events')); ?>">
