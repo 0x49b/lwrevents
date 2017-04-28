@@ -8,3 +8,7 @@
 * Fix: In den Single Event View das folgende Pattern für den Titel verwendet wird -> Kategorie: Titel
 * Fix: Beschränkung im Widget greift nicht mehr bei den Shortcodes
 * Fix: Neues Feld mit Unix Timestamp eingeführt, so dass die Sortierung verfeinert werden kann
+
+###1.7.3
+* Neu: Anzahl Events kann pro Typ ausgewählt werden
+* Fix: Elemente für die Ausgabe der Archiv Seiten wurden angepasst, es werden nun 'div' statt 'section' verwendet

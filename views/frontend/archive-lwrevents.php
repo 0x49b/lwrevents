@@ -22,11 +22,11 @@ get_header(); ?>
 
 <div id="wrap" class="container clearfix">
 
-    <section id="content" class="primary" role="main">
+    <div id="content" class="primary" role="main">
 		<?php the_archive_title( '<h1 class="entry-title post-title">', '</h1>' ); ?>
 
 
-        <section role="main">
+        <div role="main">
 
             <div id="post-2" class="post-2 page type-page status-publish">
 
@@ -57,7 +57,8 @@ get_header(); ?>
 
 								),
 							),
-							'order'     => $lwr->getSettingsFromDB( 'lwr_sort_list_archive' )
+							'order'     => $lwr->getSettingsFromDB( 'lwr_sort_list_archive' ),
+							'posts_per_page' => $lwr->getSettingsFromDB( 'lwr_archiv_max' ),
 						) );
 						?>
 
@@ -87,17 +88,14 @@ get_header(); ?>
             </div>
 
 
-        </section>
+        </div>
 
 
 	<?php
-
-
-	$lwr->getPagination();
-
+	//$lwr->getPagination();
 	endif; ?>
 
-    </section>
+    </div>
 
 	<?php get_sidebar(); ?>
 </div>

@@ -28,6 +28,7 @@ class LWREventsCore {
 			'order'     => $lwr->getSettingsFromDB( 'lwr_sort_list' ),
 			'orderby'   => 'meta_value',
 			'meta_key'  => 'lwrDatumVonSQL',
+			'posts_per_page' => $lwr->getSettingsFromDB( 'lwr_all_max' ),
 		);
 
 		$custom_posts = new WP_Query( $args );
@@ -77,6 +78,7 @@ class LWREventsCore {
 
 		$args = array(
 			'post_type'  => 'lwrevents',
+			'posts_per_page' => $lwr->getSettingsFromDB( 'lwr_future_max' ),
 			'meta_query' => array(
 				'relation'       => 'AND',
 				'lwrZeitVon'     => array(
@@ -470,6 +472,21 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'" );
 		$wpdb->replace( $wpdb->prefix . 'options', array(
 			'option_name'  => 'lwr_sort_list_future',
 			'option_value' => $post['lwr_sort_list_future']
+		) );
+
+		$wpdb->replace( $wpdb->prefix . 'options', array(
+			'option_name'  => 'lwr_future_max',
+			'option_value' => $post['lwr_future_max']
+		) );
+
+		$wpdb->replace( $wpdb->prefix . 'options', array(
+			'option_name'  => 'lwr_archiv_max',
+			'option_value' => $post['lwr_archiv_max']
+		) );
+
+		$wpdb->replace( $wpdb->prefix . 'options', array(
+			'option_name'  => 'lwr_all_max',
+			'option_value' => $post['lwr_all_max']
 		) );
 
 		$wpdb->replace( $wpdb->prefix . 'options', array(
