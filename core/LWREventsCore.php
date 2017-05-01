@@ -72,9 +72,10 @@ class LWREventsCore {
 	 * Return a List with all Events in the Future
 	 * @return string
 	 */
-	function lwrShortcodeListFuture() {
+	static function lwrShortcodeListFuture() {
 		$lwr   = new LWREventsCore();
 		$today = date( 'Y-m-d' );
+		$todayUnix = strtotime(date('d.m.Y H:i:s'));
 
 		$args = array(
 			'post_type'  => 'lwrevents',

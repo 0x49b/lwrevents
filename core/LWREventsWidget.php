@@ -9,7 +9,8 @@
 class LWREventsWidget extends WP_Widget
 {
 
-    function __construct() {
+    function __construct()
+    {
         parent::__construct(// Base ID of your widget
             'LWREventsWidget',
 
@@ -23,7 +24,8 @@ class LWREventsWidget extends WP_Widget
 
     // Creating widget front-end
     // This is where the action happens
-    public function widget($args, $instance) {
+    public function widget($args, $instance)
+    {
         $title = apply_filters('widget_title', $instance['title']);
         $numOfEvents = $instance['eventNum'];
 
@@ -36,19 +38,19 @@ class LWREventsWidget extends WP_Widget
         ?>
         <ul class="lwr-event-widget-list" style="list-style-type: none;">
             <?php // Create and run custom loop
-            $today = date( 'Y-m-d' );
+            $today = date('Y-m-d');
             $args = array(
-                'post_type'  => 'lwrevents',
+                'post_type' => 'lwrevents',
                 'meta_query' => array(
                     'relation' => 'AND',
                     'lwrZeitVon' => array(
-                        'key'     => 'lwrZeitVon',
+                        'key' => 'lwrZeitVon',
                         'compare' => 'EXISTS',
                     ),
                     'lwrDatumVon' => array(
-                        'key'     => 'lwrDatumVonSQL',
+                        'key' => 'lwrDatumVonSQL',
                         'compare' => '>=',
-                        'value'   => $today
+                        'value' => $today
                     ),
                 ),
                 'posts_per_page' => $numOfEvents,
@@ -74,15 +76,15 @@ class LWREventsWidget extends WP_Widget
                     ?><br/>
 
                     <a href="<?php the_permalink(); ?>" style="padding-left: 18px;">
-                            <?php
-                            $term = get_the_terms(get_the_ID(), 'Sportart');
-                            echo $term[0]->name . ' : ' . get_the_title(); ?>
+                        <?php
+                        $term = get_the_terms(get_the_ID(), 'Sportart');
+                        echo $term[0]->name . ' : ' . get_the_title(); ?>
                     </a>
 
                 </li>
             <?php endwhile;
 
-            if( !$custom_posts->have_posts() ){
+            if (!$custom_posts->have_posts()) {
                 print $lwr->getSettingsFromDB('lwr_empty_events');
             }
 
@@ -90,11 +92,15 @@ class LWREventsWidget extends WP_Widget
         </ul>
         </aside>
         <?php
-	echo $args['after_widget'];
+        if (isset($args['after_widget'])) {
+            echo $args['after_widget'];
+        }
+
     }
 
     // Widget Backend
-    public function form($instance) {
+    public function form($instance)
+    {
         if (isset($instance['title'])) {
             $title = $instance['title'];
             $numOfEvents = $instance['eventNum'];
@@ -121,7 +127,8 @@ class LWREventsWidget extends WP_Widget
     }
 
     // Updating widget replacing old instances with new
-    public function update($new_instance, $old_instance) {
+    public function update($new_instance, $old_instance)
+    {
         $instance = array();
         $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
         $instance['eventNum'] = (!empty($new_instance['eventNum'])) ? strip_tags($new_instance['eventNum']) : '';
@@ -129,7 +136,8 @@ class LWREventsWidget extends WP_Widget
         return $instance;
     }
 
-    function lwr_load_widget() {
+    function lwr_load_widget()
+    {
         register_widget('LWREventsWidget');
     }
 } // Class LWREventsWidget ends here
