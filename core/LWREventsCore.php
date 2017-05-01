@@ -21,7 +21,7 @@ class LWREventsCore {
 	 * Return a list with all events ordered by now to the past
 	 * @return string
 	 */
-	function lwrShortcodeList() {
+	static function lwrShortcodeList() {
 		$lwr  = new LWREventsCore();
 		$args = array(
 			'post_type' => 'lwrevents',

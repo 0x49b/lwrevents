@@ -1,4 +1,4 @@
-#### 1.7.1
+###1.7.1
 * Neues Feature um die Ausgabe der Anmeldungen global zu steuern. Diese Funktion findet sich in den Einstellungen.
 * Es kann nund, wenn keine Anlässe vorhanden sind, in den Einstellungen eine Meldung definiert werde.
 
@@ -12,3 +12,8 @@
 ###1.7.3
 * Neu: Anzahl Events kann pro Typ ausgewählt werden
 * Fix: Elemente für die Ausgabe der Archiv Seiten wurden angepasst, es werden nun 'div' statt 'section' verwendet
+
+###1.7.3.1
+* Fix: Archivseiten werden nun übergangsweise durch Wordpres ausgeliefert
+* Diverses: Code refactoring gemacht und diverse PHP Fehler behoben
+
