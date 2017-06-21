@@ -17,3 +17,6 @@
 * Fix: Archivseiten werden nun übergangsweise durch Wordpres ausgeliefert
 * Diverses: Code refactoring gemacht und diverse PHP Fehler behoben
 
+###1.7.3.2
+* Neu: Die Tabellen bei den Shortcodes sind nun durch den User selber sortierbar
+

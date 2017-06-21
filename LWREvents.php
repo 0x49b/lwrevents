@@ -5,7 +5,7 @@ Plugin URI: http://www.lichtwellenreiter.ch
 Description: LWREvents ist ein Plugin, um Kurse und Anlässe eines Vereins auf der Webseite darzustellen. Es bietet den registrierten Nutzern ebenfalls die Möglichkeit, sich direkt anzumelden. Ein Widget für die kommenden Anlässe und ein Excel Export der Anmeldungen steht ebenfalls zur Verfügung.
 Author: licht.wellen.reiter
 Author URI: http://www.lichtwellenreiter.ch
-Version: 1.7.3.1
+Version: 1.7.3.2
 */
 
 /**
@@ -65,6 +65,7 @@ if (!class_exists('LWREvents')) {
             $this->lwrCore = $lwrCore;
 
             add_action('admin_enqueue_scripts', array($this, 'lwr_events_loadStylesAndJSBackend'));
+            add_action('wp_enqueue_scripts', array($this, 'lwr_events_loadStylesAndJSFrontend'));
         }
 
         /**
@@ -139,15 +140,23 @@ if (!class_exists('LWREvents')) {
             wp_enqueue_script('jquery-ui-datepicker');
             wp_enqueue_style('jquery-ui-datepicker', plugin_dir_url(__FILE__) . 'views/assets/css/jquery-ui.min.css');
 
-            $this->lwr_events_loadStylesAndJSFrontend();
         }
 
         function lwr_events_loadStylesAndJSFrontend()
         {
             //Load Fontawesome
             wp_enqueue_style('fontawesome', plugin_dir_url(__FILE__) . 'views/assets/css/font-awesome.min.css');
-            wp_enqueue_style('fontawesome', plugin_dir_url(__FILE__) . 'views/assets/css/lwr-event-style.min.css');
+            wp_enqueue_style('lwrevent-style', plugin_dir_url(__FILE__) . 'views/assets/css/lwr-event-style.min.css');
             wp_localize_script('lwrevents', 'lwrevent', array('ajax_url' => admin_url('admin-ajax.php')));
+
+	        wp_register_script('lwrevents-frontend', plugin_dir_url(__FILE__) . 'views/assets/js/lwr-events-frontend.min.js');
+	        wp_enqueue_script('lwrevents-frontend');
+
+	        wp_register_script('jquery-metadata', plugin_dir_url(__FILE__) . 'views/assets/js/jquery.metadata.js');
+	        wp_enqueue_script('jquery-metadata');
+
+	        wp_register_script('jquery-tablesorter', plugin_dir_url(__FILE__) . 'views/assets/js/jquery.tablesorter.min.js');
+	        wp_enqueue_script('jquery-tablesorter');
         }
 
         public static function lwr_frontview_templates($template)

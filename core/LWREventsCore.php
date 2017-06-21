@@ -32,7 +32,7 @@ class LWREventsCore {
 		);
 
 		$custom_posts = new WP_Query( $args );
-		$returnstring = '<table><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr>';
+		$returnstring = '<table id="agendaTable"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr><thead><tbody>';
 
 
 		if ( $custom_posts->have_posts() ) {
@@ -60,7 +60,7 @@ class LWREventsCore {
 
 		}
 
-		$returnstring .= '</table>';
+		$returnstring .= '</tbody></table>';
 		echo "<pre>";
 		print_r( $custom_posts->last_query );
 		echo "</pre>";
@@ -98,7 +98,7 @@ class LWREventsCore {
 
 		$custom_posts = new WP_Query( $args );
 
-		$returnstring = '<table><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr>';
+		$returnstring = '<table id="agendaTableFuture"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr></thead><tbody>';
 
 		if ( $custom_posts->have_posts() ) {
 
@@ -130,7 +130,7 @@ class LWREventsCore {
 
 		}
 
-		$returnstring .= '</table>';
+		$returnstring .= '</tbody></table>';
 		echo "<pre>";
 		print_r( $custom_posts->last_query );
 		echo "</pre>";
