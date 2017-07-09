@@ -9,7 +9,7 @@
 class LWREventsCore {
 
 	function __construct() {
-		//Admin Interface laden
+		// load Ajax Functionality
 		$this->registerAJAXFunctions();
 
 		// Todo Admin Interface...
@@ -61,17 +61,15 @@ class LWREventsCore {
 		}
 
 		$returnstring .= '</tbody></table>';
-		echo "<pre>";
-		print_r( $custom_posts->last_query );
-		echo "</pre>";
-
 		return $returnstring;
 	}
 
 	/**
 	 * Return a List with all Events in the Future
+	 * added correct ordering key, finally
 	 * @return string
 	 */
+
 	static function lwrShortcodeListFuture() {
 		$lwr   = new LWREventsCore();
 		$today = date( 'Y-m-d' );
@@ -92,7 +90,8 @@ class LWREventsCore {
 					'value'   => $today
 				),
 			),
-			'orderby'    => 'lwrDatumZeitVonUnix',
+			'orderby'   => 'meta_value',
+			'meta_key'  => 'lwrDatumZeitVonUnix',
 			'order'      => $lwr->getSettingsFromDB( 'lwr_sort_list_future' )
 		);
 
@@ -131,10 +130,6 @@ class LWREventsCore {
 		}
 
 		$returnstring .= '</tbody></table>';
-		echo "<pre>";
-		print_r( $custom_posts->last_query );
-		echo "</pre>";
-
 		return $returnstring;
 	}
 
