@@ -500,6 +500,11 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'" );
 			'option_value' => $post['lwr_empty_events']
 		) );
 
+		$wpdb->replace( $wpdb->prefix . 'options', array(
+			'option_name'  => 'lwr_events_contact_mail',
+			'option_value' => $post['lwr_events_contact_mail']
+		) );
+
 		if ( $post['lwr_signin_for_users'] == 1 ) {
 			$wpdb->replace( $wpdb->prefix . 'options', array(
 				'option_name'  => 'lwr_signin_for_users',
