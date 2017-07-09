@@ -20,3 +20,5 @@
 ###1.7.3.2
 * Neu: Die Tabellen bei den Shortcodes sind nun durch den User selber sortierbar
 
+### 1.7.3.3: 
+* Sortierung in Agenda-> Zukünftig gefixed
