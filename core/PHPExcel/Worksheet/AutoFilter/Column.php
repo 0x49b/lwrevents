@@ -43,7 +43,10 @@ class PHPExcel_Worksheet_AutoFilter_Column
 	//	Even though the filter rule is constant, the filtered data can vary
 	//		e.g. filtered by date = TODAY
 	const AUTOFILTER_FILTERTYPE_TOPTENFILTER	= 'top10';
+	const AUTOFILTER_COLUMN_JOIN_AND = 'and';
 
+	/* Multiple Rule Connections */
+	const AUTOFILTER_COLUMN_JOIN_OR = 'or';
 	/**
 	 * Types of autofilter rules
 	 *
@@ -59,11 +62,6 @@ class PHPExcel_Worksheet_AutoFilter_Column
 		self::AUTOFILTER_FILTERTYPE_DYNAMICFILTER,
 		self::AUTOFILTER_FILTERTYPE_TOPTENFILTER,
 	);
-
-	/* Multiple Rule Connections */
-	const AUTOFILTER_COLUMN_JOIN_AND	= 'and';
-	const AUTOFILTER_COLUMN_JOIN_OR		= 'or';
-
 	/**
 	 * Join options for autofilter rules
 	 *
@@ -238,19 +236,6 @@ class PHPExcel_Worksheet_AutoFilter_Column
 	}
 
 	/**
-	 *	Set AutoFilter Attributes
-	 *
-	 *	@param	string[]		$pAttributes
-	 *	@throws	PHPExcel_Exception
-	 *	@return PHPExcel_Worksheet_AutoFilter_Column
-	 */
-	public function setAttributes($pAttributes = array()) {
-		$this->_attributes = $pAttributes;
-
-		return $this;
-	}
-
-	/**
 	 *	Set An AutoFilter Attribute
 	 *
 	 *	@param	string		$pName		Attribute Name
@@ -271,6 +256,20 @@ class PHPExcel_Worksheet_AutoFilter_Column
 	 */
 	public function getAttributes() {
 		return $this->_attributes;
+	}
+
+	/**
+	 *    Set AutoFilter Attributes
+	 *
+	 * @param    string[] $pAttributes
+	 *
+	 * @throws    PHPExcel_Exception
+	 * @return PHPExcel_Worksheet_AutoFilter_Column
+	 */
+	public function setAttributes( $pAttributes = array() ) {
+		$this->_attributes = $pAttributes;
+
+		return $this;
 	}
 
 	/**

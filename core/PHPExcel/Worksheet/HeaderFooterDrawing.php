@@ -36,53 +36,47 @@
 class PHPExcel_Worksheet_HeaderFooterDrawing extends PHPExcel_Worksheet_Drawing implements PHPExcel_IComparable
 {
 	/**
-	 * Path
-	 *
-	 * @var string
-	 */
-	private $_path;
-
-	/**
 	 * Name
 	 *
 	 * @var string
 	 */
 	protected $_name;
-
 	/**
 	 * Offset X
 	 *
 	 * @var int
 	 */
 	protected $_offsetX;
-
 	/**
 	 * Offset Y
 	 *
 	 * @var int
 	 */
 	protected $_offsetY;
-
 	/**
 	 * Width
 	 *
 	 * @var int
 	 */
 	protected $_width;
-
 	/**
 	 * Height
 	 *
 	 * @var int
 	 */
 	protected $_height;
-
 	/**
 	 * Proportional resize
 	 *
 	 * @var boolean
 	 */
 	protected $_resizeProportional;
+	/**
+	 * Path
+	 *
+	 * @var string
+	 */
+	private $_path;
 
     /**
      * Create a new PHPExcel_Worksheet_HeaderFooterDrawing

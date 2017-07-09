@@ -56,35 +56,29 @@ class PHPExcel_CachedObjectStorage_DiscISAM extends PHPExcel_CachedObjectStorage
 	 */
 	private $_cacheDirectory = NULL;
 
+	/**
+	 * Initialise this new cell collection
+	 *
+	 * @param    PHPExcel_Worksheet $parent The worksheet for this cell collection
+	 * @param    array of mixed        $arguments    Additional initialisation arguments
+	 */
+	public function __construct( PHPExcel_Worksheet $parent, $arguments ) {
+		$this->_cacheDirectory = ( ( isset( $arguments['dir'] ) ) && ( $arguments['dir'] !== null ) ) ? $arguments['dir'] : PHPExcel_Shared_File::sys_get_temp_dir();
 
-    /**
-     * Store cell data in cache for the current cell object if it's "dirty",
-     *     and the 'nullify' the current cell object
-     *
-	 * @return	void
-     * @throws	PHPExcel_Exception
-     */
-	protected function _storeData() {
-		if ($this->_currentCellIsDirty && !empty($this->_currentObjectID)) {
-			$this->_currentObject->detach();
-
-			fseek($this->_fileHandle,0,SEEK_END);
-			$offset = ftell($this->_fileHandle);
-			fwrite($this->_fileHandle, serialize($this->_currentObject));
-			$this->_cellCache[$this->_currentObjectID]	= array('ptr' => $offset,
-																'sz'  => ftell($this->_fileHandle) - $offset
-															   );
-			$this->_currentCellIsDirty = false;
+		parent::__construct( $parent );
+		if ( is_null( $this->_fileHandle ) ) {
+			$baseUnique        = $this->_getUniqueID();
+			$this->_fileName   = $this->_cacheDirectory . '/PHPExcel.' . $baseUnique . '.cache';
+			$this->_fileHandle = fopen( $this->_fileName, 'a+' );
 		}
-		$this->_currentObjectID = $this->_currentObject = null;
 	}	//	function _storeData()
 
-
-    /**
-     * Add or Update a cell in cache identified by coordinate address
+	/**
+	 * Add or Update a cell in cache identified by coordinate address
      *
      * @param	string			$pCoord		Coordinate address of the cell to update
      * @param	PHPExcel_Cell	$cell		Cell to update
+	 *
 	 * @return	void
      * @throws	PHPExcel_Exception
      */
@@ -100,8 +94,30 @@ class PHPExcel_CachedObjectStorage_DiscISAM extends PHPExcel_CachedObjectStorage
 		return $cell;
 	}	//	function addCacheData()
 
+	/**
+	 * Store cell data in cache for the current cell object if it's "dirty",
+	 *     and the 'nullify' the current cell object
+	 *
+	 * @return    void
+	 * @throws    PHPExcel_Exception
+	 */
+	protected function _storeData() {
+		if ( $this->_currentCellIsDirty && ! empty( $this->_currentObjectID ) ) {
+			$this->_currentObject->detach();
 
-    /**
+			fseek( $this->_fileHandle, 0, SEEK_END );
+			$offset = ftell( $this->_fileHandle );
+			fwrite( $this->_fileHandle, serialize( $this->_currentObject ) );
+			$this->_cellCache[ $this->_currentObjectID ] = array(
+				'ptr' => $offset,
+				'sz'  => ftell( $this->_fileHandle ) - $offset
+			);
+			$this->_currentCellIsDirty                   = false;
+		}
+		$this->_currentObjectID = $this->_currentObject = null;
+	}    //	function getCacheData()
+
+	/**
      * Get cell at a specific coordinate
      *
      * @param 	string 			$pCoord		Coordinate of the cell
@@ -129,8 +145,7 @@ class PHPExcel_CachedObjectStorage_DiscISAM extends PHPExcel_CachedObjectStorage
 
 		//	Return requested entry
 		return $this->_currentObject;
-	}	//	function getCacheData()
-
+	}
 
 	/**
 	 * Get a list of all cell addresses currently held in cache
@@ -143,8 +158,7 @@ class PHPExcel_CachedObjectStorage_DiscISAM extends PHPExcel_CachedObjectStorage
 		}
 
 		return parent::getCellList();
-	}
-
+	}    //	function copyCellCollection()
 
 	/**
 	 * Clone the cell collection
@@ -161,9 +175,8 @@ class PHPExcel_CachedObjectStorage_DiscISAM extends PHPExcel_CachedObjectStorage
 		copy ($this->_fileName,$newFileName);
 		$this->_fileName = $newFileName;
 		//	Open the copied cell cache file
-		$this->_fileHandle = fopen($this->_fileName,'a+');
-	}	//	function copyCellCollection()
-
+		$this->_fileHandle = fopen($this->_fileName,'a+' );
+	}    //	function unsetWorksheetCells()
 
 	/**
 	 * Clear the cell collection and disconnect from our parent
@@ -182,28 +195,7 @@ class PHPExcel_CachedObjectStorage_DiscISAM extends PHPExcel_CachedObjectStorage
 
 		//	Close down the temporary cache file
 		$this->__destruct();
-	}	//	function unsetWorksheetCells()
-
-
-	/**
-	 * Initialise this new cell collection
-	 *
-	 * @param	PHPExcel_Worksheet	$parent		The worksheet for this cell collection
-	 * @param	array of mixed		$arguments	Additional initialisation arguments
-	 */
-	public function __construct(PHPExcel_Worksheet $parent, $arguments) {
-		$this->_cacheDirectory	= ((isset($arguments['dir'])) && ($arguments['dir'] !== NULL))
-									? $arguments['dir']
-									: PHPExcel_Shared_File::sys_get_temp_dir();
-
-		parent::__construct($parent);
-		if (is_null($this->_fileHandle)) {
-			$baseUnique = $this->_getUniqueID();
-			$this->_fileName = $this->_cacheDirectory.'/PHPExcel.'.$baseUnique.'.cache';
-			$this->_fileHandle = fopen($this->_fileName,'a+');
-		}
 	}	//	function __construct()
-
 
 	/**
 	 * Destroy this cell collection

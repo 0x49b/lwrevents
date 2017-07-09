@@ -36,14 +36,6 @@
 class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_CacheBase implements PHPExcel_CachedObjectStorage_ICache {
 
     /**
-     * Dummy method callable from CacheBase, but unused by Memory cache
-     *
-	 * @return	void
-     */
-	protected function _storeData() {
-	}	//	function _storeData()
-
-    /**
      * Add or Update a cell in cache identified by coordinate address
      *
      * @param	string			$pCoord		Coordinate address of the cell to update
@@ -58,8 +50,7 @@ class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_C
 		$this->_currentObjectID = $pCoord;
 
 		return $cell;
-	}	//	function addCacheData()
-
+	}    //	function _storeData()
 
     /**
      * Get cell at a specific coordinate
@@ -81,8 +72,7 @@ class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_C
 
 		//	Return requested entry
 		return $this->_cellCache[$pCoord];
-	}	//	function getCacheData()
-
+	}    //	function addCacheData()
 
 	/**
 	 * Clone the cell collection
@@ -100,8 +90,7 @@ class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_C
 		}
 
 		$this->_cellCache = $newCollection;
-	}
-
+	}    //	function getCacheData()
 
 	/**
 	 * Clear the cell collection and disconnect from our parent
@@ -120,6 +109,14 @@ class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_C
 
 		//	detach ourself from the worksheet, so that it can then delete this object successfully
 		$this->_parent = null;
+	}
+
+	/**
+	 * Dummy method callable from CacheBase, but unused by Memory cache
+	 *
+	 * @return    void
+	 */
+	protected function _storeData() {
 	}	//	function unsetWorksheetCells()
 
 }

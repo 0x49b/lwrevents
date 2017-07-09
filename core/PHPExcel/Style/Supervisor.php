@@ -85,16 +85,6 @@ abstract class PHPExcel_Style_Supervisor
 	}
 
 	/**
-	 * Get the currently active sheet. Only used for supervisor
-	 *
-	 * @return PHPExcel_Worksheet
-	 */
-	public function getActiveSheet()
-	{
-		return $this->_parent->getActiveSheet();
-	}
-
-	/**
 	 * Get the currently active cell coordinate in currently active sheet.
 	 * Only used for supervisor
 	 *
@@ -103,6 +93,15 @@ abstract class PHPExcel_Style_Supervisor
 	public function getSelectedCells()
 	{
 		return $this->getActiveSheet()->getSelectedCells();
+	}
+
+	/**
+	 * Get the currently active sheet. Only used for supervisor
+	 *
+	 * @return PHPExcel_Worksheet
+	 */
+	public function getActiveSheet() {
+		return $this->_parent->getActiveSheet();
 	}
 
 	/**

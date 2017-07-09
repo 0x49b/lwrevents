@@ -111,34 +111,44 @@ class PHPExcel_Style_Border extends PHPExcel_Style_Supervisor implements PHPExce
 	}
 
 	/**
-	 * Get the shared style component for the currently active cell in currently active sheet.
-	 * Only used for style supervisor
+	 * Apply styles from array
 	 *
+	 * <code>
+	 * $objPHPExcel->getActiveSheet()->getStyle('B2')->getBorders()->getTop()->applyFromArray(
+	 *        array(
+	 *            'style' => PHPExcel_Style_Border::BORDER_DASHDOT,
+	 *            'color' => array(
+	 *                'rgb' => '808080'
+	 *            )
+	 *        )
+	 * );
+	 * </code>
+	 *
+	 * @param    array $pStyles Array containing style information
+	 *
+	 * @throws    PHPExcel_Exception
 	 * @return PHPExcel_Style_Border
-	 * @throws PHPExcel_Exception
 	 */
-	public function getSharedComponent()
-	{
-		switch ($this->_parentPropertyName) {
-			case '_allBorders':
-			case '_horizontal':
-			case '_inside':
-			case '_outline':
-			case '_vertical':
-				throw new PHPExcel_Exception('Cannot get shared component for a pseudo-border.');
-				break;
-			case '_bottom':
-				return $this->_parent->getSharedComponent()->getBottom();		break;
-			case '_diagonal':
-				return $this->_parent->getSharedComponent()->getDiagonal();		break;
-			case '_left':
-				return $this->_parent->getSharedComponent()->getLeft();			break;
-			case '_right':
-				return $this->_parent->getSharedComponent()->getRight();		break;
-			case '_top':
-				return $this->_parent->getSharedComponent()->getTop();			break;
-
+	public function applyFromArray( $pStyles = null ) {
+		if ( is_array( $pStyles ) ) {
+			if ( $this->_isSupervisor ) {
+				$this->getActiveSheet()
+				     ->getStyle( $this->getSelectedCells() )
+				     ->applyFromArray( $this->getStyleArray( $pStyles ) );
+			} else {
+				if ( isset( $pStyles['style'] ) ) {
+					$this->setBorderStyle( $pStyles['style'] );
+				}
+				if ( isset( $pStyles['color'] ) ) {
+					$this->getColor()
+					     ->applyFromArray( $pStyles['color'] );
+				}
+			}
+		} else {
+			throw new PHPExcel_Exception( "Invalid style array passed.");
 		}
+
+		return $this;
 	}
 
 	/**
@@ -175,37 +185,34 @@ class PHPExcel_Style_Border extends PHPExcel_Style_Supervisor implements PHPExce
 	}
 
 	/**
-	 * Apply styles from array
+	 * Get Border Color
 	 *
-	 * <code>
-	 * $objPHPExcel->getActiveSheet()->getStyle('B2')->getBorders()->getTop()->applyFromArray(
-	 *		array(
-	 *			'style' => PHPExcel_Style_Border::BORDER_DASHDOT,
-	 *			'color' => array(
-	 *				'rgb' => '808080'
-	 *			)
-	 *		)
-	 * );
-	 * </code>
+	 * @return PHPExcel_Style_Color
+	 */
+	public function getColor() {
+		return $this->_color;
+	}
+
+	/**
+	 * Set Border Color
 	 *
-	 * @param	array	$pStyles	Array containing style information
+	 * @param    PHPExcel_Style_Color $pValue
+	 *
 	 * @throws	PHPExcel_Exception
 	 * @return PHPExcel_Style_Border
 	 */
-	public function applyFromArray($pStyles = null) {
-		if (is_array($pStyles)) {
-			if ($this->_isSupervisor) {
-				$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($this->getStyleArray($pStyles));
-			} else {
-				if (isset($pStyles['style'])) {
-					$this->setBorderStyle($pStyles['style']);
-				}
-				if (isset($pStyles['color'])) {
-					$this->getColor()->applyFromArray($pStyles['color']);
-				}
-			}
+	public function setColor( PHPExcel_Style_Color $pValue = null ) {
+		// make sure parameter is a real color and not a supervisor
+		$color = $pValue->getIsSupervisor() ? $pValue->getSharedComponent() : $pValue;
+
+		if ( $this->_isSupervisor ) {
+			$styleArray = $this->getColor()
+			                   ->getStyleArray( array( 'argb' => $color->getARGB() ) );
+			$this->getActiveSheet()
+			     ->getStyle( $this->getSelectedCells() )
+			     ->applyFromArray( $styleArray);
 		} else {
-			throw new PHPExcel_Exception("Invalid style array passed.");
+			$this->_color = $color;
 		}
 		return $this;
 	}
@@ -247,32 +254,43 @@ class PHPExcel_Style_Border extends PHPExcel_Style_Supervisor implements PHPExce
 	}
 
 	/**
-	 * Get Border Color
+	 * Get the shared style component for the currently active cell in currently active sheet.
+	 * Only used for style supervisor
 	 *
-	 * @return PHPExcel_Style_Color
-	 */
-	public function getColor() {
-		return $this->_color;
-	}
-
-	/**
-	 * Set Border Color
-	 *
-	 * @param	PHPExcel_Style_Color $pValue
-	 * @throws	PHPExcel_Exception
 	 * @return PHPExcel_Style_Border
+	 * @throws PHPExcel_Exception
 	 */
-	public function setColor(PHPExcel_Style_Color $pValue = null) {
-		// make sure parameter is a real color and not a supervisor
-		$color = $pValue->getIsSupervisor() ? $pValue->getSharedComponent() : $pValue;
+	public function getSharedComponent() {
+		switch ( $this->_parentPropertyName ) {
+			case '_allBorders':
+			case '_horizontal':
+			case '_inside':
+			case '_outline':
+			case '_vertical':
+				throw new PHPExcel_Exception( 'Cannot get shared component for a pseudo-border.' );
+				break;
+			case '_bottom':
+				return $this->_parent->getSharedComponent()
+				                     ->getBottom();
+				break;
+			case '_diagonal':
+				return $this->_parent->getSharedComponent()
+				                     ->getDiagonal();
+				break;
+			case '_left':
+				return $this->_parent->getSharedComponent()
+				                     ->getLeft();
+				break;
+			case '_right':
+				return $this->_parent->getSharedComponent()
+				                     ->getRight();
+				break;
+			case '_top':
+				return $this->_parent->getSharedComponent()
+				                     ->getTop();
+				break;
 
-		if ($this->_isSupervisor) {
-			$styleArray = $this->getColor()->getStyleArray(array('argb' => $color->getARGB()));
-			$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
-		} else {
-			$this->_color = $color;
 		}
-		return $this;
 	}
 
 	/**

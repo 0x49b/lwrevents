@@ -67,6 +67,41 @@ class EigenvalueDecomposition {
 	private $cdivr;
 	private $cdivi;
 
+	/**
+	 *    Constructor: Check for symmetry, then construct the eigenvalue decomposition
+	 *
+	 * @access public
+	 *
+	 * @param A  Square matrix
+	 *
+	 * @return Structure to access D and V.
+	 */
+	public function __construct( $Arg ) {
+		$this->A = $Arg->getArray();
+		$this->n = $Arg->getColumnDimension();
+
+		$issymmetric = true;
+		for ( $j = 0; ( $j < $this->n ) & $issymmetric; ++ $j ) {
+			for ( $i = 0; ( $i < $this->n ) & $issymmetric; ++ $i ) {
+				$issymmetric = ( $this->A[ $i ][ $j ] == $this->A[ $j ][ $i ] );
+			}
+		}
+
+		if ( $issymmetric ) {
+			$this->V = $this->A;
+			// Tridiagonalize.
+			$this->tred2();
+			// Diagonalize.
+			$this->tql2();
+		} else {
+			$this->H   = $this->A;
+			$this->ort = array();
+			// Reduce to Hessenberg form.
+			$this->orthes();
+			// Reduce Hessenberg to real Schur form.
+			$this->hqr2();
+		}
+	}
 
 	/**
 	 *	Symmetric Householder reduction to tridiagonal form.
@@ -170,7 +205,6 @@ class EigenvalueDecomposition {
 		$this->V[$this->n-1][$this->n-1] = 1.0;
 		$this->e[0] = 0.0;
 	}
-
 
 	/**
 	 *	Symmetric tridiagonal QL algorithm.
@@ -277,7 +311,6 @@ class EigenvalueDecomposition {
 		}
 	}
 
-
 	/**
 	 *	Nonsymmetric reduction to Hessenberg form.
 	 *
@@ -364,28 +397,7 @@ class EigenvalueDecomposition {
 		}
 	}
 
-
-	/**
-	 *	Performs complex division.
-	 *
-	 *	@access private
-	 */
-	private function cdiv($xr, $xi, $yr, $yi) {
-		if (abs($yr) > abs($yi)) {
-			$r = $yi / $yr;
-			$d = $yr + $r * $yi;
-			$this->cdivr = ($xr + $r * $xi) / $d;
-			$this->cdivi = ($xi - $r * $xr) / $d;
-		} else {
-			$r = $yr / $yi;
-			$d = $yi + $r * $yr;
-			$this->cdivr = ($r * $xr + $xi) / $d;
-			$this->cdivi = ($r * $xi - $xr) / $d;
-		}
-	}
-
-
-	/**
+/**
 	 *	Nonsymmetric reduction from Hessenberg to real Schur form.
 	 *
 	 *	Code is derived from the Algol procedure hqr2,
@@ -771,41 +783,24 @@ class EigenvalueDecomposition {
 		}
 	} // end hqr2
 
-
 	/**
-	 *	Constructor: Check for symmetry, then construct the eigenvalue decomposition
+	 *    Performs complex division.
 	 *
-	 *	@access public
-	 *	@param A  Square matrix
-	 *	@return Structure to access D and V.
+	 * @access private
 	 */
-	public function __construct($Arg) {
-		$this->A = $Arg->getArray();
-		$this->n = $Arg->getColumnDimension();
-
-		$issymmetric = true;
-		for ($j = 0; ($j < $this->n) & $issymmetric; ++$j) {
-			for ($i = 0; ($i < $this->n) & $issymmetric; ++$i) {
-				$issymmetric = ($this->A[$i][$j] == $this->A[$j][$i]);
-			}
-		}
-
-		if ($issymmetric) {
-			$this->V = $this->A;
-			// Tridiagonalize.
-			$this->tred2();
-			// Diagonalize.
-			$this->tql2();
+	private function cdiv( $xr, $xi, $yr, $yi ) {
+		if ( abs( $yr ) > abs( $yi ) ) {
+			$r           = $yi / $yr;
+			$d           = $yr + $r * $yi;
+			$this->cdivr = ( $xr + $r * $xi ) / $d;
+			$this->cdivi = ( $xi - $r * $xr) / $d;
 		} else {
-			$this->H = $this->A;
-			$this->ort = array();
-			// Reduce to Hessenberg form.
-			$this->orthes();
-			// Reduce Hessenberg to real Schur form.
-			$this->hqr2();
+			$r           = $yr / $yi;
+			$d           = $yi + $r * $yr;
+			$this->cdivr = ( $r * $xr + $xi ) / $d;
+			$this->cdivi = ( $r * $xi - $xr) / $d;
 		}
 	}
-
 
 	/**
 	 *	Return the eigenvector matrix

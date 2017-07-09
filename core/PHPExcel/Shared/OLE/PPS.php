@@ -142,6 +142,45 @@ class PHPExcel_Shared_OLE_PPS
 	}
 
 	/**
+	 * Updates index and pointers to previous, next and children PPS's for this
+	 * PPS. I don't think it'll work with Dir PPS's.
+	 *
+	 * @access public
+	 *
+	 * @param array &$raList Reference to the array of PPS's for the whole OLE
+	 *                          container
+	 *
+	 * @return integer          The index for this PPS
+	 */
+	public static function _savePpsSetPnt( &$raList, $to_save, $depth = 0 ) {
+		if ( ! is_array( $to_save ) || ( empty( $to_save ) ) ) {
+			return 0xFFFFFFFF;
+		} elseif ( count( $to_save ) == 1 ) {
+			$cnt = count( $raList );
+			// If the first entry, it's the root... Don't clone it!
+			$raList[ $cnt ]          = ( $depth == 0 ) ? $to_save[0] : clone $to_save[0];
+			$raList[ $cnt ]->No      = $cnt;
+			$raList[ $cnt ]->PrevPps = 0xFFFFFFFF;
+			$raList[ $cnt ]->NextPps = 0xFFFFFFFF;
+			$raList[ $cnt ]->DirPps  = self::_savePpsSetPnt( $raList, @$raList[ $cnt ]->children, $depth ++ );
+		} else {
+			$iPos  = floor( count( $to_save ) / 2 );
+			$aPrev = array_slice( $to_save, 0, $iPos );
+			$aNext = array_slice( $to_save, $iPos + 1 );
+			$cnt   = count( $raList );
+			// If the first entry, it's the root... Don't clone it!
+			$raList[ $cnt ]          = ( $depth == 0 ) ? $to_save[ $iPos ] : clone $to_save[ $iPos ];
+			$raList[ $cnt ]->No      = $cnt;
+			$raList[ $cnt ]->PrevPps = self::_savePpsSetPnt( $raList, $aPrev, $depth ++ );
+			$raList[ $cnt ]->NextPps = self::_savePpsSetPnt( $raList, $aNext, $depth ++ );
+			$raList[ $cnt ]->DirPps  = self::_savePpsSetPnt( $raList, @$raList[ $cnt ]->children, $depth ++ );
+
+		}
+
+		return $cnt;
+	}
+
+	/**
 	* Returns the amount of data saved for this PPS
 	*
 	* @access public
@@ -189,42 +228,5 @@ class PHPExcel_Shared_OLE_PPS
 			  . pack("V", $this->Size)               // 124
 			  . pack("V", 0);                        // 128
 		return $ret;
-	}
-
-	/**
-	* Updates index and pointers to previous, next and children PPS's for this
-	* PPS. I don't think it'll work with Dir PPS's.
-	*
-	* @access public
-	* @param array &$raList Reference to the array of PPS's for the whole OLE
-	*                          container
-	* @return integer          The index for this PPS
-	*/
-	public static function _savePpsSetPnt(&$raList, $to_save, $depth = 0)
-	{
-		if ( !is_array($to_save) || (empty($to_save)) ) {
-			return 0xFFFFFFFF;
-		} elseif( count($to_save) == 1 ) {
-			$cnt = count($raList);
-			// If the first entry, it's the root... Don't clone it!
-			$raList[$cnt] = ( $depth == 0 ) ? $to_save[0] : clone $to_save[0];
-			$raList[$cnt]->No = $cnt;
-			$raList[$cnt]->PrevPps = 0xFFFFFFFF;
-			$raList[$cnt]->NextPps = 0xFFFFFFFF;
-			$raList[$cnt]->DirPps  = self::_savePpsSetPnt($raList, @$raList[$cnt]->children, $depth++);
-		} else {
-			$iPos  = floor(count($to_save) / 2);
-			$aPrev = array_slice($to_save, 0, $iPos);
-			$aNext = array_slice($to_save, $iPos + 1);
-			$cnt   = count($raList);
-			// If the first entry, it's the root... Don't clone it!
-			$raList[$cnt] = ( $depth == 0 ) ? $to_save[$iPos] : clone $to_save[$iPos];
-			$raList[$cnt]->No = $cnt;
-			$raList[$cnt]->PrevPps = self::_savePpsSetPnt($raList, $aPrev, $depth++);
-			$raList[$cnt]->NextPps = self::_savePpsSetPnt($raList, $aNext, $depth++);
-			$raList[$cnt]->DirPps  = self::_savePpsSetPnt($raList, @$raList[$cnt]->children, $depth++);
-
-		}
-		return $cnt;
 	}
 }

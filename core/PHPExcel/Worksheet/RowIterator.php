@@ -72,13 +72,6 @@ class PHPExcel_Worksheet_RowIterator implements Iterator
 	}
 
 	/**
-	 * Destructor
-	 */
-	public function __destruct() {
-		unset($this->_subject);
-	}
-
-	/**
 	 * (Re)Set the start row and the current row pointer
 	 *
 	 * @param integer	$startRow	The row number at which to start iterating
@@ -95,6 +88,13 @@ class PHPExcel_Worksheet_RowIterator implements Iterator
 	 */
 	public function seek($row = 1) {
 		$this->_position = $row;
+	}
+
+	/**
+	 * Destructor
+	 */
+	public function __destruct() {
+		unset( $this->_subject );
 	}
 
 	/**

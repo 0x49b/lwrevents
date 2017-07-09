@@ -59,6 +59,18 @@ class PHPExcel_Reader_OOCalc extends PHPExcel_Reader_Abstract implements PHPExce
 		$this->_readFilter 	= new PHPExcel_Reader_DefaultReadFilter();
 	}
 
+	private static function identifyFixedStyleValue( $styleList, &$styleAttributeValue ) {
+		$styleAttributeValue = strtolower( $styleAttributeValue );
+		foreach ( $styleList as $style ) {
+			if ( $styleAttributeValue == strtolower( $style ) ) {
+				$styleAttributeValue = $style;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	/**
 	 * Can the current PHPExcel_Reader_IReader read the file?
@@ -112,7 +124,6 @@ class PHPExcel_Reader_OOCalc extends PHPExcel_Reader_Abstract implements PHPExce
 		return FALSE;
 	}
 
-
 	/**
 	 * Reads names of the worksheets from a file, without parsing the whole file to a PHPExcel object
 	 *
@@ -163,7 +174,6 @@ class PHPExcel_Reader_OOCalc extends PHPExcel_Reader_Abstract implements PHPExce
 
 		return $worksheetNames;
 	}
-
 
 	/**
 	 * Return worksheet info (Name, Last Column Letter, Last Column Index, Total Rows, Total Columns)
@@ -289,7 +299,6 @@ class PHPExcel_Reader_OOCalc extends PHPExcel_Reader_Abstract implements PHPExce
 		return $worksheetInfo;
 	}
 
-
 	/**
 	 * Loads PHPExcel from file
 	 *
@@ -305,19 +314,6 @@ class PHPExcel_Reader_OOCalc extends PHPExcel_Reader_Abstract implements PHPExce
 		// Load into this instance
 		return $this->loadIntoExisting($pFilename, $objPHPExcel);
 	}
-
-
-	private static function identifyFixedStyleValue($styleList,&$styleAttributeValue) {
-		$styleAttributeValue = strtolower($styleAttributeValue);
-		foreach($styleList as $style) {
-			if ($styleAttributeValue == strtolower($style)) {
-				$styleAttributeValue = $style;
-				return true;
-			}
-		}
-		return false;
-	}
-
 
 	/**
 	 * Loads PHPExcel from file into PHPExcel instance

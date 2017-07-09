@@ -41,90 +41,78 @@ class PHPExcel_Worksheet_BaseDrawing implements PHPExcel_IComparable
 	 * @var int
 	 */
 	private static $_imageCounter = 0;
-
-	/**
-	 * Image index
-	 *
-	 * @var int
-	 */
-	private $_imageIndex = 0;
-
 	/**
 	 * Name
 	 *
 	 * @var string
 	 */
 	protected $_name;
-
 	/**
 	 * Description
 	 *
 	 * @var string
 	 */
 	protected $_description;
-
 	/**
 	 * Worksheet
 	 *
 	 * @var PHPExcel_Worksheet
 	 */
 	protected $_worksheet;
-
 	/**
 	 * Coordinates
 	 *
 	 * @var string
 	 */
 	protected $_coordinates;
-
 	/**
 	 * Offset X
 	 *
 	 * @var int
 	 */
 	protected $_offsetX;
-
 	/**
 	 * Offset Y
 	 *
 	 * @var int
 	 */
 	protected $_offsetY;
-
 	/**
 	 * Width
 	 *
 	 * @var int
 	 */
 	protected $_width;
-
 	/**
 	 * Height
 	 *
 	 * @var int
 	 */
 	protected $_height;
-
 	/**
 	 * Proportional resize
 	 *
 	 * @var boolean
 	 */
 	protected $_resizeProportional;
-
 	/**
 	 * Rotation
 	 *
 	 * @var int
 	 */
 	protected $_rotation;
-
 	/**
 	 * Shadow
 	 *
 	 * @var PHPExcel_Worksheet_Drawing_Shadow
 	 */
 	protected $_shadow;
+	/**
+	 * Image index
+	 *
+	 * @var int
+	 */
+	private $_imageIndex = 0;
 
     /**
      * Create a new PHPExcel_Worksheet_BaseDrawing
@@ -242,6 +230,15 @@ class PHPExcel_Worksheet_BaseDrawing implements PHPExcel_IComparable
     	}
     	return $this;
     }
+
+	/**
+	 * Get hash code
+	 *
+	 * @return string    Hash code
+	 */
+	public function getHashCode() {
+		return md5( $this->_name . $this->_description . $this->_worksheet->getHashCode() . $this->_coordinates . $this->_offsetX . $this->_offsetY . $this->_width . $this->_height . $this->_rotation . $this->_shadow->getHashCode() . __CLASS__ );
+	}
 
     /**
      * Get Coordinates
@@ -446,27 +443,6 @@ class PHPExcel_Worksheet_BaseDrawing implements PHPExcel_IComparable
     public function setShadow(PHPExcel_Worksheet_Drawing_Shadow $pValue = null) {
    		$this->_shadow = $pValue;
    		return $this;
-    }
-
-	/**
-	 * Get hash code
-	 *
-	 * @return string	Hash code
-	 */
-	public function getHashCode() {
-    	return md5(
-    		  $this->_name
-    		. $this->_description
-    		. $this->_worksheet->getHashCode()
-    		. $this->_coordinates
-    		. $this->_offsetX
-    		. $this->_offsetY
-    		. $this->_width
-    		. $this->_height
-    		. $this->_rotation
-    		. $this->_shadow->getHashCode()
-    		. __CLASS__
-    	);
     }
 
 	/**

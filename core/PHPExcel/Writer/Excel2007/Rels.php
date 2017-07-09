@@ -111,6 +111,35 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 	}
 
 	/**
+	 * Write Override content type
+	 *
+	 * @param    PHPExcel_Shared_XMLWriter $objWriter XML Writer
+	 * @param    int $pId Relationship ID. rId will be prepended!
+	 * @param    string $pType Relationship type
+	 * @param    string $pTarget Relationship target
+	 * @param    string $pTargetMode Relationship target mode
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	private function _writeRelationship( PHPExcel_Shared_XMLWriter $objWriter = null, $pId = 1, $pType = '', $pTarget = '', $pTargetMode = '' ) {
+		if ( $pType != '' && $pTarget != '' ) {
+			// Write relationship
+			$objWriter->startElement( 'Relationship' );
+			$objWriter->writeAttribute( 'Id', 'rId' . $pId );
+			$objWriter->writeAttribute( 'Type', $pType );
+			$objWriter->writeAttribute( 'Target', $pTarget );
+
+			if ( $pTargetMode != '' ) {
+				$objWriter->writeAttribute( 'TargetMode', $pTargetMode );
+			}
+
+			$objWriter->endElement();
+		} else {
+			throw new PHPExcel_Writer_Exception( "Invalid parameters passed." );
+		}
+	}
+
+	/**
 	 * Write workbook relationships to XML format
 	 *
 	 * @param 	PHPExcel	$pPHPExcel
@@ -404,34 +433,5 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 
 		// Return
 		return $objWriter->getData();
-	}
-
-	/**
-	 * Write Override content type
-	 *
-	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
-	 * @param 	int							$pId			Relationship ID. rId will be prepended!
-	 * @param 	string						$pType			Relationship type
-	 * @param 	string 						$pTarget		Relationship target
-	 * @param 	string 						$pTargetMode	Relationship target mode
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	private function _writeRelationship(PHPExcel_Shared_XMLWriter $objWriter = null, $pId = 1, $pType = '', $pTarget = '', $pTargetMode = '')
-	{
-		if ($pType != '' && $pTarget != '') {
-			// Write relationship
-			$objWriter->startElement('Relationship');
-			$objWriter->writeAttribute('Id', 		'rId' . $pId);
-			$objWriter->writeAttribute('Type', 		$pType);
-			$objWriter->writeAttribute('Target',	$pTarget);
-
-			if ($pTargetMode != '') {
-				$objWriter->writeAttribute('TargetMode',	$pTargetMode);
-			}
-
-			$objWriter->endElement();
-		} else {
-			throw new PHPExcel_Writer_Exception("Invalid parameters passed.");
-		}
 	}
 }

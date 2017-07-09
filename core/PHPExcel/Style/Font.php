@@ -141,28 +141,6 @@ class PHPExcel_Style_Font extends PHPExcel_Style_Supervisor implements PHPExcel_
 	}
 
 	/**
-	 * Get the shared style component for the currently active cell in currently active sheet.
-	 * Only used for style supervisor
-	 *
-	 * @return PHPExcel_Style_Font
-	 */
-	public function getSharedComponent()
-	{
-		return $this->_parent->getSharedComponent()->getFont();
-	}
-
-	/**
-	 * Build style array from subcomponents
-	 *
-	 * @param array $array
-	 * @return array
-	 */
-	public function getStyleArray($array)
-	{
-		return array('font' => $array);
-	}
-
-	/**
 	 * Apply styles from array
 	 *
 	 * <code>
@@ -224,6 +202,51 @@ class PHPExcel_Style_Font extends PHPExcel_Style_Supervisor implements PHPExcel_
 	}
 
 	/**
+	 * Build style array from subcomponents
+	 *
+	 * @param array $array
+	 *
+	 * @return array
+	 */
+	public function getStyleArray( $array ) {
+		return array( 'font' => $array );
+	}
+
+	/**
+	 * Get Color
+	 *
+	 * @return PHPExcel_Style_Color
+	 */
+	public function getColor() {
+		return $this->_color;
+	}
+
+	/**
+	 * Set Color
+	 *
+	 * @param    PHPExcel_Style_Color $pValue
+	 *
+	 * @throws    PHPExcel_Exception
+	 * @return PHPExcel_Style_Font
+	 */
+	public function setColor( PHPExcel_Style_Color $pValue = null ) {
+		// make sure parameter is a real color and not a supervisor
+		$color = $pValue->getIsSupervisor() ? $pValue->getSharedComponent() : $pValue;
+
+		if ( $this->_isSupervisor ) {
+			$styleArray = $this->getColor()
+			                   ->getStyleArray( array( 'argb' => $color->getARGB() ) );
+			$this->getActiveSheet()
+			     ->getStyle( $this->getSelectedCells() )
+			     ->applyFromArray( $styleArray );
+		} else {
+			$this->_color = $color;
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Get Name
 	 *
 	 * @return string
@@ -252,6 +275,17 @@ class PHPExcel_Style_Font extends PHPExcel_Style_Supervisor implements PHPExcel_
 			$this->_name = $pValue;
 		}
 		return $this;
+	}
+
+	/**
+	 * Get the shared style component for the currently active cell in currently active sheet.
+	 * Only used for style supervisor
+	 *
+	 * @return PHPExcel_Style_Font
+	 */
+	public function getSharedComponent() {
+		return $this->_parent->getSharedComponent()
+		                     ->getFont();
 	}
 
 	/**
@@ -473,35 +507,6 @@ class PHPExcel_Style_Font extends PHPExcel_Style_Supervisor implements PHPExcel_
 			$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
 		} else {
 			$this->_strikethrough = $pValue;
-		}
-		return $this;
-	}
-
-	/**
-	 * Get Color
-	 *
-	 * @return PHPExcel_Style_Color
-	 */
-	public function getColor() {
-		return $this->_color;
-	}
-
-	/**
-	 * Set Color
-	 *
-	 * @param	PHPExcel_Style_Color $pValue
-	 * @throws	PHPExcel_Exception
-	 * @return PHPExcel_Style_Font
-	 */
-	public function setColor(PHPExcel_Style_Color $pValue = null) {
-		// make sure parameter is a real color and not a supervisor
-		$color = $pValue->getIsSupervisor() ? $pValue->getSharedComponent() : $pValue;
-
-		if ($this->_isSupervisor) {
-			$styleArray = $this->getColor()->getStyleArray(array('argb' => $color->getARGB()));
-			$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
-		} else {
-			$this->_color = $color;
 		}
 		return $this;
 	}

@@ -29,43 +29,39 @@ defined('IDENTIFIER_OLE') ||
     define('IDENTIFIER_OLE', pack('CCCCCCCC', 0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1));
 
 class PHPExcel_Shared_OLERead {
-	private $data = '';
-
-	// OLE identifier
 	const IDENTIFIER_OLE = IDENTIFIER_OLE;
 
-	// Size of a sector = 512 bytes
+	// OLE identifier
 	const BIG_BLOCK_SIZE					= 0x200;
 
-	// Size of a short sector = 64 bytes
+	// Size of a sector = 512 bytes
 	const SMALL_BLOCK_SIZE					= 0x40;
 
-	// Size of a directory entry always = 128 bytes
+	// Size of a short sector = 64 bytes
 	const PROPERTY_STORAGE_BLOCK_SIZE		= 0x80;
 
-	// Minimum size of a standard stream = 4096 bytes, streams smaller than this are stored as short streams
+	// Size of a directory entry always = 128 bytes
 	const SMALL_BLOCK_THRESHOLD				= 0x1000;
 
-	// header offsets
+	// Minimum size of a standard stream = 4096 bytes, streams smaller than this are stored as short streams
 	const NUM_BIG_BLOCK_DEPOT_BLOCKS_POS	= 0x2c;
+
+	// header offsets
 	const ROOT_START_BLOCK_POS				= 0x30;
 	const SMALL_BLOCK_DEPOT_BLOCK_POS		= 0x3c;
 	const EXTENSION_BLOCK_POS				= 0x44;
 	const NUM_EXTENSION_BLOCK_POS			= 0x48;
 	const BIG_BLOCK_DEPOT_BLOCKS_POS		= 0x4c;
+	const SIZE_OF_NAME_POS					= 0x40;
 
 	// property storage offsets (directory offsets)
-	const SIZE_OF_NAME_POS					= 0x40;
 	const TYPE_POS							= 0x42;
 	const START_BLOCK_POS					= 0x74;
 	const SIZE_POS							= 0x78;
-
-
-
 	public $wrkbook						= null;
 	public $summaryInformation			= null;
 	public $documentSummaryInformation	= null;
-
+	private $data = '';
 
 	/**
 	 * Read the file
@@ -166,49 +162,26 @@ class PHPExcel_Shared_OLERead {
 	}
 
 	/**
-	 * Extract binary stream data
+	 * Read 4 bytes of data at specified position
 	 *
-	 * @return string
+	 * @param string $data
+	 * @param int $pos
+	 *
+	 * @return int
 	 */
-	public function getStream($stream)
-	{
-		if ($stream === NULL) {
-			return null;
-		}
-
-		$streamData = '';
-
-		if ($this->props[$stream]['size'] < self::SMALL_BLOCK_THRESHOLD) {
-			$rootdata = $this->_readData($this->props[$this->rootentry]['startBlock']);
-
-			$block = $this->props[$stream]['startBlock'];
-
-			while ($block != -2) {
-	  			$pos = $block * self::SMALL_BLOCK_SIZE;
-				$streamData .= substr($rootdata, $pos, self::SMALL_BLOCK_SIZE);
-
-				$block = self::_GetInt4d($this->smallBlockChain, $block*4);
-			}
-
-			return $streamData;
+	private static function _GetInt4d( $data, $pos) {
+		// FIX: represent numbers correctly on 64-bit system
+		// http://sourceforge.net/tracker/index.php?func=detail&aid=1487372&group_id=99160&atid=623334
+		// Hacked by Andreas Rehm 2006 to ensure correct result of the <<24 block on 32 and 64bit systems
+		$_or_24 = ord( $data[ $pos + 3 ] );
+		if ( $_or_24 >= 128 ) {
+			// negative number
+			$_ord_24 = - abs( ( 256 - $_or_24 ) << 24);
 		} else {
-			$numBlocks = $this->props[$stream]['size'] / self::BIG_BLOCK_SIZE;
-			if ($this->props[$stream]['size'] % self::BIG_BLOCK_SIZE != 0) {
-				++$numBlocks;
-			}
-
-			if ($numBlocks == 0) return '';
-
-			$block = $this->props[$stream]['startBlock'];
-
-			while ($block != -2) {
-				$pos = ($block + 1) * self::BIG_BLOCK_SIZE;
-				$streamData .= substr($this->data, $pos, self::BIG_BLOCK_SIZE);
-				$block = self::_GetInt4d($this->bigBlockChain, $block*4);
-			}
-
-			return $streamData;
+			$_ord_24 = ( $_or_24 & 127 ) << 24;
 		}
+
+		return ord( $data[ $pos ] ) | ( ord( $data[ $pos + 1 ] ) << 8 ) | ( ord( $data[ $pos + 2 ] ) << 16 ) | $_ord_24;
 	}
 
 	/**
@@ -293,25 +266,50 @@ class PHPExcel_Shared_OLERead {
 	}
 
 	/**
-	 * Read 4 bytes of data at specified position
+	 * Extract binary stream data
 	 *
-	 * @param string $data
-	 * @param int $pos
-	 * @return int
+	 * @return string
 	 */
-	private static function _GetInt4d($data, $pos)
-	{
-		// FIX: represent numbers correctly on 64-bit system
-		// http://sourceforge.net/tracker/index.php?func=detail&aid=1487372&group_id=99160&atid=623334
-		// Hacked by Andreas Rehm 2006 to ensure correct result of the <<24 block on 32 and 64bit systems
-		$_or_24 = ord($data[$pos + 3]);
-		if ($_or_24 >= 128) {
-			// negative number
-			$_ord_24 = -abs((256 - $_or_24) << 24);
-		} else {
-			$_ord_24 = ($_or_24 & 127) << 24;
+	public function getStream( $stream) {
+		if ( $stream === null ) {
+			return null;
 		}
-		return ord($data[$pos]) | (ord($data[$pos + 1]) << 8) | (ord($data[$pos + 2]) << 16) | $_ord_24;
+
+		$streamData = '';
+
+		if ( $this->props[ $stream ]['size'] < self::SMALL_BLOCK_THRESHOLD ) {
+			$rootdata = $this->_readData( $this->props[ $this->rootentry ]['startBlock'] );
+
+			$block = $this->props[ $stream ]['startBlock'];
+
+			while ( $block != - 2 ) {
+				$pos        = $block * self::SMALL_BLOCK_SIZE;
+				$streamData .= substr( $rootdata, $pos, self::SMALL_BLOCK_SIZE );
+
+				$block = self::_GetInt4d( $this->smallBlockChain, $block * 4 );
+			}
+
+			return $streamData;
+		} else {
+			$numBlocks = $this->props[ $stream ]['size'] / self::BIG_BLOCK_SIZE;
+			if ( $this->props[ $stream ]['size'] % self::BIG_BLOCK_SIZE != 0 ) {
+				++ $numBlocks;
+			}
+
+			if ( $numBlocks == 0 ) {
+				return '';
+			}
+
+			$block = $this->props[ $stream ]['startBlock'];
+
+			while ( $block != - 2 ) {
+				$pos        = ( $block + 1 ) * self::BIG_BLOCK_SIZE;
+				$streamData .= substr( $this->data, $pos, self::BIG_BLOCK_SIZE );
+				$block      = self::_GetInt4d( $this->bigBlockChain, $block * 4 );
+			}
+
+			return $streamData;
+		}
 	}
 
 }

@@ -118,6 +118,22 @@ class PHPExcel_Shared_OLE_PPS_Root extends PHPExcel_Shared_OLE_PPS
 	}
 
 	/**
+	 * Helper function for caculating a magic value for block sizes
+	 *
+	 * @access public
+	 *
+	 * @param integer $i2 The argument
+	 *
+	 * @see save()
+	 * @return integer
+	 */
+	private static function _adjust2( $i2 ) {
+		$iWk = log( $i2 ) / log( 2 );
+
+		return ( $iWk > floor( $iWk ) ) ? floor( $iWk ) + 1 : $iWk;
+	}
+
+	/**
 	* Calculate some numbers
 	*
 	* @access public
@@ -153,20 +169,6 @@ class PHPExcel_Shared_OLE_PPS_Root extends PHPExcel_Shared_OLE_PPS
 		$iPPScnt = (floor($iCnt/$iBdCnt) + (($iCnt % $iBdCnt)? 1: 0));
 
 		return array($iSBDcnt, $iBBcnt, $iPPScnt);
-	}
-
-	/**
-	* Helper function for caculating a magic value for block sizes
-	*
-	* @access public
-	* @param integer $i2 The argument
-	* @see save()
-	* @return integer
-	*/
-	private static function _adjust2($i2)
-	{
-		$iWk = log($i2)/log(2);
-		return ($iWk > floor($iWk))? floor($iWk)+1:$iWk;
 	}
 
 	/**
@@ -249,56 +251,6 @@ class PHPExcel_Shared_OLE_PPS_Root extends PHPExcel_Shared_OLE_PPS
 	}
 
 	/**
-	* Saving big data (PPS's with data bigger than PHPExcel_Shared_OLE::OLE_DATA_SIZE_SMALL)
-	*
-	* @access public
-	* @param integer $iStBlk
-	* @param array &$raList Reference to array of PPS's
-	*/
-	public function _saveBigData($iStBlk, &$raList)
-	{
-		$FILE = $this->_FILEH_;
-
-		// cycle through PPS's
-		$iCount = count($raList);
-		for ($i = 0; $i < $iCount; ++$i) {
-			if ($raList[$i]->Type != PHPExcel_Shared_OLE::OLE_PPS_TYPE_DIR) {
-				$raList[$i]->Size = $raList[$i]->_DataLen();
-				if (($raList[$i]->Size >= PHPExcel_Shared_OLE::OLE_DATA_SIZE_SMALL) ||
-					(($raList[$i]->Type == PHPExcel_Shared_OLE::OLE_PPS_TYPE_ROOT) && isset($raList[$i]->_data)))
-				{
-					// Write Data
-					//if (isset($raList[$i]->_PPS_FILE)) {
-					//	$iLen = 0;
-					//	fseek($raList[$i]->_PPS_FILE, 0); // To The Top
-					//	while($sBuff = fread($raList[$i]->_PPS_FILE, 4096)) {
-					//		$iLen += strlen($sBuff);
-					//		fwrite($FILE, $sBuff);
-					//	}
-					//} else {
-						fwrite($FILE, $raList[$i]->_data);
-					//}
-
-					if ($raList[$i]->Size % $this->_BIG_BLOCK_SIZE) {
-						fwrite($FILE, str_repeat("\x00", $this->_BIG_BLOCK_SIZE - ($raList[$i]->Size % $this->_BIG_BLOCK_SIZE)));
-					}
-					// Set For PPS
-					$raList[$i]->_StartBlock = $iStBlk;
-					$iStBlk +=
-							(floor($raList[$i]->Size / $this->_BIG_BLOCK_SIZE) +
-								(($raList[$i]->Size % $this->_BIG_BLOCK_SIZE)? 1: 0));
-				}
-				// Close file for each PPS, and unlink it
-				//if (isset($raList[$i]->_PPS_FILE)) {
-				//	fclose($raList[$i]->_PPS_FILE);
-				//	$raList[$i]->_PPS_FILE = null;
-				//	unlink($raList[$i]->_tmp_filename);
-				//}
-			}
-		}
-	}
-
-	/**
 	* get small data (PPS's with data smaller than PHPExcel_Shared_OLE::OLE_DATA_SIZE_SMALL)
 	*
 	* @access public
@@ -353,6 +305,52 @@ class PHPExcel_Shared_OLE_PPS_Root extends PHPExcel_Shared_OLE_PPS
 			}
 		}
 		return $sRes;
+	}
+
+	/**
+	 * Saving big data (PPS's with data bigger than PHPExcel_Shared_OLE::OLE_DATA_SIZE_SMALL)
+	 *
+	 * @access public
+	 *
+	 * @param integer $iStBlk
+	 * @param array &$raList Reference to array of PPS's
+	 */
+	public function _saveBigData( $iStBlk, &$raList ) {
+		$FILE = $this->_FILEH_;
+
+		// cycle through PPS's
+		$iCount = count( $raList );
+		for ( $i = 0; $i < $iCount; ++ $i ) {
+			if ( $raList[ $i ]->Type != PHPExcel_Shared_OLE::OLE_PPS_TYPE_DIR ) {
+				$raList[ $i ]->Size = $raList[ $i ]->_DataLen();
+				if ( ( $raList[ $i ]->Size >= PHPExcel_Shared_OLE::OLE_DATA_SIZE_SMALL ) || ( ( $raList[ $i ]->Type == PHPExcel_Shared_OLE::OLE_PPS_TYPE_ROOT ) && isset( $raList[ $i ]->_data ) ) ) {
+					// Write Data
+					//if (isset($raList[$i]->_PPS_FILE)) {
+					//	$iLen = 0;
+					//	fseek($raList[$i]->_PPS_FILE, 0); // To The Top
+					//	while($sBuff = fread($raList[$i]->_PPS_FILE, 4096)) {
+					//		$iLen += strlen($sBuff);
+					//		fwrite($FILE, $sBuff);
+					//	}
+					//} else {
+					fwrite( $FILE, $raList[ $i ]->_data );
+					//}
+
+					if ( $raList[ $i ]->Size % $this->_BIG_BLOCK_SIZE ) {
+						fwrite( $FILE, str_repeat( "\x00", $this->_BIG_BLOCK_SIZE - ( $raList[ $i ]->Size % $this->_BIG_BLOCK_SIZE ) ) );
+					}
+					// Set For PPS
+					$raList[ $i ]->_StartBlock = $iStBlk;
+					$iStBlk                    += ( floor( $raList[ $i ]->Size / $this->_BIG_BLOCK_SIZE ) + ( ( $raList[ $i ]->Size % $this->_BIG_BLOCK_SIZE ) ? 1 : 0 ) );
+				}
+				// Close file for each PPS, and unlink it
+				//if (isset($raList[$i]->_PPS_FILE)) {
+				//	fclose($raList[$i]->_PPS_FILE);
+				//	$raList[$i]->_PPS_FILE = null;
+				//	unlink($raList[$i]->_tmp_filename);
+				//}
+			}
+		}
 	}
 
 	/**

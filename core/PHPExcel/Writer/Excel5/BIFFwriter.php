@@ -131,37 +131,6 @@ class PHPExcel_Writer_Excel5_BIFFwriter
 	}
 
 	/**
-	 * General storage function
-	 *
-	 * @param string $data binary data to append
-	 * @access private
-	 */
-	function _append($data)
-	{
-		if (strlen($data) - 4 > $this->_limit) {
-			$data = $this->_addContinue($data);
-		}
-		$this->_data		.= $data;
-		$this->_datasize	+= strlen($data);
-	}
-
-	/**
-	 * General storage function like _append, but returns string instead of modifying $this->_data
-	 *
-	 * @param string $data binary data to write
-	 * @return string
-	 */
-	public function writeData($data)
-	{
-		if (strlen($data) - 4 > $this->_limit) {
-			$data = $this->_addContinue($data);
-		}
-		$this->_datasize += strlen($data);
-
-		return $data;
-	}
-
-	/**
 	 * Writes Excel BOF record to indicate the beginning of a stream or
 	 * sub-stream in the BIFF file.
 	 *
@@ -188,30 +157,18 @@ class PHPExcel_Writer_Excel5_BIFFwriter
 	}
 
 	/**
-	 * Writes Excel EOF record to indicate the end of a BIFF stream.
+	 * General storage function
+	 *
+	 * @param string $data binary data to append
 	 *
 	 * @access private
 	 */
-	function _storeEof()
-	{
-		$record    = 0x000A;   // Record identifier
-		$length    = 0x0000;   // Number of bytes to follow
-
-		$header    = pack("vv", $record, $length);
-		$this->_append($header);
-	}
-
-	/**
-	 * Writes Excel EOF record to indicate the end of a BIFF stream.
-	 *
-	 * @access private
-	 */
-	public function writeEof()
-	{
-		$record    = 0x000A;   // Record identifier
-		$length    = 0x0000;   // Number of bytes to follow
-		$header    = pack("vv", $record, $length);
-		return $this->writeData($header);
+	function _append( $data) {
+		if ( strlen( $data ) - 4 > $this->_limit ) {
+			$data = $this->_addContinue( $data );
+		}
+		$this->_data     .= $data;
+		$this->_datasize += strlen( $data);
 	}
 
 	/**
@@ -250,6 +207,48 @@ class PHPExcel_Writer_Excel5_BIFFwriter
 		$tmp    .= substr($data, $i, strlen($data) - $i);
 
 		return $tmp;
+	}
+
+	/**
+	 * Writes Excel EOF record to indicate the end of a BIFF stream.
+	 *
+	 * @access private
+	 */
+	function _storeEof() {
+		$record = 0x000A;   // Record identifier
+		$length = 0x0000;   // Number of bytes to follow
+
+		$header = pack( "vv", $record, $length );
+		$this->_append( $header );
+	}
+
+	/**
+	 * Writes Excel EOF record to indicate the end of a BIFF stream.
+	 *
+	 * @access private
+	 */
+	public function writeEof() {
+		$record = 0x000A;   // Record identifier
+		$length = 0x0000;   // Number of bytes to follow
+		$header = pack( "vv", $record, $length );
+
+		return $this->writeData( $header );
+	}
+
+	/**
+	 * General storage function like _append, but returns string instead of modifying $this->_data
+	 *
+	 * @param string $data binary data to write
+	 *
+	 * @return string
+	 */
+	public function writeData( $data ) {
+		if ( strlen( $data ) - 4 > $this->_limit ) {
+			$data = $this->_addContinue( $data );
+		}
+		$this->_datasize += strlen( $data );
+
+		return $data;
 	}
 
 }

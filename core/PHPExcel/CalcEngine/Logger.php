@@ -78,15 +78,6 @@ class PHPExcel_CalcEngine_Logger {
 	}
 
 	/**
-	 * Enable/Disable Calculation engine logging
-	 *
-	 * @param  boolean $pValue
-	 */
-	public function setWriteDebugLog($pValue = FALSE) {
-		$this->_writeDebugLog = $pValue;
-	}
-
-	/**
 	 * Return whether calculation engine logging is enabled or disabled
 	 *
 	 * @return  boolean
@@ -96,12 +87,12 @@ class PHPExcel_CalcEngine_Logger {
 	}
 
 	/**
-	 * Enable/Disable echoing of debug log information
+	 * Enable/Disable Calculation engine logging
 	 *
 	 * @param  boolean $pValue
 	 */
-	public function setEchoDebugLog($pValue = FALSE) {
-		$this->_echoDebugLog = $pValue;
+	public function setWriteDebugLog( $pValue = false ) {
+		$this->_writeDebugLog = $pValue;
 	}
 
 	/**
@@ -111,6 +102,15 @@ class PHPExcel_CalcEngine_Logger {
 	 */
 	public function getEchoDebugLog() {
 		return $this->_echoDebugLog;
+	}
+
+	/**
+	 * Enable/Disable echoing of debug log information
+	 *
+	 * @param  boolean $pValue
+	 */
+	public function setEchoDebugLog( $pValue = false ) {
+		$this->_echoDebugLog = $pValue;
 	}
 
 	/**

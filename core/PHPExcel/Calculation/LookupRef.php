@@ -645,108 +645,6 @@ class PHPExcel_Calculation_LookupRef {
 		return $arrayValues[$rowNum][$columnNum];
 	}	//	function INDEX()
 
-
-	/**
-	 * TRANSPOSE
-	 *
-	 * @param	array	$matrixData	A matrix of values
-	 * @return	array
-	 *
-	 * Unlike the Excel TRANSPOSE function, which will only work on a single row or column, this function will transpose a full matrix.
-	 */
-	public static function TRANSPOSE($matrixData) {
-		$returnMatrix = array();
-		if (!is_array($matrixData)) { $matrixData = array(array($matrixData)); }
-
-		$column = 0;
-		foreach($matrixData as $matrixRow) {
-			$row = 0;
-			foreach($matrixRow as $matrixCell) {
-				$returnMatrix[$row][$column] = $matrixCell;
-				++$row;
-			}
-			++$column;
-		}
-		return $returnMatrix;
-	}	//	function TRANSPOSE()
-
-
-	private static function _vlookupSort($a,$b) {
-		$f = array_keys($a);
-		$firstColumn = array_shift($f);
-		if (strtolower($a[$firstColumn]) == strtolower($b[$firstColumn])) {
-			return 0;
-		}
-		return (strtolower($a[$firstColumn]) < strtolower($b[$firstColumn])) ? -1 : 1;
-	}	//	function _vlookupSort()
-
-
-	/**
-	* VLOOKUP
-	* The VLOOKUP function searches for value in the left-most column of lookup_array and returns the value in the same row based on the index_number.
-	* @param	lookup_value	The value that you want to match in lookup_array
-	* @param	lookup_array	The range of cells being searched
-	* @param	index_number	The column number in table_array from which the matching value must be returned. The first column is 1.
-	* @param	not_exact_match	Determines if you are looking for an exact match based on lookup_value.
-	* @return	mixed			The value of the found cell
-	*/
-	public static function VLOOKUP($lookup_value, $lookup_array, $index_number, $not_exact_match=true) {
-		$lookup_value	= PHPExcel_Calculation_Functions::flattenSingleValue($lookup_value);
-		$index_number	= PHPExcel_Calculation_Functions::flattenSingleValue($index_number);
-		$not_exact_match	= PHPExcel_Calculation_Functions::flattenSingleValue($not_exact_match);
-
-		// index_number must be greater than or equal to 1
-		if ($index_number < 1) {
-			return PHPExcel_Calculation_Functions::VALUE();
-		}
-
-		// index_number must be less than or equal to the number of columns in lookup_array
-		if ((!is_array($lookup_array)) || (empty($lookup_array))) {
-			return PHPExcel_Calculation_Functions::REF();
-		} else {
-			$f = array_keys($lookup_array);
-			$firstRow = array_pop($f);
-			if ((!is_array($lookup_array[$firstRow])) || ($index_number > count($lookup_array[$firstRow]))) {
-				return PHPExcel_Calculation_Functions::REF();
-			} else {
-				$columnKeys = array_keys($lookup_array[$firstRow]);
-				$returnColumn = $columnKeys[--$index_number];
-				$firstColumn = array_shift($columnKeys);
-			}
-		}
-
-		if (!$not_exact_match) {
-			uasort($lookup_array,array('self','_vlookupSort'));
-		}
-
-		$rowNumber = $rowValue = False;
-		foreach($lookup_array as $rowKey => $rowData) {
-			if ((is_numeric($lookup_value) && is_numeric($rowData[$firstColumn]) && ($rowData[$firstColumn] > $lookup_value)) ||
-				(!is_numeric($lookup_value) && !is_numeric($rowData[$firstColumn]) && (strtolower($rowData[$firstColumn]) > strtolower($lookup_value)))) {
-				break;
-			}
-			$rowNumber = $rowKey;
-			$rowValue = $rowData[$firstColumn];
-		}
-
-		if ($rowNumber !== false) {
-			if ((!$not_exact_match) && ($rowValue != $lookup_value)) {
-				//	if an exact match is required, we have what we need to return an appropriate response
-				return PHPExcel_Calculation_Functions::NA();
-			} else {
-				//	otherwise return the appropriate value
-				$result = $lookup_array[$rowNumber][$returnColumn];
-				if ((is_numeric($lookup_value) && is_numeric($result)) ||
-					(!is_numeric($lookup_value) && !is_numeric($result))) {
-					return $result;
-				}
-			}
-		}
-
-		return PHPExcel_Calculation_Functions::NA();
-	}	//	function VLOOKUP()
-
-
 /**
     * HLOOKUP
     * The HLOOKUP function searches for value in the top-most row of lookup_array and returns the value in the same column based on the index_number.
@@ -808,15 +706,16 @@ class PHPExcel_Calculation_LookupRef {
         }
 
         return PHPExcel_Calculation_Functions::NA();
-    }   //  function HLOOKUP()
-
+    }    //	function TRANSPOSE()
 
 	/**
 	 * LOOKUP
 	 * The LOOKUP function searches for value either from a one-row or one-column range or from an array.
+	 *
 	 * @param	lookup_value	The value that you want to match in lookup_array
 	 * @param	lookup_vector	The range of cells being searched
 	 * @param	result_vector	The column from which the matching value must be returned
+	 *
 	 * @return	mixed			The value of the found cell
 	 */
 	public static function LOOKUP($lookup_value, $lookup_vector, $result_vector=null) {
@@ -875,7 +774,110 @@ class PHPExcel_Calculation_LookupRef {
 			unset($value);
 		}
 
-		return self::VLOOKUP($lookup_value,$lookup_vector,2);
- 	}	//	function LOOKUP()
+		return self::VLOOKUP($lookup_value,$lookup_vector, 2 );
+	}    //	function _vlookupSort()
+
+	/**
+	 * TRANSPOSE
+	 *
+	 * @param    array $matrixData A matrix of values
+	 *
+	 * @return    array
+	 *
+	 * Unlike the Excel TRANSPOSE function, which will only work on a single row or column, this function will transpose a full matrix.
+	 */
+	public static function TRANSPOSE( $matrixData ) {
+		$returnMatrix = array();
+		if ( ! is_array( $matrixData ) ) {
+			$matrixData = array( array( $matrixData ) );
+		}
+
+		$column = 0;
+		foreach ( $matrixData as $matrixRow ) {
+			$row = 0;
+			foreach ( $matrixRow as $matrixCell ) {
+				$returnMatrix[ $row ][ $column ] = $matrixCell;
+				++ $row;
+			}
+			++ $column;
+		}
+
+		return $returnMatrix;
+	}    //	function VLOOKUP()
+
+	/**
+	 * VLOOKUP
+	 * The VLOOKUP function searches for value in the left-most column of lookup_array and returns the value in the same row based on the index_number.
+	 *
+	 * @param    lookup_value    The value that you want to match in lookup_array
+	 * @param    lookup_array    The range of cells being searched
+	 * @param    index_number    The column number in table_array from which the matching value must be returned. The first column is 1.
+	 * @param    not_exact_match    Determines if you are looking for an exact match based on lookup_value.
+	 *
+	 * @return    mixed            The value of the found cell
+	 */
+	public static function VLOOKUP( $lookup_value, $lookup_array, $index_number, $not_exact_match = true ) {
+		$lookup_value    = PHPExcel_Calculation_Functions::flattenSingleValue( $lookup_value );
+		$index_number    = PHPExcel_Calculation_Functions::flattenSingleValue( $index_number );
+		$not_exact_match = PHPExcel_Calculation_Functions::flattenSingleValue( $not_exact_match );
+
+		// index_number must be greater than or equal to 1
+		if ( $index_number < 1 ) {
+			return PHPExcel_Calculation_Functions::VALUE();
+		}
+
+		// index_number must be less than or equal to the number of columns in lookup_array
+		if ( ( ! is_array( $lookup_array ) ) || ( empty( $lookup_array ) ) ) {
+			return PHPExcel_Calculation_Functions::REF();
+		} else {
+			$f        = array_keys( $lookup_array );
+			$firstRow = array_pop( $f );
+			if ( ( ! is_array( $lookup_array[ $firstRow ] ) ) || ( $index_number > count( $lookup_array[ $firstRow ] ) ) ) {
+				return PHPExcel_Calculation_Functions::REF();
+			} else {
+				$columnKeys   = array_keys( $lookup_array[ $firstRow ] );
+				$returnColumn = $columnKeys[ -- $index_number ];
+				$firstColumn  = array_shift( $columnKeys );
+			}
+		}
+
+		if ( ! $not_exact_match ) {
+			uasort( $lookup_array, array( 'self', '_vlookupSort' ) );
+		}
+
+		$rowNumber = $rowValue = false;
+		foreach ( $lookup_array as $rowKey => $rowData ) {
+			if ( ( is_numeric( $lookup_value ) && is_numeric( $rowData[ $firstColumn ] ) && ( $rowData[ $firstColumn ] > $lookup_value ) ) || ( ! is_numeric( $lookup_value ) && ! is_numeric( $rowData[ $firstColumn ] ) && ( strtolower( $rowData[ $firstColumn ] ) > strtolower( $lookup_value ) ) ) ) {
+				break;
+			}
+			$rowNumber = $rowKey;
+			$rowValue  = $rowData[ $firstColumn ];
+		}
+
+		if ( $rowNumber !== false ) {
+			if ( ( ! $not_exact_match ) && ( $rowValue != $lookup_value ) ) {
+				//	if an exact match is required, we have what we need to return an appropriate response
+				return PHPExcel_Calculation_Functions::NA();
+			} else {
+				//	otherwise return the appropriate value
+				$result = $lookup_array[ $rowNumber ][ $returnColumn ];
+				if ( ( is_numeric( $lookup_value ) && is_numeric( $result ) ) || ( ! is_numeric( $lookup_value ) && ! is_numeric( $result ) ) ) {
+					return $result;
+				}
+			}
+		}
+
+		return PHPExcel_Calculation_Functions::NA();
+	}   //  function HLOOKUP()
+
+	private static function _vlookupSort( $a, $b ) {
+		$f           = array_keys( $a );
+		$firstColumn = array_shift( $f );
+		if ( strtolower( $a[ $firstColumn ] ) == strtolower( $b[ $firstColumn ] ) ) {
+			return 0;
+		}
+
+		return ( strtolower( $a[ $firstColumn ] ) < strtolower( $b[ $firstColumn ] ) ) ? - 1 : 1;
+	}    //	function LOOKUP()
 
 }	//	class PHPExcel_Calculation_LookupRef

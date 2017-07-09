@@ -261,6 +261,15 @@ class PHPExcel_Comment implements PHPExcel_IComparable
         return $this->_fillColor;
     }
 
+	/**
+	 * Get Alignment
+	 *
+	 * @return string
+	 */
+	public function getAlignment() {
+		return $this->_alignment;
+	}
+
     /**
      * Set Alignment
      *
@@ -270,15 +279,6 @@ class PHPExcel_Comment implements PHPExcel_IComparable
     public function setAlignment($pValue = PHPExcel_Style_Alignment::HORIZONTAL_GENERAL) {
         $this->_alignment = $pValue;
         return $this;
-    }
-
-    /**
-     * Get Alignment
-     *
-     * @return string
-     */
-    public function getAlignment() {
-        return $this->_alignment;
     }
 
     /**

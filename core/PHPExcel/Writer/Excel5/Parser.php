@@ -506,294 +506,6 @@ class PHPExcel_Writer_Excel5_Parser
 	}
 
 	/**
-	 * Convert a token to the proper ptg value.
-	 *
-	 * @access private
-	 * @param mixed $token The token to convert.
-	 * @return mixed the converted token on success
-	 */
-	function _convert($token)
-	{
-		if (preg_match("/\"([^\"]|\"\"){0,255}\"/", $token)) {
-			return $this->_convertString($token);
-
-		} elseif (is_numeric($token)) {
-			return $this->_convertNumber($token);
-
-		// match references like A1 or $A$1
-		} elseif (preg_match('/^\$?([A-Ia-i]?[A-Za-z])\$?(\d+)$/',$token)) {
-			return $this->_convertRef2d($token);
-
-		// match external references like Sheet1!A1 or Sheet1:Sheet2!A1 or Sheet1!$A$1 or Sheet1:Sheet2!$A$1
-		} elseif (preg_match("/^" . self::REGEX_SHEET_TITLE_UNQUOTED . "(\:" . self::REGEX_SHEET_TITLE_UNQUOTED . ")?\!\\$?[A-Ia-i]?[A-Za-z]\\$?(\d+)$/u",$token)) {
-			return $this->_convertRef3d($token);
-
-		// match external references like 'Sheet1'!A1 or 'Sheet1:Sheet2'!A1 or 'Sheet1'!$A$1 or 'Sheet1:Sheet2'!$A$1
-		} elseif (preg_match("/^'" . self::REGEX_SHEET_TITLE_QUOTED . "(\:" . self::REGEX_SHEET_TITLE_QUOTED . ")?'\!\\$?[A-Ia-i]?[A-Za-z]\\$?(\d+)$/u",$token)) {
-			return $this->_convertRef3d($token);
-
-		// match ranges like A1:B2 or $A$1:$B$2
-		} elseif (preg_match('/^(\$)?[A-Ia-i]?[A-Za-z](\$)?(\d+)\:(\$)?[A-Ia-i]?[A-Za-z](\$)?(\d+)$/', $token)) {
-			return $this->_convertRange2d($token);
-
-		// match external ranges like Sheet1!A1:B2 or Sheet1:Sheet2!A1:B2 or Sheet1!$A$1:$B$2 or Sheet1:Sheet2!$A$1:$B$2
-		} elseif (preg_match("/^" . self::REGEX_SHEET_TITLE_UNQUOTED . "(\:" . self::REGEX_SHEET_TITLE_UNQUOTED . ")?\!\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)\:\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)$/u",$token)) {
-			return $this->_convertRange3d($token);
-
-		// match external ranges like 'Sheet1'!A1:B2 or 'Sheet1:Sheet2'!A1:B2 or 'Sheet1'!$A$1:$B$2 or 'Sheet1:Sheet2'!$A$1:$B$2
-		} elseif (preg_match("/^'" . self::REGEX_SHEET_TITLE_QUOTED . "(\:" . self::REGEX_SHEET_TITLE_QUOTED . ")?'\!\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)\:\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)$/u",$token)) {
-			return $this->_convertRange3d($token);
-
-		// operators (including parentheses)
-		} elseif (isset($this->ptg[$token])) {
-			return pack("C", $this->ptg[$token]);
-
-        // match error codes
-		} elseif (preg_match("/^#[A-Z0\/]{3,5}[!?]{1}$/", $token) or $token == '#N/A') {
-		    return $this->_convertError($token);
-
-		// commented so argument number can be processed correctly. See toReversePolish().
-		/*elseif (preg_match("/[A-Z0-9\xc0-\xdc\.]+/",$token))
-		{
-			return($this->_convertFunction($token,$this->_func_args));
-		}*/
-
-		// if it's an argument, ignore the token (the argument remains)
-		} elseif ($token == 'arg') {
-			return '';
-		}
-
-		// TODO: use real error codes
-		throw new PHPExcel_Writer_Exception("Unknown token $token");
-	}
-
-	/**
-	 * Convert a number token to ptgInt or ptgNum
-	 *
-	 * @access private
-	 * @param mixed $num an integer or double for conversion to its ptg value
-	 */
-	function _convertNumber($num)
-	{
-		// Integer in the range 0..2**16-1
-		if ((preg_match("/^\d+$/", $num)) and ($num <= 65535)) {
-			return pack("Cv", $this->ptg['ptgInt'], $num);
-		} else { // A float
-			if (PHPExcel_Writer_Excel5_BIFFwriter::getByteOrder()) { // if it's Big Endian
-				$num = strrev($num);
-			}
-			return pack("Cd", $this->ptg['ptgNum'], $num);
-		}
-	}
-
-	/**
-	 * Convert a string token to ptgStr
-	 *
-	 * @access private
-	 * @param string $string A string for conversion to its ptg value.
-	 * @return mixed the converted token on success
-	 */
-	function _convertString($string)
-	{
-		// chop away beggining and ending quotes
-		$string = substr($string, 1, strlen($string) - 2);
-		if (strlen($string) > 255) {
-			throw new PHPExcel_Writer_Exception("String is too long");
-		}
-
-		return pack('C', $this->ptg['ptgStr']) . PHPExcel_Shared_String::UTF8toBIFF8UnicodeShort($string);
-	}
-
-	/**
-	 * Convert a function to a ptgFunc or ptgFuncVarV depending on the number of
-	 * args that it takes.
-	 *
-	 * @access private
-	 * @param string  $token    The name of the function for convertion to ptg value.
-	 * @param integer $num_args The number of arguments the function receives.
-	 * @return string The packed ptg for the function
-	 */
-	function _convertFunction($token, $num_args)
-	{
-		$args     = $this->_functions[$token][1];
-//		$volatile = $this->_functions[$token][3];
-
-		// Fixed number of args eg. TIME($i,$j,$k).
-		if ($args >= 0) {
-			return pack("Cv", $this->ptg['ptgFuncV'], $this->_functions[$token][0]);
-		}
-		// Variable number of args eg. SUM($i,$j,$k, ..).
-		if ($args == -1) {
-			return pack("CCv", $this->ptg['ptgFuncVarV'], $num_args, $this->_functions[$token][0]);
-		}
-	}
-
-	/**
-	 * Convert an Excel range such as A1:D4 to a ptgRefV.
-	 *
-	 * @access private
-	 * @param string	$range	An Excel range in the A1:A2
-	 * @param int		$class
-	 */
-	function _convertRange2d($range, $class=0)
-	{
-
-		// TODO: possible class value 0,1,2 check Formula.pm
-		// Split the range into 2 cell refs
-		if (preg_match('/^(\$)?([A-Ia-i]?[A-Za-z])(\$)?(\d+)\:(\$)?([A-Ia-i]?[A-Za-z])(\$)?(\d+)$/', $range)) {
-			list($cell1, $cell2) = explode(':', $range);
-		} else {
-			// TODO: use real error codes
-			throw new PHPExcel_Writer_Exception("Unknown range separator");
-		}
-
-		// Convert the cell references
-		list($row1, $col1) = $this->_cellToPackedRowcol($cell1);
-		list($row2, $col2) = $this->_cellToPackedRowcol($cell2);
-
-		// The ptg value depends on the class of the ptg.
-		if ($class == 0) {
-			$ptgArea = pack("C", $this->ptg['ptgArea']);
-		} elseif ($class == 1) {
-			$ptgArea = pack("C", $this->ptg['ptgAreaV']);
-		} elseif ($class == 2) {
-			$ptgArea = pack("C", $this->ptg['ptgAreaA']);
-		} else {
-			// TODO: use real error codes
-			throw new PHPExcel_Writer_Exception("Unknown class $class");
-		}
-		return $ptgArea . $row1 . $row2 . $col1. $col2;
-	}
-
-	/**
-	 * Convert an Excel 3d range such as "Sheet1!A1:D4" or "Sheet1:Sheet2!A1:D4" to
-	 * a ptgArea3d.
-	 *
-	 * @access private
-	 * @param string $token An Excel range in the Sheet1!A1:A2 format.
-	 * @return mixed The packed ptgArea3d token on success.
-	 */
-	function _convertRange3d($token)
-	{
-//		$class = 0; // formulas like Sheet1!$A$1:$A$2 in list type data validation need this class (0x3B)
-
-		// Split the ref at the ! symbol
-		list($ext_ref, $range) = explode('!', $token);
-
-		// Convert the external reference part (different for BIFF8)
-		$ext_ref = $this->_getRefIndex($ext_ref);
-
-		// Split the range into 2 cell refs
-		list($cell1, $cell2) = explode(':', $range);
-
-		// Convert the cell references
-		if (preg_match("/^(\\$)?[A-Ia-i]?[A-Za-z](\\$)?(\d+)$/", $cell1)) {
-			list($row1, $col1) = $this->_cellToPackedRowcol($cell1);
-			list($row2, $col2) = $this->_cellToPackedRowcol($cell2);
-		} else { // It's a rows range (like 26:27)
-			 list($row1, $col1, $row2, $col2) = $this->_rangeToPackedRange($cell1.':'.$cell2);
-		}
-
-		// The ptg value depends on the class of the ptg.
-//		if ($class == 0) {
-			$ptgArea = pack("C", $this->ptg['ptgArea3d']);
-//		} elseif ($class == 1) {
-//			$ptgArea = pack("C", $this->ptg['ptgArea3dV']);
-//		} elseif ($class == 2) {
-//			$ptgArea = pack("C", $this->ptg['ptgArea3dA']);
-//		} else {
-//			throw new PHPExcel_Writer_Exception("Unknown class $class");
-//		}
-
-		return $ptgArea . $ext_ref . $row1 . $row2 . $col1. $col2;
-	}
-
-	/**
-	 * Convert an Excel reference such as A1, $B2, C$3 or $D$4 to a ptgRefV.
-	 *
-	 * @access private
-	 * @param string $cell An Excel cell reference
-	 * @return string The cell in packed() format with the corresponding ptg
-	 */
-	function _convertRef2d($cell)
-	{
-//		$class = 2; // as far as I know, this is magick.
-
-		// Convert the cell reference
-		$cell_array = $this->_cellToPackedRowcol($cell);
-		list($row, $col) = $cell_array;
-
-		// The ptg value depends on the class of the ptg.
-//		if ($class == 0) {
-//			$ptgRef = pack("C", $this->ptg['ptgRef']);
-//		} elseif ($class == 1) {
-//			$ptgRef = pack("C", $this->ptg['ptgRefV']);
-//		} elseif ($class == 2) {
-			$ptgRef = pack("C", $this->ptg['ptgRefA']);
-//		} else {
-//			// TODO: use real error codes
-//			throw new PHPExcel_Writer_Exception("Unknown class $class");
-//		}
-		return $ptgRef.$row.$col;
-	}
-
-	/**
-	 * Convert an Excel 3d reference such as "Sheet1!A1" or "Sheet1:Sheet2!A1" to a
-	 * ptgRef3d.
-	 *
-	 * @access private
-	 * @param string $cell An Excel cell reference
-	 * @return mixed The packed ptgRef3d token on success.
-	 */
-	function _convertRef3d($cell)
-	{
-//		$class = 2; // as far as I know, this is magick.
-
-		// Split the ref at the ! symbol
-		list($ext_ref, $cell) = explode('!', $cell);
-
-		// Convert the external reference part (different for BIFF8)
-		$ext_ref = $this->_getRefIndex($ext_ref);
-
-		// Convert the cell reference part
-		list($row, $col) = $this->_cellToPackedRowcol($cell);
-
-		// The ptg value depends on the class of the ptg.
-//		if ($class == 0) {
-//			$ptgRef = pack("C", $this->ptg['ptgRef3d']);
-//		} elseif ($class == 1) {
-//			$ptgRef = pack("C", $this->ptg['ptgRef3dV']);
-//		} elseif ($class == 2) {
-			$ptgRef = pack("C", $this->ptg['ptgRef3dA']);
-//		} else {
-//			throw new PHPExcel_Writer_Exception("Unknown class $class");
-//		}
-
-		return $ptgRef . $ext_ref. $row . $col;
-	}
-
-    /**
-     * Convert an error code to a ptgErr
-     *
-     * @access	private
-	 * @param	string	$errorCode	The error code for conversion to its ptg value
-     * @return	string				The error code ptgErr
-     */
-    function _convertError($errorCode)
-    {
-		switch ($errorCode) {
-			case '#NULL!':	return pack("C", 0x00);
-			case '#DIV/0!':	return pack("C", 0x07);
-			case '#VALUE!':	return pack("C", 0x0F);
-			case '#REF!':	return pack("C", 0x17);
-			case '#NAME?':	return pack("C", 0x1D);
-			case '#NUM!':	return pack("C", 0x24);
-			case '#N/A':	return pack("C", 0x2A);
-		}
-		return pack("C", 0xFF);
-    }
-
-	/**
 	 * Convert the sheet name part of an external reference, for example "Sheet1" or
 	 * "Sheet1:Sheet2", to a packed structure.
 	 *
@@ -838,66 +550,6 @@ class PHPExcel_Writer_Excel5_Parser
 	}
 
 	/**
-	 * Look up the REF index that corresponds to an external sheet name
-	 * (or range). If it doesn't exist yet add it to the workbook's references
-	 * array. It assumes all sheet names given must exist.
-	 *
-	 * @access private
-	 * @param string $ext_ref The name of the external reference
-	 * @return mixed The reference index in packed() format on success
-	 */
-	function _getRefIndex($ext_ref)
-	{
-		$ext_ref = preg_replace("/^'/", '', $ext_ref); // Remove leading  ' if any.
-		$ext_ref = preg_replace("/'$/", '', $ext_ref); // Remove trailing ' if any.
-		$ext_ref = str_replace('\'\'', '\'', $ext_ref); // Replace escaped '' with '
-
-		// Check if there is a sheet range eg., Sheet1:Sheet2.
-		if (preg_match("/:/", $ext_ref)) {
-			list($sheet_name1, $sheet_name2) = explode(':', $ext_ref);
-
-			$sheet1 = $this->_getSheetIndex($sheet_name1);
-			if ($sheet1 == -1) {
-				throw new PHPExcel_Writer_Exception("Unknown sheet name $sheet_name1 in formula");
-			}
-			$sheet2 = $this->_getSheetIndex($sheet_name2);
-			if ($sheet2 == -1) {
-				throw new PHPExcel_Writer_Exception("Unknown sheet name $sheet_name2 in formula");
-			}
-
-			// Reverse max and min sheet numbers if necessary
-			if ($sheet1 > $sheet2) {
-				list($sheet1, $sheet2) = array($sheet2, $sheet1);
-			}
-		} else { // Single sheet name only.
-			$sheet1 = $this->_getSheetIndex($ext_ref);
-			if ($sheet1 == -1) {
-				throw new PHPExcel_Writer_Exception("Unknown sheet name $ext_ref in formula");
-			}
-			$sheet2 = $sheet1;
-		}
-
-		// assume all references belong to this document
-		$supbook_index = 0x00;
-		$ref = pack('vvv', $supbook_index, $sheet1, $sheet2);
-		$total_references = count($this->_references);
-		$index = -1;
-		for ($i = 0; $i < $total_references; ++$i) {
-			if ($ref == $this->_references[$i]) {
-				$index = $i;
-				break;
-			}
-		}
-		// if REF was not found add it to references array
-		if ($index == -1) {
-			$this->_references[$total_references] = $ref;
-			$index = $total_references;
-		}
-
-		return pack('v', $index);
-	}
-
-	/**
 	 * Look up the index that corresponds to an external sheet name. The hash of
 	 * sheet names is updated by the addworksheet() method of the
 	 * PHPExcel_Writer_Excel5_Workbook class.
@@ -931,105 +583,23 @@ class PHPExcel_Writer_Excel5_Parser
 	}
 
 	/**
-	 * pack() row and column into the required 3 or 4 byte format.
+	 * The parsing method. It parses a formula.
 	 *
-	 * @access private
-	 * @param string $cell The Excel cell reference to be packed
-	 * @return array Array containing the row and column in packed() format
-	 */
-	function _cellToPackedRowcol($cell)
-	{
-		$cell = strtoupper($cell);
-		list($row, $col, $row_rel, $col_rel) = $this->_cellToRowcol($cell);
-		if ($col >= 256) {
-			throw new PHPExcel_Writer_Exception("Column in: $cell greater than 255");
-		}
-		if ($row >= 65536) {
-			throw new PHPExcel_Writer_Exception("Row in: $cell greater than 65536 ");
-		}
-
-		// Set the high bits to indicate if row or col are relative.
-		$col |= $col_rel << 14;
-		$col |= $row_rel << 15;
-		$col = pack('v', $col);
-
-		$row = pack('v', $row);
-
-		return array($row, $col);
-	}
-
-	/**
-	 * pack() row range into the required 3 or 4 byte format.
-	 * Just using maximum col/rows, which is probably not the correct solution
+	 * @access public
 	 *
-	 * @access private
-	 * @param string $range The Excel range to be packed
-	 * @return array Array containing (row1,col1,row2,col2) in packed() format
-	 */
-	function _rangeToPackedRange($range)
-	{
-		preg_match('/(\$)?(\d+)\:(\$)?(\d+)/', $range, $match);
-		// return absolute rows if there is a $ in the ref
-		$row1_rel = empty($match[1]) ? 1 : 0;
-		$row1     = $match[2];
-		$row2_rel = empty($match[3]) ? 1 : 0;
-		$row2     = $match[4];
-		// Convert 1-index to zero-index
-		--$row1;
-		--$row2;
-		// Trick poor inocent Excel
-		$col1 = 0;
-		$col2 = 65535; // FIXME: maximum possible value for Excel 5 (change this!!!)
-
-		// FIXME: this changes for BIFF8
-		if (($row1 >= 65536) or ($row2 >= 65536)) {
-			throw new PHPExcel_Writer_Exception("Row in: $range greater than 65536 ");
-		}
-
-		// Set the high bits to indicate if rows are relative.
-		$col1 |= $row1_rel << 15;
-		$col2 |= $row2_rel << 15;
-		$col1 = pack('v', $col1);
-		$col2 = pack('v', $col2);
-
-		$row1 = pack('v', $row1);
-		$row2 = pack('v', $row2);
-
-		return array($row1, $col1, $row2, $col2);
-	}
-
-	/**
-	 * Convert an Excel cell reference such as A1 or $B2 or C$3 or $D$4 to a zero
-	 * indexed row and column number. Also returns two (0,1) values to indicate
-	 * whether the row or column are relative references.
+	 * @param string $formula The formula to parse, without the initial equal
+	 *                        sign (=).
 	 *
-	 * @access private
-	 * @param string $cell The Excel cell reference in A1 format.
-	 * @return array
+	 * @return mixed true on success
 	 */
-	function _cellToRowcol($cell)
-	{
-		preg_match('/(\$)?([A-I]?[A-Z])(\$)?(\d+)/',$cell,$match);
-		// return absolute column if there is a $ in the ref
-		$col_rel = empty($match[1]) ? 1 : 0;
-		$col_ref = $match[2];
-		$row_rel = empty($match[3]) ? 1 : 0;
-		$row     = $match[4];
+	function parse( $formula ) {
+		$this->_current_char = 0;
+		$this->_formula      = $formula;
+		$this->_lookahead    = isset( $formula{1} ) ? $formula{1} : '';
+		$this->_advance();
+		$this->_parse_tree = $this->_condition();
 
-		// Convert base26 column string to a number.
-		$expn   = strlen($col_ref) - 1;
-		$col    = 0;
-		$col_ref_length = strlen($col_ref);
-		for ($i = 0; $i < $col_ref_length; ++$i) {
-			$col += (ord($col_ref{$i}) - 64) * pow(26, $expn);
-			--$expn;
-		}
-
-		// Convert 1-index to zero-index
-		--$row;
-		--$col;
-
-		return array($row, $col, $row_rel, $col_rel);
+		return true;
 	}
 
 	/**
@@ -1194,24 +764,6 @@ class PHPExcel_Writer_Excel5_Parser
 	}
 
 	/**
-	 * The parsing method. It parses a formula.
-	 *
-	 * @access public
-	 * @param string $formula The formula to parse, without the initial equal
-	 *                        sign (=).
-	 * @return mixed true on success
-	 */
-	function parse($formula)
-	{
-		$this->_current_char = 0;
-		$this->_formula      = $formula;
-		$this->_lookahead    = isset($formula{1}) ? $formula{1} : '';
-		$this->_advance();
-		$this->_parse_tree   = $this->_condition();
-		return true;
-	}
-
-	/**
 	 * It parses a condition. It assumes the following rule:
 	 * Cond -> Expr [(">" | "<") Expr]
 	 *
@@ -1316,17 +868,19 @@ class PHPExcel_Writer_Excel5_Parser
 	}
 
 	/**
-	 * This function just introduces a ptgParen element in the tree, so that Excel
-	 * doesn't get confused when working with a parenthesized formula afterwards.
+	 * Creates a tree. In fact an array which may have one or two arrays (sub-trees)
+	 * as elements.
 	 *
 	 * @access private
-	 * @see _fact()
-	 * @return array The parsed ptg'd tree
+	 *
+	 * @param mixed $value The value of this node.
+	 * @param mixed $left The left array (sub-tree) or a final node.
+	 * @param mixed $right The right array (sub-tree) or a final node.
+	 *
+	 * @return array A tree
 	 */
-	function _parenthesizedExpression()
-	{
-		$result = $this->_createTree('ptgParen', $this->_expression(), '');
-		return $result;
+	function _createTree( $value, $left, $right ) {
+		return array( 'value' => $value, 'left' => $left, 'right' => $right);
 	}
 
 	/**
@@ -1444,7 +998,21 @@ class PHPExcel_Writer_Excel5_Parser
 		}
 		throw new PHPExcel_Writer_Exception("Syntax error: ".$this->_current_token.
 								 ", lookahead: ".$this->_lookahead.
-								 ", current char: ".$this->_current_char);
+								 ", current char: ".$this->_current_char );
+	}
+
+	/**
+	 * This function just introduces a ptgParen element in the tree, so that Excel
+	 * doesn't get confused when working with a parenthesized formula afterwards.
+	 *
+	 * @access private
+	 * @see _fact()
+	 * @return array The parsed ptg'd tree
+	 */
+	function _parenthesizedExpression() {
+		$result = $this->_createTree( 'ptgParen', $this->_expression(), '' );
+
+		return $result;
 	}
 
 	/**
@@ -1492,21 +1060,6 @@ class PHPExcel_Writer_Excel5_Parser
 		$result = $this->_createTree($function, $result, $num_args);
 		$this->_advance();         // eat the ")"
 		return $result;
-	}
-
-	/**
-	 * Creates a tree. In fact an array which may have one or two arrays (sub-trees)
-	 * as elements.
-	 *
-	 * @access private
-	 * @param mixed $value The value of this node.
-	 * @param mixed $left  The left array (sub-tree) or a final node.
-	 * @param mixed $right The right array (sub-tree) or a final node.
-	 * @return array A tree
-	 */
-	function _createTree($value, $left, $right)
-	{
-		return array('value' => $value, 'left' => $left, 'right' => $right);
 	}
 
 	/**
@@ -1577,6 +1130,477 @@ class PHPExcel_Writer_Excel5_Parser
 		}
 		$polish .= $converted_tree;
 		return $polish;
+	}
+
+	/**
+	 * Convert a token to the proper ptg value.
+	 *
+	 * @access private
+	 *
+	 * @param mixed $token The token to convert.
+	 *
+	 * @return mixed the converted token on success
+	 */
+	function _convert( $token ) {
+		if ( preg_match( "/\"([^\"]|\"\"){0,255}\"/", $token ) ) {
+			return $this->_convertString( $token );
+
+		} elseif ( is_numeric( $token ) ) {
+			return $this->_convertNumber( $token );
+
+			// match references like A1 or $A$1
+		} elseif ( preg_match( '/^\$?([A-Ia-i]?[A-Za-z])\$?(\d+)$/', $token ) ) {
+			return $this->_convertRef2d( $token );
+
+			// match external references like Sheet1!A1 or Sheet1:Sheet2!A1 or Sheet1!$A$1 or Sheet1:Sheet2!$A$1
+		} elseif ( preg_match( "/^" . self::REGEX_SHEET_TITLE_UNQUOTED . "(\:" . self::REGEX_SHEET_TITLE_UNQUOTED . ")?\!\\$?[A-Ia-i]?[A-Za-z]\\$?(\d+)$/u", $token ) ) {
+			return $this->_convertRef3d( $token );
+
+			// match external references like 'Sheet1'!A1 or 'Sheet1:Sheet2'!A1 or 'Sheet1'!$A$1 or 'Sheet1:Sheet2'!$A$1
+		} elseif ( preg_match( "/^'" . self::REGEX_SHEET_TITLE_QUOTED . "(\:" . self::REGEX_SHEET_TITLE_QUOTED . ")?'\!\\$?[A-Ia-i]?[A-Za-z]\\$?(\d+)$/u", $token ) ) {
+			return $this->_convertRef3d( $token );
+
+			// match ranges like A1:B2 or $A$1:$B$2
+		} elseif ( preg_match( '/^(\$)?[A-Ia-i]?[A-Za-z](\$)?(\d+)\:(\$)?[A-Ia-i]?[A-Za-z](\$)?(\d+)$/', $token ) ) {
+			return $this->_convertRange2d( $token );
+
+			// match external ranges like Sheet1!A1:B2 or Sheet1:Sheet2!A1:B2 or Sheet1!$A$1:$B$2 or Sheet1:Sheet2!$A$1:$B$2
+		} elseif ( preg_match( "/^" . self::REGEX_SHEET_TITLE_UNQUOTED . "(\:" . self::REGEX_SHEET_TITLE_UNQUOTED . ")?\!\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)\:\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)$/u", $token ) ) {
+			return $this->_convertRange3d( $token );
+
+			// match external ranges like 'Sheet1'!A1:B2 or 'Sheet1:Sheet2'!A1:B2 or 'Sheet1'!$A$1:$B$2 or 'Sheet1:Sheet2'!$A$1:$B$2
+		} elseif ( preg_match( "/^'" . self::REGEX_SHEET_TITLE_QUOTED . "(\:" . self::REGEX_SHEET_TITLE_QUOTED . ")?'\!\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)\:\\$?([A-Ia-i]?[A-Za-z])?\\$?(\d+)$/u", $token ) ) {
+			return $this->_convertRange3d( $token );
+
+			// operators (including parentheses)
+		} elseif ( isset( $this->ptg[ $token ] ) ) {
+			return pack( "C", $this->ptg[ $token ] );
+
+			// match error codes
+		} elseif ( preg_match( "/^#[A-Z0\/]{3,5}[!?]{1}$/", $token ) or $token == '#N/A' ) {
+			return $this->_convertError( $token );
+
+			// commented so argument number can be processed correctly. See toReversePolish().
+			/*elseif (preg_match("/[A-Z0-9\xc0-\xdc\.]+/",$token))
+			{
+				return($this->_convertFunction($token,$this->_func_args));
+			}*/
+
+			// if it's an argument, ignore the token (the argument remains)
+		} elseif ( $token == 'arg' ) {
+			return '';
+		}
+
+		// TODO: use real error codes
+		throw new PHPExcel_Writer_Exception( "Unknown token $token" );
+	}
+
+	/**
+	 * Convert a string token to ptgStr
+	 *
+	 * @access private
+	 *
+	 * @param string $string A string for conversion to its ptg value.
+	 *
+	 * @return mixed the converted token on success
+	 */
+	function _convertString( $string ) {
+		// chop away beggining and ending quotes
+		$string = substr( $string, 1, strlen( $string ) - 2 );
+		if ( strlen( $string ) > 255 ) {
+			throw new PHPExcel_Writer_Exception( "String is too long" );
+		}
+
+		return pack( 'C', $this->ptg['ptgStr'] ) . PHPExcel_Shared_String::UTF8toBIFF8UnicodeShort( $string );
+	}
+
+	/**
+	 * Convert a number token to ptgInt or ptgNum
+	 *
+	 * @access private
+	 *
+	 * @param mixed $num an integer or double for conversion to its ptg value
+	 */
+	function _convertNumber( $num ) {
+		// Integer in the range 0..2**16-1
+		if ( ( preg_match( "/^\d+$/", $num ) ) and ( $num <= 65535 ) ) {
+			return pack( "Cv", $this->ptg['ptgInt'], $num );
+		} else { // A float
+			if ( PHPExcel_Writer_Excel5_BIFFwriter::getByteOrder() ) { // if it's Big Endian
+				$num = strrev( $num );
+			}
+
+			return pack( "Cd", $this->ptg['ptgNum'], $num );
+		}
+	}
+
+	/**
+	 * Convert an Excel reference such as A1, $B2, C$3 or $D$4 to a ptgRefV.
+	 *
+	 * @access private
+	 *
+	 * @param string $cell An Excel cell reference
+	 *
+	 * @return string The cell in packed() format with the corresponding ptg
+	 */
+	function _convertRef2d( $cell ) {
+		//		$class = 2; // as far as I know, this is magick.
+
+		// Convert the cell reference
+		$cell_array = $this->_cellToPackedRowcol( $cell );
+		list( $row, $col ) = $cell_array;
+
+		// The ptg value depends on the class of the ptg.
+		//		if ($class == 0) {
+		//			$ptgRef = pack("C", $this->ptg['ptgRef']);
+		//		} elseif ($class == 1) {
+		//			$ptgRef = pack("C", $this->ptg['ptgRefV']);
+		//		} elseif ($class == 2) {
+		$ptgRef = pack( "C", $this->ptg['ptgRefA'] );
+		//		} else {
+		//			// TODO: use real error codes
+		//			throw new PHPExcel_Writer_Exception("Unknown class $class");
+		//		}
+		return $ptgRef . $row . $col;
+	}
+
+	/**
+	 * pack() row and column into the required 3 or 4 byte format.
+	 *
+	 * @access private
+	 *
+	 * @param string $cell The Excel cell reference to be packed
+	 *
+	 * @return array Array containing the row and column in packed() format
+	 */
+	function _cellToPackedRowcol( $cell ) {
+		$cell = strtoupper( $cell );
+		list( $row, $col, $row_rel, $col_rel ) = $this->_cellToRowcol( $cell );
+		if ( $col >= 256 ) {
+			throw new PHPExcel_Writer_Exception( "Column in: $cell greater than 255" );
+		}
+		if ( $row >= 65536 ) {
+			throw new PHPExcel_Writer_Exception( "Row in: $cell greater than 65536 " );
+		}
+
+		// Set the high bits to indicate if row or col are relative.
+		$col |= $col_rel << 14;
+		$col |= $row_rel << 15;
+		$col = pack( 'v', $col );
+
+		$row = pack( 'v', $row );
+
+		return array( $row, $col );
+	}
+
+	/**
+	 * Convert an Excel cell reference such as A1 or $B2 or C$3 or $D$4 to a zero
+	 * indexed row and column number. Also returns two (0,1) values to indicate
+	 * whether the row or column are relative references.
+	 *
+	 * @access private
+	 *
+	 * @param string $cell The Excel cell reference in A1 format.
+	 *
+	 * @return array
+	 */
+	function _cellToRowcol( $cell ) {
+		preg_match( '/(\$)?([A-I]?[A-Z])(\$)?(\d+)/', $cell, $match );
+		// return absolute column if there is a $ in the ref
+		$col_rel = empty( $match[1] ) ? 1 : 0;
+		$col_ref = $match[2];
+		$row_rel = empty( $match[3] ) ? 1 : 0;
+		$row     = $match[4];
+
+		// Convert base26 column string to a number.
+		$expn           = strlen( $col_ref ) - 1;
+		$col            = 0;
+		$col_ref_length = strlen( $col_ref );
+		for ( $i = 0; $i < $col_ref_length; ++ $i ) {
+			$col += ( ord( $col_ref{$i} ) - 64 ) * pow( 26, $expn );
+			-- $expn;
+		}
+
+		// Convert 1-index to zero-index
+		-- $row;
+		-- $col;
+
+		return array( $row, $col, $row_rel, $col_rel );
+	}
+
+	/**
+	 * Convert an Excel 3d reference such as "Sheet1!A1" or "Sheet1:Sheet2!A1" to a
+	 * ptgRef3d.
+	 *
+	 * @access private
+	 *
+	 * @param string $cell An Excel cell reference
+	 *
+	 * @return mixed The packed ptgRef3d token on success.
+	 */
+	function _convertRef3d( $cell ) {
+		//		$class = 2; // as far as I know, this is magick.
+
+		// Split the ref at the ! symbol
+		list( $ext_ref, $cell ) = explode( '!', $cell );
+
+		// Convert the external reference part (different for BIFF8)
+		$ext_ref = $this->_getRefIndex( $ext_ref );
+
+		// Convert the cell reference part
+		list( $row, $col ) = $this->_cellToPackedRowcol( $cell );
+
+		// The ptg value depends on the class of the ptg.
+		//		if ($class == 0) {
+		//			$ptgRef = pack("C", $this->ptg['ptgRef3d']);
+		//		} elseif ($class == 1) {
+		//			$ptgRef = pack("C", $this->ptg['ptgRef3dV']);
+		//		} elseif ($class == 2) {
+		$ptgRef = pack( "C", $this->ptg['ptgRef3dA'] );
+		//		} else {
+		//			throw new PHPExcel_Writer_Exception("Unknown class $class");
+		//		}
+
+		return $ptgRef . $ext_ref . $row . $col;
+	}
+
+	/**
+	 * Look up the REF index that corresponds to an external sheet name
+	 * (or range). If it doesn't exist yet add it to the workbook's references
+	 * array. It assumes all sheet names given must exist.
+	 *
+	 * @access private
+	 *
+	 * @param string $ext_ref The name of the external reference
+	 *
+	 * @return mixed The reference index in packed() format on success
+	 */
+	function _getRefIndex( $ext_ref ) {
+		$ext_ref = preg_replace( "/^'/", '', $ext_ref ); // Remove leading  ' if any.
+		$ext_ref = preg_replace( "/'$/", '', $ext_ref ); // Remove trailing ' if any.
+		$ext_ref = str_replace( '\'\'', '\'', $ext_ref ); // Replace escaped '' with '
+
+		// Check if there is a sheet range eg., Sheet1:Sheet2.
+		if ( preg_match( "/:/", $ext_ref ) ) {
+			list( $sheet_name1, $sheet_name2 ) = explode( ':', $ext_ref );
+
+			$sheet1 = $this->_getSheetIndex( $sheet_name1 );
+			if ( $sheet1 == - 1 ) {
+				throw new PHPExcel_Writer_Exception( "Unknown sheet name $sheet_name1 in formula" );
+			}
+			$sheet2 = $this->_getSheetIndex( $sheet_name2 );
+			if ( $sheet2 == - 1 ) {
+				throw new PHPExcel_Writer_Exception( "Unknown sheet name $sheet_name2 in formula" );
+			}
+
+			// Reverse max and min sheet numbers if necessary
+			if ( $sheet1 > $sheet2 ) {
+				list( $sheet1, $sheet2 ) = array( $sheet2, $sheet1 );
+			}
+		} else { // Single sheet name only.
+			$sheet1 = $this->_getSheetIndex( $ext_ref );
+			if ( $sheet1 == - 1 ) {
+				throw new PHPExcel_Writer_Exception( "Unknown sheet name $ext_ref in formula" );
+			}
+			$sheet2 = $sheet1;
+		}
+
+		// assume all references belong to this document
+		$supbook_index    = 0x00;
+		$ref              = pack( 'vvv', $supbook_index, $sheet1, $sheet2 );
+		$total_references = count( $this->_references );
+		$index            = - 1;
+		for ( $i = 0; $i < $total_references; ++ $i ) {
+			if ( $ref == $this->_references[ $i ] ) {
+				$index = $i;
+				break;
+			}
+		}
+		// if REF was not found add it to references array
+		if ( $index == - 1 ) {
+			$this->_references[ $total_references ] = $ref;
+			$index                                  = $total_references;
+		}
+
+		return pack( 'v', $index );
+	}
+
+	/**
+	 * Convert an Excel range such as A1:D4 to a ptgRefV.
+	 *
+	 * @access private
+	 *
+	 * @param string $range An Excel range in the A1:A2
+	 * @param int $class
+	 */
+	function _convertRange2d( $range, $class = 0 ) {
+
+		// TODO: possible class value 0,1,2 check Formula.pm
+		// Split the range into 2 cell refs
+		if ( preg_match( '/^(\$)?([A-Ia-i]?[A-Za-z])(\$)?(\d+)\:(\$)?([A-Ia-i]?[A-Za-z])(\$)?(\d+)$/', $range ) ) {
+			list( $cell1, $cell2 ) = explode( ':', $range );
+		} else {
+			// TODO: use real error codes
+			throw new PHPExcel_Writer_Exception( "Unknown range separator" );
+		}
+
+		// Convert the cell references
+		list( $row1, $col1 ) = $this->_cellToPackedRowcol( $cell1 );
+		list( $row2, $col2 ) = $this->_cellToPackedRowcol( $cell2 );
+
+		// The ptg value depends on the class of the ptg.
+		if ( $class == 0 ) {
+			$ptgArea = pack( "C", $this->ptg['ptgArea'] );
+		} elseif ( $class == 1 ) {
+			$ptgArea = pack( "C", $this->ptg['ptgAreaV'] );
+		} elseif ( $class == 2 ) {
+			$ptgArea = pack( "C", $this->ptg['ptgAreaA'] );
+		} else {
+			// TODO: use real error codes
+			throw new PHPExcel_Writer_Exception( "Unknown class $class" );
+		}
+
+		return $ptgArea . $row1 . $row2 . $col1 . $col2;
+	}
+
+	/**
+	 * Convert an Excel 3d range such as "Sheet1!A1:D4" or "Sheet1:Sheet2!A1:D4" to
+	 * a ptgArea3d.
+	 *
+	 * @access private
+	 *
+	 * @param string $token An Excel range in the Sheet1!A1:A2 format.
+	 *
+	 * @return mixed The packed ptgArea3d token on success.
+	 */
+	function _convertRange3d( $token ) {
+		//		$class = 0; // formulas like Sheet1!$A$1:$A$2 in list type data validation need this class (0x3B)
+
+		// Split the ref at the ! symbol
+		list( $ext_ref, $range ) = explode( '!', $token );
+
+		// Convert the external reference part (different for BIFF8)
+		$ext_ref = $this->_getRefIndex( $ext_ref );
+
+		// Split the range into 2 cell refs
+		list( $cell1, $cell2 ) = explode( ':', $range );
+
+		// Convert the cell references
+		if ( preg_match( "/^(\\$)?[A-Ia-i]?[A-Za-z](\\$)?(\d+)$/", $cell1 ) ) {
+			list( $row1, $col1 ) = $this->_cellToPackedRowcol( $cell1 );
+			list( $row2, $col2 ) = $this->_cellToPackedRowcol( $cell2 );
+		} else { // It's a rows range (like 26:27)
+			list( $row1, $col1, $row2, $col2 ) = $this->_rangeToPackedRange( $cell1 . ':' . $cell2 );
+		}
+
+		// The ptg value depends on the class of the ptg.
+		//		if ($class == 0) {
+		$ptgArea = pack( "C", $this->ptg['ptgArea3d'] );
+		//		} elseif ($class == 1) {
+		//			$ptgArea = pack("C", $this->ptg['ptgArea3dV']);
+		//		} elseif ($class == 2) {
+		//			$ptgArea = pack("C", $this->ptg['ptgArea3dA']);
+		//		} else {
+		//			throw new PHPExcel_Writer_Exception("Unknown class $class");
+		//		}
+
+		return $ptgArea . $ext_ref . $row1 . $row2 . $col1 . $col2;
+	}
+
+	/**
+	 * pack() row range into the required 3 or 4 byte format.
+	 * Just using maximum col/rows, which is probably not the correct solution
+	 *
+	 * @access private
+	 *
+	 * @param string $range The Excel range to be packed
+	 *
+	 * @return array Array containing (row1,col1,row2,col2) in packed() format
+	 */
+	function _rangeToPackedRange( $range ) {
+		preg_match( '/(\$)?(\d+)\:(\$)?(\d+)/', $range, $match );
+		// return absolute rows if there is a $ in the ref
+		$row1_rel = empty( $match[1] ) ? 1 : 0;
+		$row1     = $match[2];
+		$row2_rel = empty( $match[3] ) ? 1 : 0;
+		$row2     = $match[4];
+		// Convert 1-index to zero-index
+		-- $row1;
+		-- $row2;
+		// Trick poor inocent Excel
+		$col1 = 0;
+		$col2 = 65535; // FIXME: maximum possible value for Excel 5 (change this!!!)
+
+		// FIXME: this changes for BIFF8
+		if ( ( $row1 >= 65536 ) or ( $row2 >= 65536 ) ) {
+			throw new PHPExcel_Writer_Exception( "Row in: $range greater than 65536 " );
+		}
+
+		// Set the high bits to indicate if rows are relative.
+		$col1 |= $row1_rel << 15;
+		$col2 |= $row2_rel << 15;
+		$col1 = pack( 'v', $col1 );
+		$col2 = pack( 'v', $col2 );
+
+		$row1 = pack( 'v', $row1 );
+		$row2 = pack( 'v', $row2 );
+
+		return array( $row1, $col1, $row2, $col2 );
+	}
+
+	/**
+	 * Convert an error code to a ptgErr
+	 *
+	 * @access    private
+	 *
+	 * @param    string $errorCode The error code for conversion to its ptg value
+	 *
+	 * @return    string                The error code ptgErr
+	 */
+	function _convertError( $errorCode ) {
+		switch ( $errorCode ) {
+			case '#NULL!':
+				return pack( "C", 0x00 );
+			case '#DIV/0!':
+				return pack( "C", 0x07 );
+			case '#VALUE!':
+				return pack( "C", 0x0F );
+			case '#REF!':
+				return pack( "C", 0x17 );
+			case '#NAME?':
+				return pack( "C", 0x1D );
+			case '#NUM!':
+				return pack( "C", 0x24 );
+			case '#N/A':
+				return pack( "C", 0x2A );
+		}
+
+		return pack( "C", 0xFF );
+	}
+
+	/**
+	 * Convert a function to a ptgFunc or ptgFuncVarV depending on the number of
+	 * args that it takes.
+	 *
+	 * @access private
+	 *
+	 * @param string $token The name of the function for convertion to ptg value.
+	 * @param integer $num_args The number of arguments the function receives.
+	 *
+	 * @return string The packed ptg for the function
+	 */
+	function _convertFunction( $token, $num_args ) {
+		$args = $this->_functions[ $token ][1];
+		//		$volatile = $this->_functions[$token][3];
+
+		// Fixed number of args eg. TIME($i,$j,$k).
+		if ( $args >= 0 ) {
+			return pack( "Cv", $this->ptg['ptgFuncV'], $this->_functions[ $token ][0] );
+		}
+		// Variable number of args eg. SUM($i,$j,$k, ..).
+		if ( $args == - 1 ) {
+			return pack( "CCv", $this->ptg['ptgFuncVarV'], $num_args, $this->_functions[ $token][0]);
+		}
 	}
 
 }

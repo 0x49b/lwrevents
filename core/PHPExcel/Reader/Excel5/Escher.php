@@ -138,27 +138,6 @@ class PHPExcel_Reader_Excel5_Escher
 	}
 
 	/**
-	 * Read a generic record
-	 */
-	private function _readDefault()
-	{
-		// offset 0; size: 2; recVer and recInstance
-		$verInstance = PHPExcel_Reader_Excel5::_GetInt2d($this->_data, $this->_pos);
-
-		// offset: 2; size: 2: Record Type
-		$fbt = PHPExcel_Reader_Excel5::_GetInt2d($this->_data, $this->_pos + 2);
-
-		// bit: 0-3; mask: 0x000F; recVer
-		$recVer = (0x000F & $verInstance) >> 0;
-
-		$length = PHPExcel_Reader_Excel5::_GetInt4d($this->_data, $this->_pos + 4);
-		$recordData = substr($this->_data, $this->_pos + 8, $length);
-
-		// move stream pointer to next record
-		$this->_pos += 8 + $length;
-	}
-
-	/**
 	 * Read DggContainer record (Drawing Group Container)
 	 */
 	private function _readDggContainer()
@@ -371,6 +350,51 @@ class PHPExcel_Reader_Excel5_Escher
 		$this->_pos += 8 + $length;
 
 		$this->_readOfficeArtRGFOPTE($recordData, $recInstance);
+	}
+
+	/**
+	 * Read OfficeArtRGFOPTE table of property-value pairs
+	 *
+	 * @param string $data Binary data
+	 * @param int $n Number of properties
+	 */
+	private function _readOfficeArtRGFOPTE( $data, $n ) {
+
+		$splicedComplexData = substr( $data, 6 * $n );
+
+		// loop through property-value pairs
+		for ( $i = 0; $i < $n; ++ $i ) {
+			// read 6 bytes at a time
+			$fopte = substr( $data, 6 * $i, 6 );
+
+			// offset: 0; size: 2; opid
+			$opid = PHPExcel_Reader_Excel5::_GetInt2d( $fopte, 0 );
+
+			// bit: 0-13; mask: 0x3FFF; opid.opid
+			$opidOpid = ( 0x3FFF & $opid ) >> 0;
+
+			// bit: 14; mask 0x4000; 1 = value in op field is BLIP identifier
+			$opidFBid = ( 0x4000 & $opid ) >> 14;
+
+			// bit: 15; mask 0x8000; 1 = this is a complex property, op field specifies size of complex data
+			$opidFComplex = ( 0x8000 & $opid ) >> 15;
+
+			// offset: 2; size: 4; the value for this property
+			$op = PHPExcel_Reader_Excel5::_GetInt4d( $fopte, 2 );
+
+			if ( $opidFComplex ) {
+				$complexData        = substr( $splicedComplexData, 0, $op );
+				$splicedComplexData = substr( $splicedComplexData, $op );
+
+				// we store string value with complex data
+				$value = $complexData;
+			} else {
+				// we store integer value
+				$value = $op;
+			}
+
+			$this->_object->setOPT( $opidOpid, $value );
+		}
 	}
 
 	/**
@@ -593,48 +617,23 @@ class PHPExcel_Reader_Excel5_Escher
 	}
 
 	/**
-	 * Read OfficeArtRGFOPTE table of property-value pairs
-	 *
-	 * @param string $data Binary data
-	 * @param int $n Number of properties
+	 * Read a generic record
 	 */
-	private function _readOfficeArtRGFOPTE($data, $n) {
+	private function _readDefault() {
+		// offset 0; size: 2; recVer and recInstance
+		$verInstance = PHPExcel_Reader_Excel5::_GetInt2d( $this->_data, $this->_pos );
 
-		$splicedComplexData = substr($data, 6 * $n);
+		// offset: 2; size: 2: Record Type
+		$fbt = PHPExcel_Reader_Excel5::_GetInt2d( $this->_data, $this->_pos + 2 );
 
-		// loop through property-value pairs
-		for ($i = 0; $i < $n; ++$i) {
-			// read 6 bytes at a time
-			$fopte = substr($data, 6 * $i, 6);
+		// bit: 0-3; mask: 0x000F; recVer
+		$recVer = ( 0x000F & $verInstance ) >> 0;
 
-			// offset: 0; size: 2; opid
-			$opid = PHPExcel_Reader_Excel5::_GetInt2d($fopte, 0);
+		$length     = PHPExcel_Reader_Excel5::_GetInt4d( $this->_data, $this->_pos + 4 );
+		$recordData = substr( $this->_data, $this->_pos + 8, $length );
 
-			// bit: 0-13; mask: 0x3FFF; opid.opid
-			$opidOpid = (0x3FFF & $opid) >> 0;
-
-			// bit: 14; mask 0x4000; 1 = value in op field is BLIP identifier
-			$opidFBid = (0x4000 & $opid) >> 14;
-
-			// bit: 15; mask 0x8000; 1 = this is a complex property, op field specifies size of complex data
-			$opidFComplex = (0x8000 & $opid) >> 15;
-
-			// offset: 2; size: 4; the value for this property
-			$op = PHPExcel_Reader_Excel5::_GetInt4d($fopte, 2);
-
-			if ($opidFComplex) {
-				$complexData = substr($splicedComplexData, 0, $op);
-				$splicedComplexData = substr($splicedComplexData, $op);
-
-				// we store string value with complex data
-				$value = $complexData;
-			} else {
-				// we store integer value
-				$value = $op;
-			}
-
-			$this->_object->setOPT($opidOpid, $value);
-		}
+		// move stream pointer to next record
+		$this->_pos += 8 + $length;
 	}
 
 }

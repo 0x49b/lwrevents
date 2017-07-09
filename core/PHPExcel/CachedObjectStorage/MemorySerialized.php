@@ -36,24 +36,6 @@
 class PHPExcel_CachedObjectStorage_MemorySerialized extends PHPExcel_CachedObjectStorage_CacheBase implements PHPExcel_CachedObjectStorage_ICache {
 
     /**
-     * Store cell data in cache for the current cell object if it's "dirty",
-     *     and the 'nullify' the current cell object
-     *
-	 * @return	void
-     * @throws	PHPExcel_Exception
-     */
-	protected function _storeData() {
-		if ($this->_currentCellIsDirty && !empty($this->_currentObjectID)) {
-			$this->_currentObject->detach();
-
-			$this->_cellCache[$this->_currentObjectID] = serialize($this->_currentObject);
-			$this->_currentCellIsDirty = false;
-		}
-		$this->_currentObjectID = $this->_currentObject = null;
-	}	//	function _storeData()
-
-
-    /**
      * Add or Update a cell in cache identified by coordinate address
      *
      * @param	string			$pCoord		Coordinate address of the cell to update
@@ -71,13 +53,30 @@ class PHPExcel_CachedObjectStorage_MemorySerialized extends PHPExcel_CachedObjec
 		$this->_currentCellIsDirty = true;
 
 		return $cell;
+	}    //	function _storeData()
+
+	/**
+	 * Store cell data in cache for the current cell object if it's "dirty",
+	 *     and the 'nullify' the current cell object
+	 *
+	 * @return    void
+	 * @throws    PHPExcel_Exception
+	 */
+	protected function _storeData() {
+		if ( $this->_currentCellIsDirty && ! empty( $this->_currentObjectID ) ) {
+			$this->_currentObject->detach();
+
+			$this->_cellCache[ $this->_currentObjectID ] = serialize( $this->_currentObject );
+			$this->_currentCellIsDirty                   = false;
+		}
+		$this->_currentObjectID = $this->_currentObject = null;
 	}	//	function addCacheData()
 
-
-    /**
-     * Get cell at a specific coordinate
+	/**
+	 * Get cell at a specific coordinate
      *
      * @param 	string 			$pCoord		Coordinate of the cell
+     *
      * @throws 	PHPExcel_Exception
      * @return 	PHPExcel_Cell 	Cell that was found, or null if not found
      */

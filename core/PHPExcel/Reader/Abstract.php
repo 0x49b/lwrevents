@@ -183,27 +183,6 @@ abstract class PHPExcel_Reader_Abstract implements PHPExcel_Reader_IReader
 	}
 
 	/**
-	 * Open file for reading
-	 *
-	 * @param string $pFilename
-	 * @throws	PHPExcel_Reader_Exception
-	 * @return resource
-	 */
-	protected function _openFile($pFilename)
-	{
-		// Check if file exists
-		if (!file_exists($pFilename) || !is_readable($pFilename)) {
-			throw new PHPExcel_Reader_Exception("Could not open " . $pFilename . " for reading! File does not exist.");
-		}
-
-		// Open file
-		$this->_fileHandle = fopen($pFilename, 'r');
-		if ($this->_fileHandle === FALSE) {
-			throw new PHPExcel_Reader_Exception("Could not open file " . $pFilename . " for reading.");
-		}
-	}
-
-	/**
 	 * Can the current PHPExcel_Reader_IReader read the file?
 	 *
 	 * @param 	string 		$pFilename
@@ -222,6 +201,27 @@ abstract class PHPExcel_Reader_Abstract implements PHPExcel_Reader_IReader
 		$readable = $this->_isValidFormat();
 		fclose ($this->_fileHandle);
 		return $readable;
+	}
+
+	/**
+	 * Open file for reading
+	 *
+	 * @param string $pFilename
+	 *
+	 * @throws    PHPExcel_Reader_Exception
+	 * @return resource
+	 */
+	protected function _openFile( $pFilename ) {
+		// Check if file exists
+		if ( ! file_exists( $pFilename ) || ! is_readable( $pFilename ) ) {
+			throw new PHPExcel_Reader_Exception( "Could not open " . $pFilename . " for reading! File does not exist." );
+		}
+
+		// Open file
+		$this->_fileHandle = fopen( $pFilename, 'r' );
+		if ( $this->_fileHandle === false ) {
+			throw new PHPExcel_Reader_Exception( "Could not open file " . $pFilename . " for reading." );
+		}
 	}
 
 }

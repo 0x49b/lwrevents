@@ -80,28 +80,13 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
 	}
 
 	/**
-	 * Validate that the current file is a SYLK file
+	 * Get input encoding
 	 *
-	 * @return boolean
+	 * @return string
 	 */
-	protected function _isValidFormat()
+	public function getInputEncoding()
 	{
-		// Read sample data (first 2 KB will do)
-		$data = fread($this->_fileHandle, 2048);
-
-		// Count delimiters in file
-		$delimiterCount = substr_count($data, ';');
-		if ($delimiterCount < 1) {
-			return FALSE;
-		}
-
-		// Analyze first line looking for ID; signature
-		$lines = explode("\n", $data);
-		if (substr($lines[0],0,4) != 'ID;P') {
-			return FALSE;
-		}
-
-		return TRUE;
+		return $this->_inputEncoding;
 	}
 
 	/**
@@ -113,16 +98,6 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
 	{
 		$this->_inputEncoding = $pValue;
 		return $this;
-	}
-
-	/**
-	 * Get input encoding
-	 *
-	 * @return string
-	 */
-	public function getInputEncoding()
-	{
-		return $this->_inputEncoding;
 	}
 
 	/**
@@ -192,6 +167,30 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
 		fclose($fileHandle);
 
 		return $worksheetInfo;
+	}
+
+	/**
+	 * Validate that the current file is a SYLK file
+	 *
+	 * @return boolean
+	 */
+	protected function _isValidFormat() {
+		// Read sample data (first 2 KB will do)
+		$data = fread( $this->_fileHandle, 2048 );
+
+		// Count delimiters in file
+		$delimiterCount = substr_count( $data, ';' );
+		if ( $delimiterCount < 1 ) {
+			return false;
+		}
+
+		// Analyze first line looking for ID; signature
+		$lines = explode( "\n", $data );
+		if ( substr( $lines[0], 0, 4 ) != 'ID;P' ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

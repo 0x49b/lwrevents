@@ -40,35 +40,12 @@ class PHPExcel_Worksheet_AutoFilter_Column_Rule
 	const AUTOFILTER_RULETYPE_CUSTOMFILTER	= 'customFilter';
 	const AUTOFILTER_RULETYPE_DYNAMICFILTER	= 'dynamicFilter';
 	const AUTOFILTER_RULETYPE_TOPTENFILTER	= 'top10Filter';
-
-	private static $_ruleTypes = array(
-		//	Currently we're not handling
-		//		colorFilter
-		//		extLst
-		//		iconFilter
-		self::AUTOFILTER_RULETYPE_FILTER,
-		self::AUTOFILTER_RULETYPE_DATEGROUP,
-		self::AUTOFILTER_RULETYPE_CUSTOMFILTER,
-		self::AUTOFILTER_RULETYPE_DYNAMICFILTER,
-		self::AUTOFILTER_RULETYPE_TOPTENFILTER,
-	);
-
 	const AUTOFILTER_RULETYPE_DATEGROUP_YEAR	= 'year';
 	const AUTOFILTER_RULETYPE_DATEGROUP_MONTH	= 'month';
 	const AUTOFILTER_RULETYPE_DATEGROUP_DAY		= 'day';
 	const AUTOFILTER_RULETYPE_DATEGROUP_HOUR	= 'hour';
 	const AUTOFILTER_RULETYPE_DATEGROUP_MINUTE	= 'minute';
 	const AUTOFILTER_RULETYPE_DATEGROUP_SECOND	= 'second';
-
-	private static $_dateTimeGroups = array(
-		self::AUTOFILTER_RULETYPE_DATEGROUP_YEAR,
-		self::AUTOFILTER_RULETYPE_DATEGROUP_MONTH,
-		self::AUTOFILTER_RULETYPE_DATEGROUP_DAY,
-		self::AUTOFILTER_RULETYPE_DATEGROUP_HOUR,
-		self::AUTOFILTER_RULETYPE_DATEGROUP_MINUTE,
-		self::AUTOFILTER_RULETYPE_DATEGROUP_SECOND,
-	);
-
 	const AUTOFILTER_RULETYPE_DYNAMIC_YESTERDAY		= 'yesterday';
 	const AUTOFILTER_RULETYPE_DYNAMIC_TODAY			= 'today';
 	const AUTOFILTER_RULETYPE_DYNAMIC_TOMORROW		= 'tomorrow';
@@ -115,7 +92,45 @@ class PHPExcel_Worksheet_AutoFilter_Column_Rule
 	const AUTOFILTER_RULETYPE_DYNAMIC_QUARTER_4		= 'Q4';
 	const AUTOFILTER_RULETYPE_DYNAMIC_ABOVEAVERAGE	= 'aboveAverage';
 	const AUTOFILTER_RULETYPE_DYNAMIC_BELOWAVERAGE	= 'belowAverage';
+	const AUTOFILTER_COLUMN_RULE_EQUAL = 'equal';
+	const AUTOFILTER_COLUMN_RULE_NOTEQUAL = 'notEqual';
+	const AUTOFILTER_COLUMN_RULE_GREATERTHAN = 'greaterThan';
 
+	/*
+	 *	The only valid filter rule operators for filter and customFilter types are:
+	 *		<xsd:enumeration value="equal"/>
+	 *		<xsd:enumeration value="lessThan"/>
+	 *		<xsd:enumeration value="lessThanOrEqual"/>
+	 *		<xsd:enumeration value="notEqual"/>
+	 *		<xsd:enumeration value="greaterThanOrEqual"/>
+	 *		<xsd:enumeration value="greaterThan"/>
+	 */
+	const AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL = 'greaterThanOrEqual';
+	const AUTOFILTER_COLUMN_RULE_LESSTHAN = 'lessThan';
+	const AUTOFILTER_COLUMN_RULE_LESSTHANOREQUAL = 'lessThanOrEqual';
+	const AUTOFILTER_COLUMN_RULE_TOPTEN_BY_VALUE = 'byValue';
+	const AUTOFILTER_COLUMN_RULE_TOPTEN_PERCENT = 'byPercent';
+	const AUTOFILTER_COLUMN_RULE_TOPTEN_TOP = 'top';
+	const AUTOFILTER_COLUMN_RULE_TOPTEN_BOTTOM = 'bottom';
+	private static $_ruleTypes = array(
+		//	Currently we're not handling
+		//		colorFilter
+		//		extLst
+		//		iconFilter
+		self::AUTOFILTER_RULETYPE_FILTER,
+		self::AUTOFILTER_RULETYPE_DATEGROUP,
+		self::AUTOFILTER_RULETYPE_CUSTOMFILTER,
+		self::AUTOFILTER_RULETYPE_DYNAMICFILTER,
+		self::AUTOFILTER_RULETYPE_TOPTENFILTER,
+	);
+	private static $_dateTimeGroups = array(
+		self::AUTOFILTER_RULETYPE_DATEGROUP_YEAR,
+		self::AUTOFILTER_RULETYPE_DATEGROUP_MONTH,
+		self::AUTOFILTER_RULETYPE_DATEGROUP_DAY,
+		self::AUTOFILTER_RULETYPE_DATEGROUP_HOUR,
+		self::AUTOFILTER_RULETYPE_DATEGROUP_MINUTE,
+		self::AUTOFILTER_RULETYPE_DATEGROUP_SECOND,
+	);
 	private static $_dynamicTypes = array(
 		self::AUTOFILTER_RULETYPE_DYNAMIC_YESTERDAY,
 		self::AUTOFILTER_RULETYPE_DYNAMIC_TODAY,
@@ -152,23 +167,6 @@ class PHPExcel_Worksheet_AutoFilter_Column_Rule
 		self::AUTOFILTER_RULETYPE_DYNAMIC_ABOVEAVERAGE,
 		self::AUTOFILTER_RULETYPE_DYNAMIC_BELOWAVERAGE,
 	);
-
-	/*
-	 *	The only valid filter rule operators for filter and customFilter types are:
-	 *		<xsd:enumeration value="equal"/>
-	 *		<xsd:enumeration value="lessThan"/>
-	 *		<xsd:enumeration value="lessThanOrEqual"/>
-	 *		<xsd:enumeration value="notEqual"/>
-	 *		<xsd:enumeration value="greaterThanOrEqual"/>
-	 *		<xsd:enumeration value="greaterThan"/>
-	 */
-	const AUTOFILTER_COLUMN_RULE_EQUAL				= 'equal';
-	const AUTOFILTER_COLUMN_RULE_NOTEQUAL			= 'notEqual';
-	const AUTOFILTER_COLUMN_RULE_GREATERTHAN		= 'greaterThan';
-	const AUTOFILTER_COLUMN_RULE_GREATERTHANOREQUAL	= 'greaterThanOrEqual';
-	const AUTOFILTER_COLUMN_RULE_LESSTHAN			= 'lessThan';
-	const AUTOFILTER_COLUMN_RULE_LESSTHANOREQUAL	= 'lessThanOrEqual';
-
 	private static $_operators = array(
 		self::AUTOFILTER_COLUMN_RULE_EQUAL,
 		self::AUTOFILTER_COLUMN_RULE_NOTEQUAL,
@@ -177,18 +175,10 @@ class PHPExcel_Worksheet_AutoFilter_Column_Rule
 		self::AUTOFILTER_COLUMN_RULE_LESSTHAN,
 		self::AUTOFILTER_COLUMN_RULE_LESSTHANOREQUAL,
 	);
-
-	const AUTOFILTER_COLUMN_RULE_TOPTEN_BY_VALUE	= 'byValue';
-	const AUTOFILTER_COLUMN_RULE_TOPTEN_PERCENT		= 'byPercent';
-
 	private static $_topTenValue = array(
 		self::AUTOFILTER_COLUMN_RULE_TOPTEN_BY_VALUE,
 		self::AUTOFILTER_COLUMN_RULE_TOPTEN_PERCENT,
 	);
-
-	const AUTOFILTER_COLUMN_RULE_TOPTEN_TOP			= 'top';
-	const AUTOFILTER_COLUMN_RULE_TOPTEN_BOTTOM		= 'bottom';
-
 	private static $_topTenType = array(
 		self::AUTOFILTER_COLUMN_RULE_TOPTEN_TOP,
 		self::AUTOFILTER_COLUMN_RULE_TOPTEN_BOTTOM,

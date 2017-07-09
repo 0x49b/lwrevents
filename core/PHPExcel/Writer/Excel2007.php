@@ -166,17 +166,17 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
     }
 
 	/**
-	 * Get writer part
+	 * Set PHPExcel object
 	 *
-	 * @param 	string 	$pPartName		Writer part name
-	 * @return 	PHPExcel_Writer_Excel2007_WriterPart
+	 * @param    PHPExcel $pPHPExcel PHPExcel object
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 * @return PHPExcel_Writer_Excel2007
 	 */
-	public function getWriterPart($pPartName = '') {
-		if ($pPartName != '' && isset($this->_writerParts[strtolower($pPartName)])) {
-			return $this->_writerParts[strtolower($pPartName)];
-		} else {
-			return null;
-		}
+	public function setPHPExcel( PHPExcel $pPHPExcel = null ) {
+		$this->_spreadSheet = $pPHPExcel;
+
+		return $this;
 	}
 
 	/**
@@ -412,6 +412,30 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 	}
 
 	/**
+	 * Get writer part
+	 *
+	 * @param    string $pPartName Writer part name
+	 *
+	 * @return    PHPExcel_Writer_Excel2007_WriterPart
+	 */
+	public function getWriterPart( $pPartName = '' ) {
+		if ( $pPartName != '' && isset( $this->_writerParts[ strtolower( $pPartName ) ] ) ) {
+			return $this->_writerParts[ strtolower( $pPartName ) ];
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Get PHPExcel_Worksheet_BaseDrawing HashTable
+	 *
+	 * @return PHPExcel_HashTable
+	 */
+	public function getDrawingHashTable() {
+		return $this->_drawingHashTable;
+	}
+
+	/**
 	 * Get PHPExcel object
 	 *
 	 * @return PHPExcel
@@ -423,18 +447,6 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
 		} else {
 			throw new PHPExcel_Writer_Exception("No PHPExcel assigned.");
 		}
-	}
-
-	/**
-	 * Set PHPExcel object
-	 *
-	 * @param 	PHPExcel 	$pPHPExcel	PHPExcel object
-	 * @throws	PHPExcel_Writer_Exception
-	 * @return PHPExcel_Writer_Excel2007
-	 */
-	public function setPHPExcel(PHPExcel $pPHPExcel = null) {
-		$this->_spreadSheet = $pPHPExcel;
-		return $this;
 	}
 
     /**
@@ -498,15 +510,6 @@ class PHPExcel_Writer_Excel2007 extends PHPExcel_Writer_Abstract implements PHPE
      */
     public function getNumFmtHashTable() {
     	return $this->_numFmtHashTable;
-    }
-
-    /**
-     * Get PHPExcel_Worksheet_BaseDrawing HashTable
-     *
-     * @return PHPExcel_HashTable
-     */
-    public function getDrawingHashTable() {
-    	return $this->_drawingHashTable;
     }
 
     /**

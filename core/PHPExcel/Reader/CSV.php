@@ -108,13 +108,13 @@ class PHPExcel_Reader_CSV extends PHPExcel_Reader_Abstract implements PHPExcel_R
 	}
 
 	/**
-	 * Validate that the current file is a CSV file
+	 * Get input encoding
 	 *
-	 * @return boolean
+	 * @return string
 	 */
-	protected function _isValidFormat()
+	public function getInputEncoding()
 	{
-		return TRUE;
+		return $this->_inputEncoding;
 	}
 
 	/**
@@ -126,50 +126,6 @@ class PHPExcel_Reader_CSV extends PHPExcel_Reader_Abstract implements PHPExcel_R
 	{
 		$this->_inputEncoding = $pValue;
 		return $this;
-	}
-
-	/**
-	 * Get input encoding
-	 *
-	 * @return string
-	 */
-	public function getInputEncoding()
-	{
-		return $this->_inputEncoding;
-	}
-
-	/**
-	 * Move filepointer past any BOM marker
-	 *
-	 */
-	protected function _skipBOM()
-	{
-		rewind($this->_fileHandle);
-
-		switch ($this->_inputEncoding) {
-			case 'UTF-8':
-				fgets($this->_fileHandle, 4) == "\xEF\xBB\xBF" ?
-					fseek($this->_fileHandle, 3) : fseek($this->_fileHandle, 0);
-				break;
-			case 'UTF-16LE':
-				fgets($this->_fileHandle, 3) == "\xFF\xFE" ?
-					fseek($this->_fileHandle, 2) : fseek($this->_fileHandle, 0);
-				break;
-			case 'UTF-16BE':
-				fgets($this->_fileHandle, 3) == "\xFE\xFF" ?
-					fseek($this->_fileHandle, 2) : fseek($this->_fileHandle, 0);
-				break;
-			case 'UTF-32LE':
-				fgets($this->_fileHandle, 5) == "\xFF\xFE\x00\x00" ?
-					fseek($this->_fileHandle, 4) : fseek($this->_fileHandle, 0);
-				break;
-			case 'UTF-32BE':
-				fgets($this->_fileHandle, 5) == "\x00\x00\xFE\xFF" ?
-					fseek($this->_fileHandle, 4) : fseek($this->_fileHandle, 0);
-				break;
-			default:
-				break;
-		}
 	}
 
 	/**
@@ -213,6 +169,43 @@ class PHPExcel_Reader_CSV extends PHPExcel_Reader_Abstract implements PHPExcel_R
 		fclose($fileHandle);
 
 		return $worksheetInfo;
+	}
+
+	/**
+	 * Validate that the current file is a CSV file
+	 *
+	 * @return boolean
+	 */
+	protected function _isValidFormat() {
+		return true;
+	}
+
+	/**
+	 * Move filepointer past any BOM marker
+	 *
+	 */
+	protected function _skipBOM() {
+		rewind( $this->_fileHandle );
+
+		switch ( $this->_inputEncoding ) {
+			case 'UTF-8':
+				fgets( $this->_fileHandle, 4 ) == "\xEF\xBB\xBF" ? fseek( $this->_fileHandle, 3 ) : fseek( $this->_fileHandle, 0 );
+				break;
+			case 'UTF-16LE':
+				fgets( $this->_fileHandle, 3 ) == "\xFF\xFE" ? fseek( $this->_fileHandle, 2 ) : fseek( $this->_fileHandle, 0 );
+				break;
+			case 'UTF-16BE':
+				fgets( $this->_fileHandle, 3 ) == "\xFE\xFF" ? fseek( $this->_fileHandle, 2 ) : fseek( $this->_fileHandle, 0 );
+				break;
+			case 'UTF-32LE':
+				fgets( $this->_fileHandle, 5 ) == "\xFF\xFE\x00\x00" ? fseek( $this->_fileHandle, 4 ) : fseek( $this->_fileHandle, 0 );
+				break;
+			case 'UTF-32BE':
+				fgets( $this->_fileHandle, 5 ) == "\x00\x00\xFE\xFF" ? fseek( $this->_fileHandle, 4 ) : fseek( $this->_fileHandle, 0 );
+				break;
+			default:
+				break;
+		}
 	}
 
 	/**
@@ -389,6 +382,15 @@ class PHPExcel_Reader_CSV extends PHPExcel_Reader_Abstract implements PHPExcel_R
 	}
 
 	/**
+	 * Get Contiguous
+	 *
+	 * @return boolean
+	 */
+	public function getContiguous() {
+		return $this->_contiguous;
+	}
+
+	/**
 	 * Set Contiguous
 	 *
 	 * @param boolean $contiguous
@@ -401,15 +403,6 @@ class PHPExcel_Reader_CSV extends PHPExcel_Reader_Abstract implements PHPExcel_R
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Get Contiguous
-	 *
-	 * @return boolean
-	 */
-	public function getContiguous() {
-		return $this->_contiguous;
 	}
 
 }

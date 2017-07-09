@@ -92,205 +92,6 @@ class PHPExcel_Style_Color extends PHPExcel_Style_Supervisor implements PHPExcel
 	}
 
 	/**
-	 * Bind parent. Only used for supervisor
-	 *
-	 * @param mixed $parent
-	 * @param string $parentPropertyName
-	 * @return PHPExcel_Style_Color
-	 */
-	public function bindParent($parent, $parentPropertyName=NULL)
-	{
-		$this->_parent = $parent;
-		$this->_parentPropertyName = $parentPropertyName;
-		return $this;
-	}
-
-	/**
-	 * Get the shared style component for the currently active cell in currently active sheet.
-	 * Only used for style supervisor
-	 *
-	 * @return PHPExcel_Style_Color
-	 */
-	public function getSharedComponent()
-	{
-		switch ($this->_parentPropertyName) {
-			case '_endColor':
-				return $this->_parent->getSharedComponent()->getEndColor();		break;
-			case '_color':
-				return $this->_parent->getSharedComponent()->getColor();		break;
-			case '_startColor':
-				return $this->_parent->getSharedComponent()->getStartColor();	break;
-		}
-	}
-
-	/**
-	 * Build style array from subcomponents
-	 *
-	 * @param array $array
-	 * @return array
-	 */
-	public function getStyleArray($array)
-	{
-		switch ($this->_parentPropertyName) {
-			case '_endColor':
-				$key = 'endcolor';
-				break;
-			case '_color':
-				$key = 'color';
-				break;
-			case '_startColor':
-				$key = 'startcolor';
-				break;
-
-		}
-		return $this->_parent->getStyleArray(array($key => $array));
-	}
-
-	/**
-	 * Apply styles from array
-	 *
-	 * <code>
-	 * $objPHPExcel->getActiveSheet()->getStyle('B2')->getFont()->getColor()->applyFromArray( array('rgb' => '808080') );
-	 * </code>
-	 *
-	 * @param	array	$pStyles	Array containing style information
-	 * @throws	PHPExcel_Exception
-	 * @return PHPExcel_Style_Color
-	 */
-	public function applyFromArray($pStyles = NULL) {
-		if (is_array($pStyles)) {
-			if ($this->_isSupervisor) {
-				$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($this->getStyleArray($pStyles));
-			} else {
-				if (array_key_exists('rgb', $pStyles)) {
-					$this->setRGB($pStyles['rgb']);
-				}
-				if (array_key_exists('argb', $pStyles)) {
-					$this->setARGB($pStyles['argb']);
-				}
-			}
-		} else {
-			throw new PHPExcel_Exception("Invalid style array passed.");
-		}
-		return $this;
-	}
-
-	/**
-	 * Get ARGB
-	 *
-	 * @return string
-	 */
-	public function getARGB() {
-		if ($this->_isSupervisor) {
-			return $this->getSharedComponent()->getARGB();
-		}
-		return $this->_argb;
-	}
-
-	/**
-	 * Set ARGB
-	 *
-	 * @param string $pValue
-	 * @return PHPExcel_Style_Color
-	 */
-	public function setARGB($pValue = PHPExcel_Style_Color::COLOR_BLACK) {
-		if ($pValue == '') {
-			$pValue = PHPExcel_Style_Color::COLOR_BLACK;
-		}
-		if ($this->_isSupervisor) {
-			$styleArray = $this->getStyleArray(array('argb' => $pValue));
-			$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
-		} else {
-			$this->_argb = $pValue;
-		}
-		return $this;
-	}
-
-	/**
-	 * Get RGB
-	 *
-	 * @return string
-	 */
-	public function getRGB() {
-		if ($this->_isSupervisor) {
-			return $this->getSharedComponent()->getRGB();
-		}
-		return substr($this->_argb, 2);
-	}
-
-	/**
-	 * Set RGB
-	 *
-	 * @param	string	$pValue	RGB value
-	 * @return PHPExcel_Style_Color
-	 */
-	public function setRGB($pValue = '000000') {
-		if ($pValue == '') {
-			$pValue = '000000';
-		}
-		if ($this->_isSupervisor) {
-			$styleArray = $this->getStyleArray(array('argb' => 'FF' . $pValue));
-			$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
-		} else {
-			$this->_argb = 'FF' . $pValue;
-		}
-		return $this;
-	}
-
-	/**
-	 * Get a specified colour component of an RGB value
-	 *
-	 * @private
-	 * @param	string		$RGB		The colour as an RGB value (e.g. FF00CCCC or CCDDEE
-	 * @param	int			$offset		Position within the RGB value to extract
-	 * @param	boolean		$hex		Flag indicating whether the component should be returned as a hex or a
-	 *									decimal value
-	 * @return	string		The extracted colour component
-	 */
-	private static function _getColourComponent($RGB,$offset,$hex=TRUE) {
-		$colour = substr($RGB, $offset, 2);
-		if (!$hex)
-			$colour = hexdec($colour);
-		return $colour;
-	}
-
-	/**
-	 * Get the red colour component of an RGB value
-	 *
-	 * @param	string		$RGB		The colour as an RGB value (e.g. FF00CCCC or CCDDEE
-	 * @param	boolean		$hex		Flag indicating whether the component should be returned as a hex or a
-	 *									decimal value
-	 * @return	string		The red colour component
-	 */
-	public static function getRed($RGB,$hex=TRUE) {
-		return self::_getColourComponent($RGB, strlen($RGB) - 6, $hex);
-	}
-
-	/**
-	 * Get the green colour component of an RGB value
-	 *
-	 * @param	string		$RGB		The colour as an RGB value (e.g. FF00CCCC or CCDDEE
-	 * @param	boolean		$hex		Flag indicating whether the component should be returned as a hex or a
-	 *									decimal value
-	 * @return	string		The green colour component
-	 */
-	public static function getGreen($RGB,$hex=TRUE) {
-		return self::_getColourComponent($RGB, strlen($RGB) - 4, $hex);
-	}
-
-	/**
-	 * Get the blue colour component of an RGB value
-	 *
-	 * @param	string		$RGB		The colour as an RGB value (e.g. FF00CCCC or CCDDEE
-	 * @param	boolean		$hex		Flag indicating whether the component should be returned as a hex or a
-	 *									decimal value
-	 * @return	string		The blue colour component
-	 */
-	public static function getBlue($RGB,$hex=TRUE) {
-		return self::_getColourComponent($RGB, strlen($RGB) - 2, $hex);
-	}
-
-	/**
 	 * Adjust the brightness of a color
 	 *
 	 * @param	string		$hex	The colour as an RGBA or RGB value (e.g. FF00CCCC or CCDDEE)
@@ -325,6 +126,66 @@ class PHPExcel_Style_Color extends PHPExcel_Style_Supervisor implements PHPExcel
 							str_pad(dechex($blue), 2, '0', 0)
 						 );
 		return (($rgba) ? 'FF' : '') . $rgb;
+	}
+
+	/**
+	 * Get the red colour component of an RGB value
+	 *
+	 * @param    string $RGB The colour as an RGB value (e.g. FF00CCCC or CCDDEE
+	 * @param    boolean $hex Flag indicating whether the component should be returned as a hex or a
+	 *                                    decimal value
+	 *
+	 * @return    string        The red colour component
+	 */
+	public static function getRed( $RGB, $hex = true ) {
+		return self::_getColourComponent( $RGB, strlen( $RGB ) - 6, $hex );
+	}
+
+	/**
+	 * Get a specified colour component of an RGB value
+	 *
+	 * @private
+	 *
+	 * @param    string $RGB The colour as an RGB value (e.g. FF00CCCC or CCDDEE
+	 * @param    int $offset Position within the RGB value to extract
+	 * @param    boolean $hex Flag indicating whether the component should be returned as a hex or a
+	 *                                    decimal value
+	 *
+	 * @return    string        The extracted colour component
+	 */
+	private static function _getColourComponent( $RGB, $offset, $hex = true ) {
+		$colour = substr( $RGB, $offset, 2 );
+		if ( ! $hex ) {
+			$colour = hexdec( $colour );
+		}
+
+		return $colour;
+	}
+
+	/**
+	 * Get the green colour component of an RGB value
+	 *
+	 * @param    string $RGB The colour as an RGB value (e.g. FF00CCCC or CCDDEE
+	 * @param    boolean $hex Flag indicating whether the component should be returned as a hex or a
+	 *                                    decimal value
+	 *
+	 * @return    string        The green colour component
+	 */
+	public static function getGreen( $RGB, $hex = true ) {
+		return self::_getColourComponent( $RGB, strlen( $RGB ) - 4, $hex );
+	}
+
+	/**
+	 * Get the blue colour component of an RGB value
+	 *
+	 * @param    string $RGB The colour as an RGB value (e.g. FF00CCCC or CCDDEE
+	 * @param    boolean $hex Flag indicating whether the component should be returned as a hex or a
+	 *                                    decimal value
+	 *
+	 * @return    string        The blue colour component
+	 */
+	public static function getBlue( $RGB, $hex = true ) {
+		return self::_getColourComponent( $RGB, strlen( $RGB ) - 2, $hex );
 	}
 
 	/**
@@ -408,7 +269,176 @@ class PHPExcel_Style_Color extends PHPExcel_Style_Supervisor implements PHPExcel
 		if ($background) {
 			return new PHPExcel_Style_Color('FFFFFFFF');
 		}
-		return new PHPExcel_Style_Color('FF000000');
+		return new PHPExcel_Style_Color( 'FF000000' );
+	}
+
+	/**
+	 * Bind parent. Only used for supervisor
+	 *
+	 * @param mixed $parent
+	 * @param string $parentPropertyName
+	 *
+	 * @return PHPExcel_Style_Color
+	 */
+	public function bindParent( $parent, $parentPropertyName = null ) {
+		$this->_parent             = $parent;
+		$this->_parentPropertyName = $parentPropertyName;
+
+		return $this;
+	}
+
+	/**
+	 * Apply styles from array
+	 *
+	 * <code>
+	 * $objPHPExcel->getActiveSheet()->getStyle('B2')->getFont()->getColor()->applyFromArray( array('rgb' => '808080') );
+	 * </code>
+	 *
+	 * @param    array $pStyles Array containing style information
+	 *
+	 * @throws    PHPExcel_Exception
+	 * @return PHPExcel_Style_Color
+	 */
+	public function applyFromArray( $pStyles = null ) {
+		if ( is_array( $pStyles ) ) {
+			if ( $this->_isSupervisor ) {
+				$this->getActiveSheet()
+				     ->getStyle( $this->getSelectedCells() )
+				     ->applyFromArray( $this->getStyleArray( $pStyles ) );
+			} else {
+				if ( array_key_exists( 'rgb', $pStyles ) ) {
+					$this->setRGB( $pStyles['rgb'] );
+				}
+				if ( array_key_exists( 'argb', $pStyles ) ) {
+					$this->setARGB( $pStyles['argb'] );
+				}
+			}
+		} else {
+			throw new PHPExcel_Exception( "Invalid style array passed." );
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Build style array from subcomponents
+	 *
+	 * @param array $array
+	 *
+	 * @return array
+	 */
+	public function getStyleArray( $array ) {
+		switch ( $this->_parentPropertyName ) {
+			case '_endColor':
+				$key = 'endcolor';
+				break;
+			case '_color':
+				$key = 'color';
+				break;
+			case '_startColor':
+				$key = 'startcolor';
+				break;
+
+		}
+
+		return $this->_parent->getStyleArray( array( $key => $array ) );
+	}
+
+	/**
+	 * Set RGB
+	 *
+	 * @param    string $pValue RGB value
+	 *
+	 * @return PHPExcel_Style_Color
+	 */
+	public function setRGB( $pValue = '000000' ) {
+		if ( $pValue == '' ) {
+			$pValue = '000000';
+		}
+		if ( $this->_isSupervisor ) {
+			$styleArray = $this->getStyleArray( array( 'argb' => 'FF' . $pValue ) );
+			$this->getActiveSheet()
+			     ->getStyle( $this->getSelectedCells() )
+			     ->applyFromArray( $styleArray );
+		} else {
+			$this->_argb = 'FF' . $pValue;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Get ARGB
+	 *
+	 * @return string
+	 */
+	public function getARGB() {
+		if ( $this->_isSupervisor ) {
+			return $this->getSharedComponent()
+			            ->getARGB();
+		}
+
+		return $this->_argb;
+	}
+
+	/**
+	 * Set ARGB
+	 *
+	 * @param string $pValue
+	 *
+	 * @return PHPExcel_Style_Color
+	 */
+	public function setARGB( $pValue = PHPExcel_Style_Color::COLOR_BLACK ) {
+		if ( $pValue == '' ) {
+			$pValue = PHPExcel_Style_Color::COLOR_BLACK;
+		}
+		if ( $this->_isSupervisor ) {
+			$styleArray = $this->getStyleArray( array( 'argb' => $pValue ) );
+			$this->getActiveSheet()
+			     ->getStyle( $this->getSelectedCells() )
+			     ->applyFromArray( $styleArray );
+		} else {
+			$this->_argb = $pValue;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Get the shared style component for the currently active cell in currently active sheet.
+	 * Only used for style supervisor
+	 *
+	 * @return PHPExcel_Style_Color
+	 */
+	public function getSharedComponent() {
+		switch ( $this->_parentPropertyName ) {
+			case '_endColor':
+				return $this->_parent->getSharedComponent()
+				                     ->getEndColor();
+				break;
+			case '_color':
+				return $this->_parent->getSharedComponent()
+				                     ->getColor();
+				break;
+			case '_startColor':
+				return $this->_parent->getSharedComponent()
+				                     ->getStartColor();
+				break;
+		}
+	}
+
+	/**
+	 * Get RGB
+	 *
+	 * @return string
+	 */
+	public function getRGB() {
+		if ( $this->_isSupervisor ) {
+			return $this->getSharedComponent()
+			            ->getRGB();
+		}
+
+		return substr($this->_argb, 2);
 	}
 
 	/**

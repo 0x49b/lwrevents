@@ -62,10 +62,25 @@ class PHPExcel_Reader_Excel5_MD5
         $this->d = 0x10325476;
     }
 
+	private static function F( $X, $Y, $Z ) {
+		return ( ( $X & $Y ) | ( ( ~$X ) & $Z ) ); // X AND Y OR NOT X AND Z
+	}
+
+	private static function G( $X, $Y, $Z ) {
+		return ( ( $X & $Z ) | ( $Y & ( ~$Z ) ) ); // X AND Z OR Y AND NOT Z
+	}
+
+	private static function H( $X, $Y, $Z ) {
+		return ( $X ^ $Y ^ $Z ); // X XOR Y XOR Z
+	}
+
+	private static function I( $X, $Y, $Z ) {
+		return ( $Y ^ ( $X | ( ~$Z ) ) ); // Y XOR (X OR NOT Z)
+	}
 
     /**
      * Get MD5 stream context
-     * 
+     *
      * @return string
      */
     public function getContext()
@@ -82,10 +97,9 @@ class PHPExcel_Reader_Excel5_MD5
         return $s;
     }
 
-
     /**
      * Add data to context
-     * 
+     *
      * @param string $data Data to add
      */
     public function add($data)
@@ -179,31 +193,6 @@ class PHPExcel_Reader_Excel5_MD5
         $this->c = ($this->c + $C) & 0xffffffff;
         $this->d = ($this->d + $D) & 0xffffffff;
     }
-
-
-    private static function F($X, $Y, $Z)
-    {
-        return (($X & $Y) | ((~ $X) & $Z)); // X AND Y OR NOT X AND Z
-    }
-
-
-    private static function G($X, $Y, $Z)
-    {
-        return (($X & $Z) | ($Y & (~ $Z))); // X AND Z OR Y AND NOT Z
-    }
-
-
-    private static function H($X, $Y, $Z)
-    {
-        return ($X ^ $Y ^ $Z); // X XOR Y XOR Z
-    }
-
-
-    private static function I($X, $Y, $Z)
-    {
-        return ($Y ^ ($X | (~ $Z))) ; // Y XOR (X OR NOT Z)
-    }
-
 
     private static function step($func, &$A, $B, $C, $D, $M, $s, $t)
     {

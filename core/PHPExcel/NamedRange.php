@@ -96,6 +96,19 @@ class PHPExcel_NamedRange
 								(($pScope == null) ? $pWorksheet : $pScope) : null;
     }
 
+	/**
+	 * Resolve a named range to a regular cell range
+	 *
+	 * @param string $pNamedRange Named range
+	 * @param PHPExcel_Worksheet|null $pSheet Scope. Use null for global scope
+	 *
+	 * @return PHPExcel_NamedRange
+	 */
+	public static function resolveRange( $pNamedRange = '', PHPExcel_Worksheet $pSheet ) {
+		return $pSheet->getParent()
+		              ->getNamedRange( $pNamedRange, $pSheet );
+	}
+
     /**
      * Get name
      *
@@ -217,17 +230,6 @@ class PHPExcel_NamedRange
     	$this->_scope = $value;
     	$this->_localOnly = ($value == null) ? false : true;
     	return $this;
-    }
-
-    /**
-     * Resolve a named range to a regular cell range
-     *
-     * @param string $pNamedRange Named range
-     * @param PHPExcel_Worksheet|null $pSheet Scope. Use null for global scope
-     * @return PHPExcel_NamedRange
-     */
-    public static function resolveRange($pNamedRange = '', PHPExcel_Worksheet $pSheet) {
-		return $pSheet->getParent()->getNamedRange($pNamedRange, $pSheet);
     }
 
 	/**

@@ -56,8 +56,69 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 	 */
 	private $_memcache = null;
 
+	/**
+	 * Initialise this new cell collection
+	 *
+	 * @param    PHPExcel_Worksheet $parent The worksheet for this cell collection
+	 * @param    array of mixed        $arguments    Additional initialisation arguments
+	 */
+	public function __construct( PHPExcel_Worksheet $parent, $arguments ) {
+		$memcacheServer = ( isset( $arguments['memcacheServer'] ) ) ? $arguments['memcacheServer'] : 'localhost';
+		$memcachePort   = ( isset( $arguments['memcachePort'] ) ) ? $arguments['memcachePort'] : 11211;
+		$cacheTime      = ( isset( $arguments['cacheTime'] ) ) ? $arguments['cacheTime'] : 600;
 
-    /**
+		if ( is_null( $this->_cachePrefix ) ) {
+			$baseUnique         = $this->_getUniqueID();
+			$this->_cachePrefix = substr( md5( $baseUnique ), 0, 8 ) . '.';
+
+			//	Set a new Memcache object and connect to the Memcache server
+			$this->_memcache = new Memcache();
+			if ( ! $this->_memcache->addServer( $memcacheServer, $memcachePort, false, 50, 5, 5, true, array( $this, 'failureCallback' ) ) ) {
+				throw new PHPExcel_Exception( 'Could not connect to MemCache server at ' . $memcacheServer . ':' . $memcachePort );
+			}
+			$this->_cacheTime = $cacheTime;
+
+			parent::__construct( $parent );
+		}
+	}    //	function _storeData()
+
+	/**
+	 * Identify whether the caching method is currently available
+	 * Some methods are dependent on the availability of certain extensions being enabled in the PHP build
+	 *
+	 * @return    boolean
+	 */
+	public static function cacheMethodIsAvailable() {
+		if ( ! function_exists( 'memcache_add' ) ) {
+			return false;
+		}
+
+		return true;
+	}    //	function addCacheData()
+
+	/**
+	 * Add or Update a cell in cache identified by coordinate address
+	 *
+	 * @param    string $pCoord Coordinate address of the cell to update
+	 * @param    PHPExcel_Cell $cell Cell to update
+	 *
+	 * @return    void
+	 * @throws    PHPExcel_Exception
+	 */
+	public function addCacheData( $pCoord, PHPExcel_Cell $cell ) {
+		if ( ( $pCoord !== $this->_currentObjectID ) && ( $this->_currentObjectID !== null ) ) {
+			$this->_storeData();
+		}
+		$this->_cellCache[ $pCoord ] = true;
+
+		$this->_currentObjectID    = $pCoord;
+		$this->_currentObject      = $cell;
+		$this->_currentCellIsDirty = true;
+
+		return $cell;
+	}    //	function isDataSet()
+
+	/**
      * Store cell data in cache for the current cell object if it's "dirty",
      *     and the 'nullify' the current cell object
      *
@@ -78,30 +139,30 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 			$this->_currentCellIsDirty = false;
 		}
 		$this->_currentObjectID = $this->_currentObject = null;
-	}	//	function _storeData()
+	}    //	function getCacheData()
 
+	/**
+	 * Destroy this cell collection
+	 */
+	public function __destruct() {
+		$cacheList = $this->getCellList();
+		foreach ( $cacheList as $cellID ) {
+			$this->_memcache->delete( $this->_cachePrefix . $cellID . '.cache' );
+		}
+	}
 
-    /**
-     * Add or Update a cell in cache identified by coordinate address
-     *
-     * @param	string			$pCoord		Coordinate address of the cell to update
-     * @param	PHPExcel_Cell	$cell		Cell to update
-	 * @return	void
-     * @throws	PHPExcel_Exception
-     */
-	public function addCacheData($pCoord, PHPExcel_Cell $cell) {
-		if (($pCoord !== $this->_currentObjectID) && ($this->_currentObjectID !== null)) {
+	/**
+	 * Get a list of all cell addresses currently held in cache
+	 *
+	 * @return  array of string
+	 */
+	public function getCellList() {
+		if ( $this->_currentObjectID !== null) {
 			$this->_storeData();
 		}
-		$this->_cellCache[$pCoord] = true;
 
-		$this->_currentObjectID = $pCoord;
-		$this->_currentObject = $cell;
-		$this->_currentCellIsDirty = true;
-
-		return $cell;
-	}	//	function addCacheData()
-
+		return parent::getCellList();
+	}    //	function deleteCacheData()
 
 	/**
 	 * Is a value set in the current PHPExcel_CachedObjectStorage_ICache for an indexed cell?
@@ -126,8 +187,7 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 			return true;
 		}
 		return false;
-	}	//	function isDataSet()
-
+	}    //	function copyCellCollection()
 
 	/**
      * Get cell at a specific coordinate
@@ -163,24 +223,9 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 
 		//	Return requested entry
 		return $this->_currentObject;
-	}	//	function getCacheData()
-
+	}    //	function unsetWorksheetCells()
 
 	/**
-	 * Get a list of all cell addresses currently held in cache
-	 *
-	 * @return  array of string
-	 */
-	public function getCellList() {
-		if ($this->_currentObjectID !== null) {
-			$this->_storeData();
-		}
-
-		return parent::getCellList();
-	}
-
-
-    /**
      * Delete a cell in cache identified by coordinate address
      *
      * @param	string			$pCoord		Coordinate address of the cell to delete
@@ -191,9 +236,8 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 		$this->_memcache->delete($this->_cachePrefix.$pCoord.'.cache');
 
 		//	Delete the entry from our cell address array
-		parent::deleteCacheData($pCoord);
-	}	//	function deleteCacheData()
-
+		parent::deleteCacheData($pCoord );
+	}    //	function __construct()
 
 	/**
 	 * Clone the cell collection
@@ -222,8 +266,7 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 			}
 		}
 		$this->_cachePrefix = $newCachePrefix;
-	}	//	function copyCellCollection()
-
+	}
 
 	/**
 	 * Clear the cell collection and disconnect from our parent
@@ -243,35 +286,7 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 
 		//	detach ourself from the worksheet, so that it can then delete this object successfully
 		$this->_parent = null;
-	}	//	function unsetWorksheetCells()
-
-
-	/**
-	 * Initialise this new cell collection
-	 *
-	 * @param	PHPExcel_Worksheet	$parent		The worksheet for this cell collection
-	 * @param	array of mixed		$arguments	Additional initialisation arguments
-	 */
-	public function __construct(PHPExcel_Worksheet $parent, $arguments) {
-		$memcacheServer	= (isset($arguments['memcacheServer']))	? $arguments['memcacheServer']	: 'localhost';
-		$memcachePort	= (isset($arguments['memcachePort']))	? $arguments['memcachePort']	: 11211;
-		$cacheTime		= (isset($arguments['cacheTime']))		? $arguments['cacheTime']		: 600;
-
-		if (is_null($this->_cachePrefix)) {
-			$baseUnique = $this->_getUniqueID();
-			$this->_cachePrefix = substr(md5($baseUnique),0,8).'.';
-
-			//	Set a new Memcache object and connect to the Memcache server
-			$this->_memcache = new Memcache();
-			if (!$this->_memcache->addServer($memcacheServer, $memcachePort, false, 50, 5, 5, true, array($this, 'failureCallback'))) {
-				throw new PHPExcel_Exception('Could not connect to MemCache server at '.$memcacheServer.':'.$memcachePort);
-			}
-			$this->_cacheTime = $cacheTime;
-
-			parent::__construct($parent);
-		}
-	}	//	function __construct()
-
+	}    //	function __destruct()
 
 	/**
 	 * Memcache error handler
@@ -282,31 +297,6 @@ class PHPExcel_CachedObjectStorage_Memcache extends PHPExcel_CachedObjectStorage
 	 */
 	public function failureCallback($host, $port) {
 		throw new PHPExcel_Exception('memcache '.$host.':'.$port.' failed');
-	}
-
-
-	/**
-	 * Destroy this cell collection
-	 */
-	public function __destruct() {
-		$cacheList = $this->getCellList();
-		foreach($cacheList as $cellID) {
-			$this->_memcache->delete($this->_cachePrefix.$cellID.'.cache');
-		}
-	}	//	function __destruct()
-
-	/**
-	 * Identify whether the caching method is currently available
-	 * Some methods are dependent on the availability of certain extensions being enabled in the PHP build
-	 *
-	 * @return	boolean
-	 */
-	public static function cacheMethodIsAvailable() {
-		if (!function_exists('memcache_add')) {
-			return false;
-		}
-
-		return true;
 	}
 
 }

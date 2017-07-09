@@ -116,6 +116,35 @@ class PHPExcel_Writer_Excel2007_Chart extends PHPExcel_Writer_Excel2007_WriterPa
 	}
 
 	/**
+	 * Write Alternate Content block
+	 *
+	 * @param    PHPExcel_Shared_XMLWriter $objWriter XML Writer
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	private function _writeAlternateContent( $objWriter ) {
+		$objWriter->startElement( 'mc:AlternateContent' );
+		$objWriter->writeAttribute( 'xmlns:mc', 'http://schemas.openxmlformats.org/markup-compatibility/2006' );
+
+		$objWriter->startElement( 'mc:Choice' );
+		$objWriter->writeAttribute( 'xmlns:c14', 'http://schemas.microsoft.com/office/drawing/2007/8/2/chart' );
+		$objWriter->writeAttribute( 'Requires', 'c14' );
+
+		$objWriter->startElement( 'c14:style' );
+		$objWriter->writeAttribute( 'val', '102' );
+		$objWriter->endElement();
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'mc:Fallback' );
+		$objWriter->startElement( 'c:style' );
+		$objWriter->writeAttribute( 'val', '2' );
+		$objWriter->endElement();
+		$objWriter->endElement();
+
+		$objWriter->endElement();
+	}
+
+	/**
 	 * Write Chart Title
 	 *
 	 * @param	PHPExcel_Chart_Title		$title
@@ -160,52 +189,70 @@ class PHPExcel_Writer_Excel2007_Chart extends PHPExcel_Writer_Excel2007_WriterPa
 	}
 
 	/**
-	 * Write Chart Legend
+	 * Write Layout
 	 *
-	 * @param	PHPExcel_Chart_Legend		$legend
+	 * @param    PHPExcel_Chart_Layout $layout
 	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
+	 *
 	 * @throws 	PHPExcel_Writer_Exception
 	 */
-	private function _writeLegend(PHPExcel_Chart_Legend $legend = null, $objWriter)
-	{
-		if (is_null($legend)) {
-			return;
-		}
+	private function _writeLayout( PHPExcel_Chart_Layout $layout = null, $objWriter ) {
+		$objWriter->startElement( 'c:layout' );
 
-		$objWriter->startElement('c:legend');
+		if ( ! is_null( $layout ) ) {
+			$objWriter->startElement( 'c:manualLayout' );
 
-			$objWriter->startElement('c:legendPos');
-				$objWriter->writeAttribute('val', $legend->getPosition());
-			$objWriter->endElement();
-
-			$layout = $legend->getLayout();
-			$this->_writeLayout($layout, $objWriter);
-
-			$objWriter->startElement('c:overlay');
-				$objWriter->writeAttribute('val', ($legend->getOverlay()) ? '1' : '0');
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:txPr');
-				$objWriter->startElement('a:bodyPr');
+			$layoutTarget = $layout->getLayoutTarget();
+			if ( ! is_null( $layoutTarget ) ) {
+				$objWriter->startElement( 'c:layoutTarget' );
+				$objWriter->writeAttribute( 'val', $layoutTarget );
 				$objWriter->endElement();
+			}
 
-				$objWriter->startElement('a:lstStyle');
+			$xMode = $layout->getXMode();
+			if ( ! is_null( $xMode ) ) {
+				$objWriter->startElement( 'c:xMode' );
+				$objWriter->writeAttribute( 'val', $xMode );
 				$objWriter->endElement();
+			}
 
-				$objWriter->startElement('a:p');
-					$objWriter->startElement('a:pPr');
-						$objWriter->writeAttribute('rtl', 0);
+			$yMode = $layout->getYMode();
+			if ( ! is_null( $yMode ) ) {
+				$objWriter->startElement( 'c:yMode' );
+				$objWriter->writeAttribute( 'val', $yMode );
+				$objWriter->endElement();
+			}
 
-						$objWriter->startElement('a:defRPr');
+			$x = $layout->getXPosition();
+			if ( ! is_null( $x ) ) {
+				$objWriter->startElement( 'c:x' );
+				$objWriter->writeAttribute( 'val', $x );
+				$objWriter->endElement();
+			}
+
+			$y = $layout->getYPosition();
+			if ( ! is_null( $y ) ) {
+				$objWriter->startElement( 'c:y' );
+				$objWriter->writeAttribute( 'val', $y);
 						$objWriter->endElement();
-					$objWriter->endElement();
+			}
 
-					$objWriter->startElement('a:endParaRPr');
-						$objWriter->writeAttribute('lang', "en-US");
-					$objWriter->endElement();
+			$w = $layout->getWidth();
+			if ( ! is_null( $w ) ) {
+				$objWriter->startElement( 'c:w' );
+				$objWriter->writeAttribute( 'val', $w );
+				$objWriter->endElement();
+			}
+
+			$h = $layout->getHeight();
+			if ( ! is_null( $h ) ) {
+				$objWriter->startElement( 'c:h' );
+				$objWriter->writeAttribute( 'val', $h );
+				$objWriter->endElement();
+					}
 
 				$objWriter->endElement();
-			$objWriter->endElement();
+			}
 
 		$objWriter->endElement();
 	}
@@ -364,300 +411,6 @@ class PHPExcel_Writer_Excel2007_Chart extends PHPExcel_Writer_Excel2007_WriterPa
 
 		$objWriter->endElement();
 	}
-
-	/**
-	 * Write Data Labels
-	 *
-	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
-	 * @param 	PHPExcel_Chart_Layout		$chartLayout	Chart layout
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	private function _writeDataLbls($objWriter, $chartLayout)
-	{
-		$objWriter->startElement('c:dLbls');
-
-			$objWriter->startElement('c:showLegendKey');
-				$showLegendKey = (empty($chartLayout)) ? 0 : $chartLayout->getShowLegendKey();
-				$objWriter->writeAttribute('val', ((empty($showLegendKey)) ? 0 : 1) );
-			$objWriter->endElement();
-
-
-			$objWriter->startElement('c:showVal');
-				$showVal = (empty($chartLayout)) ? 0 : $chartLayout->getShowVal();
-				$objWriter->writeAttribute('val', ((empty($showVal)) ? 0 : 1) );
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:showCatName');
-				$showCatName = (empty($chartLayout)) ? 0 : $chartLayout->getShowCatName();
-				$objWriter->writeAttribute('val', ((empty($showCatName)) ? 0 : 1) );
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:showSerName');
-				$showSerName = (empty($chartLayout)) ? 0 : $chartLayout->getShowSerName();
-				$objWriter->writeAttribute('val', ((empty($showSerName)) ? 0 : 1) );
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:showPercent');
-				$showPercent = (empty($chartLayout)) ? 0 : $chartLayout->getShowPercent();
-				$objWriter->writeAttribute('val', ((empty($showPercent)) ? 0 : 1) );
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:showBubbleSize');
-				$showBubbleSize = (empty($chartLayout)) ? 0 : $chartLayout->getShowBubbleSize();
-				$objWriter->writeAttribute('val', ((empty($showBubbleSize)) ? 0 : 1) );
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:showLeaderLines');
-				$showLeaderLines = (empty($chartLayout)) ? 1 : $chartLayout->getShowLeaderLines();
-				$objWriter->writeAttribute('val', ((empty($showLeaderLines)) ? 0 : 1) );
-			$objWriter->endElement();
-
-		$objWriter->endElement();
-	}
-
-	/**
-	 * Write Category Axis
-	 *
-	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
-	 * @param 	PHPExcel_Chart_PlotArea		$plotArea
-	 * @param 	PHPExcel_Chart_Title		$xAxisLabel
-	 * @param 	string						$groupType		Chart type
-	 * @param 	string						$id1
-	 * @param 	string						$id2
-	 * @param 	boolean						$isMultiLevelSeries
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	private function _writeCatAx($objWriter, PHPExcel_Chart_PlotArea $plotArea, $xAxisLabel, $groupType, $id1, $id2, $isMultiLevelSeries)
-	{
-		$objWriter->startElement('c:catAx');
-
-			if ($id1 > 0) {
-				$objWriter->startElement('c:axId');
-					$objWriter->writeAttribute('val', $id1);
-				$objWriter->endElement();
-			}
-
-			$objWriter->startElement('c:scaling');
-				$objWriter->startElement('c:orientation');
-					$objWriter->writeAttribute('val', "minMax");
-				$objWriter->endElement();
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:delete');
-				$objWriter->writeAttribute('val', 0);
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:axPos');
-				$objWriter->writeAttribute('val', "b");
-			$objWriter->endElement();
-
-			if (!is_null($xAxisLabel)) {
-				$objWriter->startElement('c:title');
-					$objWriter->startElement('c:tx');
-						$objWriter->startElement('c:rich');
-
-							$objWriter->startElement('a:bodyPr');
-							$objWriter->endElement();
-
-							$objWriter->startElement('a:lstStyle');
-							$objWriter->endElement();
-
-							$objWriter->startElement('a:p');
-								$objWriter->startElement('a:r');
-
-									$caption = $xAxisLabel->getCaption();
-									if (is_array($caption))
-										$caption = $caption[0];
-									$objWriter->startElement('a:t');
-//										$objWriter->writeAttribute('xml:space', 'preserve');
-										$objWriter->writeRawData(PHPExcel_Shared_String::ControlCharacterPHP2OOXML( $caption ));
-									$objWriter->endElement();
-
-								$objWriter->endElement();
-							$objWriter->endElement();
-						$objWriter->endElement();
-					$objWriter->endElement();
-
-					$layout = $xAxisLabel->getLayout();
-					$this->_writeLayout($layout, $objWriter);
-
-					$objWriter->startElement('c:overlay');
-						$objWriter->writeAttribute('val', 0);
-					$objWriter->endElement();
-
-				$objWriter->endElement();
-
-			}
-
-			$objWriter->startElement('c:numFmt');
-				$objWriter->writeAttribute('formatCode', "General");
-				$objWriter->writeAttribute('sourceLinked', 1);
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:majorTickMark');
-				$objWriter->writeAttribute('val', "out");
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:minorTickMark');
-				$objWriter->writeAttribute('val', "none");
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:tickLblPos');
-				$objWriter->writeAttribute('val', "nextTo");
-			$objWriter->endElement();
-
-			if ($id2 > 0) {
-					$objWriter->startElement('c:crossAx');
-						$objWriter->writeAttribute('val', $id2);
-					$objWriter->endElement();
-
-					$objWriter->startElement('c:crosses');
-						$objWriter->writeAttribute('val', "autoZero");
-					$objWriter->endElement();
-			}
-
-			$objWriter->startElement('c:auto');
-				$objWriter->writeAttribute('val', 1);
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:lblAlgn');
-				$objWriter->writeAttribute('val', "ctr");
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:lblOffset');
-				$objWriter->writeAttribute('val', 100);
-			$objWriter->endElement();
-
-			if ($isMultiLevelSeries) {
-				$objWriter->startElement('c:noMultiLvlLbl');
-					$objWriter->writeAttribute('val', 0);
-				$objWriter->endElement();
-			}
-		$objWriter->endElement();
-
-	}
-
-
-	/**
-	 * Write Value Axis
-	 *
-	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
-	 * @param 	PHPExcel_Chart_PlotArea		$plotArea
-	 * @param 	PHPExcel_Chart_Title		$yAxisLabel
-	 * @param 	string						$groupType		Chart type
-	 * @param 	string						$id1
-	 * @param 	string						$id2
-	 * @param 	boolean						$isMultiLevelSeries
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	private function _writeValAx($objWriter, PHPExcel_Chart_PlotArea $plotArea, $yAxisLabel, $groupType, $id1, $id2, $isMultiLevelSeries)
-	{
-		$objWriter->startElement('c:valAx');
-
-			if ($id2 > 0) {
-				$objWriter->startElement('c:axId');
-					$objWriter->writeAttribute('val', $id2);
-				$objWriter->endElement();
-			}
-
-			$objWriter->startElement('c:scaling');
-				$objWriter->startElement('c:orientation');
-					$objWriter->writeAttribute('val', "minMax");
-				$objWriter->endElement();
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:delete');
-				$objWriter->writeAttribute('val', 0);
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:axPos');
-				$objWriter->writeAttribute('val', "l");
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:majorGridlines');
-			$objWriter->endElement();
-
-			if (!is_null($yAxisLabel)) {
-				$objWriter->startElement('c:title');
-					$objWriter->startElement('c:tx');
-						$objWriter->startElement('c:rich');
-
-							$objWriter->startElement('a:bodyPr');
-							$objWriter->endElement();
-
-							$objWriter->startElement('a:lstStyle');
-							$objWriter->endElement();
-
-							$objWriter->startElement('a:p');
-								$objWriter->startElement('a:r');
-
-									$caption = $yAxisLabel->getCaption();
-									if (is_array($caption))
-										$caption = $caption[0];
-									$objWriter->startElement('a:t');
-//										$objWriter->writeAttribute('xml:space', 'preserve');
-										$objWriter->writeRawData(PHPExcel_Shared_String::ControlCharacterPHP2OOXML( $caption ));
-									$objWriter->endElement();
-
-								$objWriter->endElement();
-							$objWriter->endElement();
-						$objWriter->endElement();
-					$objWriter->endElement();
-
-					if ($groupType !== PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) {
-						$layout = $yAxisLabel->getLayout();
-						$this->_writeLayout($layout, $objWriter);
-					}
-
-					$objWriter->startElement('c:overlay');
-						$objWriter->writeAttribute('val', 0);
-					$objWriter->endElement();
-
-				$objWriter->endElement();
-			}
-
-			$objWriter->startElement('c:numFmt');
-				$objWriter->writeAttribute('formatCode', "General");
-				$objWriter->writeAttribute('sourceLinked', 1);
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:majorTickMark');
-				$objWriter->writeAttribute('val', "out");
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:minorTickMark');
-				$objWriter->writeAttribute('val', "none");
-			$objWriter->endElement();
-
-			$objWriter->startElement('c:tickLblPos');
-				$objWriter->writeAttribute('val', "nextTo");
-			$objWriter->endElement();
-
-			if ($id1 > 0) {
-					$objWriter->startElement('c:crossAx');
-						$objWriter->writeAttribute('val', $id2);
-					$objWriter->endElement();
-
-					$objWriter->startElement('c:crosses');
-						$objWriter->writeAttribute('val', "autoZero");
-					$objWriter->endElement();
-
-					$objWriter->startElement('c:crossBetween');
-						$objWriter->writeAttribute('val', "midCat");
-					$objWriter->endElement();
-			}
-
-			if ($isMultiLevelSeries) {
-				if ($groupType !== PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART) {
-					$objWriter->startElement('c:noMultiLvlLbl');
-						$objWriter->writeAttribute('val', 0);
-					$objWriter->endElement();
-				}
-			}
-		$objWriter->endElement();
-
-	}
-
 
 	/**
 	 * Get the data series type(s) for a chart plot series
@@ -1074,97 +827,344 @@ class PHPExcel_Writer_Excel2007_Chart extends PHPExcel_Writer_Excel2007_WriterPa
 	}
 
 	/**
-	 * Write Layout
+	 * Write Data Labels
 	 *
-	 * @param	PHPExcel_Chart_Layout		$layout
 	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
+	 * @param    PHPExcel_Chart_Layout $chartLayout Chart layout
+	 *
 	 * @throws 	PHPExcel_Writer_Exception
 	 */
-	private function _writeLayout(PHPExcel_Chart_Layout $layout = NULL, $objWriter)
-	{
-		$objWriter->startElement('c:layout');
+	private function _writeDataLbls( $objWriter, $chartLayout ) {
+		$objWriter->startElement('c:dLbls' );
 
-			if (!is_null($layout)) {
-				$objWriter->startElement('c:manualLayout');
+		$objWriter->startElement( 'c:showLegendKey' );
+		$showLegendKey = ( empty( $chartLayout ) ) ? 0 : $chartLayout->getShowLegendKey();
+		$objWriter->writeAttribute( 'val', ( ( empty( $showLegendKey ) ) ? 0 : 1 ) );
+		$objWriter->endElement();
 
-					$layoutTarget = $layout->getLayoutTarget();
-					if (!is_null($layoutTarget)) {
-						$objWriter->startElement('c:layoutTarget');
-							$objWriter->writeAttribute('val', $layoutTarget);
-						$objWriter->endElement();
-					}
 
-					$xMode = $layout->getXMode();
-					if (!is_null($xMode)) {
-						$objWriter->startElement('c:xMode');
-							$objWriter->writeAttribute('val', $xMode);
-						$objWriter->endElement();
-					}
+		$objWriter->startElement( 'c:showVal' );
+		$showVal = ( empty( $chartLayout ) ) ? 0 : $chartLayout->getShowVal();
+		$objWriter->writeAttribute( 'val', ( ( empty( $showVal ) ) ? 0 : 1 ) );
+		$objWriter->endElement();
 
-					$yMode = $layout->getYMode();
-					if (!is_null($yMode)) {
-						$objWriter->startElement('c:yMode');
-							$objWriter->writeAttribute('val', $yMode);
-						$objWriter->endElement();
-					}
+		$objWriter->startElement( 'c:showCatName' );
+		$showCatName = ( empty( $chartLayout ) ) ? 0 : $chartLayout->getShowCatName();
+		$objWriter->writeAttribute( 'val', ( ( empty( $showCatName ) ) ? 0 : 1 ) );
+		$objWriter->endElement();
 
-					$x = $layout->getXPosition();
-					if (!is_null($x)) {
-						$objWriter->startElement('c:x');
-							$objWriter->writeAttribute('val', $x);
-						$objWriter->endElement();
-					}
+		$objWriter->startElement( 'c:showSerName' );
+		$showSerName = ( empty( $chartLayout ) ) ? 0 : $chartLayout->getShowSerName();
+		$objWriter->writeAttribute( 'val', ( ( empty( $showSerName ) ) ? 0 : 1 ) );
+		$objWriter->endElement();
 
-					$y = $layout->getYPosition();
-					if (!is_null($y)) {
-						$objWriter->startElement('c:y');
-							$objWriter->writeAttribute('val', $y);
-						$objWriter->endElement();
-					}
+		$objWriter->startElement( 'c:showPercent' );
+		$showPercent = ( empty( $chartLayout ) ) ? 0 : $chartLayout->getShowPercent();
+		$objWriter->writeAttribute( 'val', ( ( empty( $showPercent ) ) ? 0 : 1 ) );
+		$objWriter->endElement();
 
-					$w = $layout->getWidth();
-					if (!is_null($w)) {
-						$objWriter->startElement('c:w');
-							$objWriter->writeAttribute('val', $w);
-						$objWriter->endElement();
-					}
+		$objWriter->startElement( 'c:showBubbleSize' );
+		$showBubbleSize = ( empty( $chartLayout ) ) ? 0 : $chartLayout->getShowBubbleSize();
+		$objWriter->writeAttribute( 'val', ( ( empty( $showBubbleSize ) ) ? 0 : 1 ) );
+		$objWriter->endElement();
 
-					$h = $layout->getHeight();
-					if (!is_null($h)) {
-						$objWriter->startElement('c:h');
-							$objWriter->writeAttribute('val', $h);
-						$objWriter->endElement();
-					}
-
-				$objWriter->endElement();
-			}
+		$objWriter->startElement( 'c:showLeaderLines' );
+		$showLeaderLines = ( empty( $chartLayout ) ) ? 1 : $chartLayout->getShowLeaderLines();
+		$objWriter->writeAttribute( 'val', ( ( empty( $showLeaderLines ) ) ? 0 : 1 ) );
+		$objWriter->endElement();
 
 		$objWriter->endElement();
 	}
 
 	/**
-	 * Write Alternate Content block
+	 * Write Value Axis
 	 *
-	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
+	 * @param    PHPExcel_Shared_XMLWriter $objWriter XML Writer
+	 * @param    PHPExcel_Chart_PlotArea $plotArea
+	 * @param    PHPExcel_Chart_Title $yAxisLabel
+	 * @param    string $groupType Chart type
+	 * @param    string $id1
+	 * @param    string $id2
+	 * @param    boolean $isMultiLevelSeries
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	private function _writeValAx( $objWriter, PHPExcel_Chart_PlotArea $plotArea, $yAxisLabel, $groupType, $id1, $id2, $isMultiLevelSeries ) {
+		$objWriter->startElement( 'c:valAx' );
+
+		if ( $id2 > 0 ) {
+			$objWriter->startElement( 'c:axId' );
+			$objWriter->writeAttribute( 'val', $id2 );
+			$objWriter->endElement();
+		}
+
+		$objWriter->startElement( 'c:scaling' );
+		$objWriter->startElement( 'c:orientation' );
+		$objWriter->writeAttribute( 'val', "minMax" );
+		$objWriter->endElement();
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:delete' );
+		$objWriter->writeAttribute( 'val', 0 );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:axPos' );
+		$objWriter->writeAttribute( 'val', "l" );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:majorGridlines' );
+		$objWriter->endElement();
+
+		if ( ! is_null( $yAxisLabel ) ) {
+			$objWriter->startElement( 'c:title' );
+			$objWriter->startElement( 'c:tx' );
+			$objWriter->startElement( 'c:rich' );
+
+			$objWriter->startElement( 'a:bodyPr' );
+			$objWriter->endElement();
+
+			$objWriter->startElement( 'a:lstStyle' );
+			$objWriter->endElement();
+
+			$objWriter->startElement( 'a:p' );
+			$objWriter->startElement( 'a:r' );
+
+			$caption = $yAxisLabel->getCaption();
+			if ( is_array( $caption ) ) {
+				$caption = $caption[0];
+			}
+			$objWriter->startElement( 'a:t' );
+			//										$objWriter->writeAttribute('xml:space', 'preserve');
+			$objWriter->writeRawData( PHPExcel_Shared_String::ControlCharacterPHP2OOXML( $caption ) );
+			$objWriter->endElement();
+
+			$objWriter->endElement();
+			$objWriter->endElement();
+			$objWriter->endElement();
+			$objWriter->endElement();
+
+			if ( $groupType !== PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART ) {
+				$layout = $yAxisLabel->getLayout();
+				$this->_writeLayout( $layout, $objWriter );
+			}
+
+			$objWriter->startElement( 'c:overlay' );
+			$objWriter->writeAttribute( 'val', 0 );
+			$objWriter->endElement();
+
+			$objWriter->endElement();
+		}
+
+		$objWriter->startElement( 'c:numFmt' );
+		$objWriter->writeAttribute( 'formatCode', "General" );
+		$objWriter->writeAttribute( 'sourceLinked', 1 );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:majorTickMark' );
+		$objWriter->writeAttribute( 'val', "out" );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:minorTickMark' );
+		$objWriter->writeAttribute( 'val', "none" );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:tickLblPos' );
+		$objWriter->writeAttribute( 'val', "nextTo" );
+		$objWriter->endElement();
+
+		if ( $id1 > 0 ) {
+			$objWriter->startElement( 'c:crossAx' );
+			$objWriter->writeAttribute( 'val', $id2 );
+			$objWriter->endElement();
+
+			$objWriter->startElement( 'c:crosses' );
+			$objWriter->writeAttribute( 'val', "autoZero" );
+			$objWriter->endElement();
+
+			$objWriter->startElement( 'c:crossBetween' );
+			$objWriter->writeAttribute( 'val', "midCat" );
+			$objWriter->endElement();
+		}
+
+		if ( $isMultiLevelSeries ) {
+			if ( $groupType !== PHPExcel_Chart_DataSeries::TYPE_BUBBLECHART ) {
+				$objWriter->startElement( 'c:noMultiLvlLbl' );
+				$objWriter->writeAttribute( 'val', 0 );
+				$objWriter->endElement();
+			}
+		}
+		$objWriter->endElement();
+
+	}
+
+	/**
+	 * Write Category Axis
+	 *
+	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter XML Writer
+	 * @param    PHPExcel_Chart_PlotArea $plotArea
+	 * @param    PHPExcel_Chart_Title $xAxisLabel
+	 * @param    string $groupType Chart type
+	 * @param    string $id1
+	 * @param    string $id2
+	 * @param    boolean $isMultiLevelSeries
+	 *
 	 * @throws 	PHPExcel_Writer_Exception
 	 */
-	private function _writeAlternateContent($objWriter)
-	{
-		$objWriter->startElement('mc:AlternateContent');
-			$objWriter->writeAttribute('xmlns:mc', 'http://schemas.openxmlformats.org/markup-compatibility/2006');
+	private function _writeCatAx( $objWriter, PHPExcel_Chart_PlotArea $plotArea, $xAxisLabel, $groupType, $id1, $id2, $isMultiLevelSeries ) {
+		$objWriter->startElement( 'c:catAx' );
 
-			$objWriter->startElement('mc:Choice');
-				$objWriter->writeAttribute('xmlns:c14', 'http://schemas.microsoft.com/office/drawing/2007/8/2/chart');
-				$objWriter->writeAttribute('Requires', 'c14');
+		if ( $id1 > 0 ) {
+			$objWriter->startElement( 'c:axId' );
+			$objWriter->writeAttribute( 'val', $id1 );
+			$objWriter->endElement();
+		}
 
-				$objWriter->startElement('c14:style');
-					$objWriter->writeAttribute('val', '102');
+		$objWriter->startElement( 'c:scaling' );
+		$objWriter->startElement( 'c:orientation' );
+		$objWriter->writeAttribute('val', "minMax");
 				$objWriter->endElement();
 			$objWriter->endElement();
 
-			$objWriter->startElement('mc:Fallback');
-				$objWriter->startElement('c:style');
-					$objWriter->writeAttribute('val', '2');
+		$objWriter->startElement( 'c:delete' );
+		$objWriter->writeAttribute( 'val', 0 );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:axPos' );
+		$objWriter->writeAttribute( 'val', "b" );
+		$objWriter->endElement();
+
+		if ( ! is_null( $xAxisLabel ) ) {
+			$objWriter->startElement( 'c:title' );
+			$objWriter->startElement( 'c:tx' );
+			$objWriter->startElement( 'c:rich' );
+
+			$objWriter->startElement( 'a:bodyPr' );
+			$objWriter->endElement();
+
+			$objWriter->startElement( 'a:lstStyle' );
+			$objWriter->endElement();
+
+			$objWriter->startElement( 'a:p' );
+			$objWriter->startElement( 'a:r' );
+
+			$caption = $xAxisLabel->getCaption();
+			if ( is_array( $caption ) ) {
+				$caption = $caption[0];
+			}
+			$objWriter->startElement( 'a:t' );
+			//										$objWriter->writeAttribute('xml:space', 'preserve');
+			$objWriter->writeRawData( PHPExcel_Shared_String::ControlCharacterPHP2OOXML( $caption ) );
+			$objWriter->endElement();
+
+			$objWriter->endElement();
+			$objWriter->endElement();
+			$objWriter->endElement();
+			$objWriter->endElement();
+
+			$layout = $xAxisLabel->getLayout();
+			$this->_writeLayout( $layout, $objWriter );
+
+			$objWriter->startElement( 'c:overlay' );
+			$objWriter->writeAttribute( 'val', 0 );
+			$objWriter->endElement();
+
+			$objWriter->endElement();
+
+		}
+
+		$objWriter->startElement( 'c:numFmt' );
+		$objWriter->writeAttribute( 'formatCode', "General" );
+		$objWriter->writeAttribute( 'sourceLinked', 1 );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:majorTickMark' );
+		$objWriter->writeAttribute( 'val', "out" );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:minorTickMark' );
+		$objWriter->writeAttribute( 'val', "none" );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:tickLblPos' );
+		$objWriter->writeAttribute( 'val', "nextTo" );
+		$objWriter->endElement();
+
+		if ( $id2 > 0 ) {
+			$objWriter->startElement( 'c:crossAx' );
+			$objWriter->writeAttribute( 'val', $id2 );
+			$objWriter->endElement();
+
+			$objWriter->startElement( 'c:crosses' );
+			$objWriter->writeAttribute( 'val', "autoZero" );
+			$objWriter->endElement();
+		}
+
+		$objWriter->startElement( 'c:auto' );
+		$objWriter->writeAttribute( 'val', 1 );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:lblAlgn' );
+		$objWriter->writeAttribute( 'val', "ctr" );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:lblOffset' );
+		$objWriter->writeAttribute( 'val', 100 );
+		$objWriter->endElement();
+
+		if ( $isMultiLevelSeries ) {
+			$objWriter->startElement( 'c:noMultiLvlLbl' );
+			$objWriter->writeAttribute( 'val', 0 );
+			$objWriter->endElement();
+		}
+		$objWriter->endElement();
+
+	}
+
+	/**
+	 * Write Chart Legend
+	 *
+	 * @param    PHPExcel_Chart_Legend $legend
+	 * @param    PHPExcel_Shared_XMLWriter $objWriter XML Writer
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	private function _writeLegend( PHPExcel_Chart_Legend $legend = null, $objWriter ) {
+		if ( is_null( $legend ) ) {
+			return;
+		}
+
+		$objWriter->startElement( 'c:legend' );
+
+		$objWriter->startElement( 'c:legendPos' );
+		$objWriter->writeAttribute( 'val', $legend->getPosition() );
+		$objWriter->endElement();
+
+		$layout = $legend->getLayout();
+		$this->_writeLayout( $layout, $objWriter );
+
+		$objWriter->startElement( 'c:overlay' );
+		$objWriter->writeAttribute( 'val', ( $legend->getOverlay() ) ? '1' : '0' );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'c:txPr' );
+		$objWriter->startElement( 'a:bodyPr' );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'a:lstStyle' );
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'a:p' );
+		$objWriter->startElement( 'a:pPr' );
+		$objWriter->writeAttribute( 'rtl', 0 );
+
+		$objWriter->startElement( 'a:defRPr' );
+		$objWriter->endElement();
+		$objWriter->endElement();
+
+		$objWriter->startElement( 'a:endParaRPr' );
+		$objWriter->writeAttribute( 'lang', "en-US" );
+		$objWriter->endElement();
+
 				$objWriter->endElement();
 			$objWriter->endElement();
 

@@ -112,32 +112,47 @@ class PHPExcel_Best_Fit
 
 	protected $_Yoffset				= 0;
 
+	/**
+	 * Define the regression
+	 *
+	 * @param    float[] $yValues The set of Y-values for this regression
+	 * @param    float[] $xValues The set of X-values for this regression
+	 * @param    boolean $const
+	 */
+	function __construct( $yValues, $xValues = array(), $const = true ) {
+		//	Calculate number of points
+		$nY = count( $yValues );
+		$nX = count( $xValues );
+
+		//	Define X Values if necessary
+		if ( $nX == 0 ) {
+			$xValues = range( 1, $nY );
+			$nX      = $nY;
+		} elseif ( $nY != $nX ) {
+			//	Ensure both arrays of points are the same size
+			$this->_error = true;
+
+			return false;
+		}
+
+		$this->_valueCount = $nY;
+		$this->_xValues    = $xValues;
+		$this->_yValues    = $yValues;
+	}    //	function getBestFitType()
 
 	public function getError() {
 		return $this->_error;
 	}	//	function getBestFitType()
 
-
 	public function getBestFitType() {
 		return $this->_bestFitType;
-	}	//	function getBestFitType()
-
-
-	/**
-	 * Return the Y-Value for a specified value of X
-	 *
-	 * @param	 float		$xValue			X-Value
-	 * @return	 float						Y-Value
-	 */
-	public function getValueOfYForX($xValue) {
-		return False;
 	}	//	function getValueOfYForX()
-
 
 	/**
 	 * Return the X-Value for a specified value of Y
 	 *
 	 * @param	 float		$yValue			Y-Value
+	 *
 	 * @return	 float						X-Value
 	 */
 	public function getValueOfXForY($yValue) {
@@ -310,8 +325,43 @@ class PHPExcel_Best_Fit
 		return $this->_yBestFitValues;
 	}	//	function getYBestFitValues()
 
+	protected function _leastSquareFit( $yValues, $xValues, $const ) {
+		// calculate sums
+		$x_sum = array_sum( $xValues );
+		$y_sum = array_sum( $yValues );
+		$meanX = $x_sum / $this->_valueCount;
+		$meanY = $y_sum / $this->_valueCount;
+		$mBase = $mDivisor = $xx_sum = $xy_sum = $yy_sum = 0.0;
+		for ( $i = 0; $i < $this->_valueCount; ++ $i ) {
+			$xy_sum += $xValues[ $i ] * $yValues[ $i ];
+			$xx_sum += $xValues[ $i ] * $xValues[ $i ];
+			$yy_sum += $yValues[ $i ] * $yValues[ $i ];
 
-	protected function _calculateGoodnessOfFit($sumX,$sumY,$sumX2,$sumY2,$sumXY,$meanX,$meanY, $const) {
+			if ( $const ) {
+				$mBase    += ( $xValues[ $i ] - $meanX ) * ( $yValues[ $i ] - $meanY );
+				$mDivisor += ( $xValues[ $i ] - $meanX ) * ( $xValues[ $i ] - $meanX );
+			} else {
+				$mBase    += $xValues[ $i ] * $yValues[ $i ];
+				$mDivisor += $xValues[ $i ] * $xValues[ $i ];
+			}
+		}
+
+		// calculate slope
+		//		$this->_slope = (($this->_valueCount * $xy_sum) - ($x_sum * $y_sum)) / (($this->_valueCount * $xx_sum) - ($x_sum * $x_sum));
+		$this->_slope = $mBase / $mDivisor;
+
+		// calculate intersect
+		//		$this->_intersect = ($y_sum - ($this->_slope * $x_sum)) / $this->_valueCount;
+		if ( $const ) {
+			$this->_intersect = $meanY - ( $this->_slope * $meanX );
+		} else {
+			$this->_intersect = 0;
+		}
+
+		$this->_calculateGoodnessOfFit( $x_sum, $y_sum, $xx_sum, $yy_sum, $xy_sum, $meanX, $meanY, $const );
+	}    //	function _calculateGoodnessOfFit()
+
+	protected function _calculateGoodnessOfFit( $sumX, $sumY, $sumX2, $sumY2, $sumXY, $meanX, $meanY, $const) {
 		$SSres = $SScov = $SScor = $SStot = $SSsex = 0.0;
 		foreach($this->_xValues as $xKey => $xValue) {
 			$bestFitY = $this->_yBestFitValues[$xKey] = $this->getValueOfYForX($xValue);
@@ -362,71 +412,17 @@ class PHPExcel_Best_Fit
 				$this->_F = $this->_SSRegression / $this->_DFResiduals;
 			}
 		}
-	}	//	function _calculateGoodnessOfFit()
-
-
-	protected function _leastSquareFit($yValues, $xValues, $const) {
-		// calculate sums
-		$x_sum = array_sum($xValues);
-		$y_sum = array_sum($yValues);
-		$meanX = $x_sum / $this->_valueCount;
-		$meanY = $y_sum / $this->_valueCount;
-		$mBase = $mDivisor = $xx_sum = $xy_sum = $yy_sum = 0.0;
-		for($i = 0; $i < $this->_valueCount; ++$i) {
-			$xy_sum += $xValues[$i] * $yValues[$i];
-			$xx_sum += $xValues[$i] * $xValues[$i];
-			$yy_sum += $yValues[$i] * $yValues[$i];
-
-			if ($const) {
-				$mBase += ($xValues[$i] - $meanX) * ($yValues[$i] - $meanY);
-				$mDivisor += ($xValues[$i] - $meanX) * ($xValues[$i] - $meanX);
-			} else {
-				$mBase += $xValues[$i] * $yValues[$i];
-				$mDivisor += $xValues[$i] * $xValues[$i];
-			}
-		}
-
-		// calculate slope
-//		$this->_slope = (($this->_valueCount * $xy_sum) - ($x_sum * $y_sum)) / (($this->_valueCount * $xx_sum) - ($x_sum * $x_sum));
-		$this->_slope = $mBase / $mDivisor;
-
-		// calculate intersect
-//		$this->_intersect = ($y_sum - ($this->_slope * $x_sum)) / $this->_valueCount;
-		if ($const) {
-			$this->_intersect = $meanY - ($this->_slope * $meanX);
-		} else {
-			$this->_intersect = 0;
-		}
-
-		$this->_calculateGoodnessOfFit($x_sum,$y_sum,$xx_sum,$yy_sum,$xy_sum,$meanX,$meanY,$const);
 	}	//	function _leastSquareFit()
 
-
 	/**
-	 * Define the regression
+	 * Return the Y-Value for a specified value of X
 	 *
-	 * @param	float[]		$yValues	The set of Y-values for this regression
-	 * @param	float[]		$xValues	The set of X-values for this regression
-	 * @param	boolean		$const
+	 * @param     float $xValue X-Value
+	 *
+	 * @return     float                        Y-Value
 	 */
-	function __construct($yValues, $xValues=array(), $const=True) {
-		//	Calculate number of points
-		$nY = count($yValues);
-		$nX = count($xValues);
-
-		//	Define X Values if necessary
-		if ($nX == 0) {
-			$xValues = range(1,$nY);
-			$nX = $nY;
-		} elseif ($nY != $nX) {
-			//	Ensure both arrays of points are the same size
-			$this->_error = True;
-			return False;
-		}
-
-		$this->_valueCount = $nY;
-		$this->_xValues = $xValues;
-		$this->_yValues = $yValues;
+	public function getValueOfYForX( $xValue ) {
+		return False;
 	}	//	function __construct()
 
 }	//	class bestFit

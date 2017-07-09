@@ -175,8 +175,30 @@ class PHPExcel_CachedObjectStorageFactory
         return $activeMethods;
     }   //    function getCacheStorageMethods()
 
+	/**
+	 * Initialise the cache storage
+	 *
+	 * @param    PHPExcel_Worksheet $parent Enable cell caching for this worksheet
+	 *
+	 * @return    PHPExcel_CachedObjectStorage_ICache
+	 **/
+	public static function getInstance( PHPExcel_Worksheet $parent ) {
+		$cacheMethodIsAvailable = true;
+		if ( self::$_cacheStorageMethod === null ) {
+			$cacheMethodIsAvailable = self::initialize();
+		}
 
-    /**
+		if ( $cacheMethodIsAvailable ) {
+			$instance = new self::$_cacheStorageClass( $parent, self::$_storageMethodParameters[ self::$_cacheStorageMethod ] );
+			if ( $instance !== null ) {
+				return $instance;
+			}
+		}
+
+		return false;
+	}   //    function initialize()
+
+/**
      * Identify the cache storage method to use
      *
      * @param    string            $method        Name of the method to use for cell cacheing
@@ -208,34 +230,7 @@ class PHPExcel_CachedObjectStorageFactory
             self::$_cacheStorageMethod = $method;
         }
         return TRUE;
-    }   //    function initialize()
-
-
-    /**
-     * Initialise the cache storage
-     *
-     * @param    PHPExcel_Worksheet     $parent        Enable cell caching for this worksheet
-     * @return    PHPExcel_CachedObjectStorage_ICache
-     **/
-    public static function getInstance(PHPExcel_Worksheet $parent)
-    {
-        $cacheMethodIsAvailable = TRUE;
-        if (self::$_cacheStorageMethod === NULL) {
-            $cacheMethodIsAvailable = self::initialize();
-        }
-
-        if ($cacheMethodIsAvailable) {
-            $instance = new self::$_cacheStorageClass( $parent,
-                                                       self::$_storageMethodParameters[self::$_cacheStorageMethod]
-                                                     );
-            if ($instance !== NULL) {
-                return $instance;
-            }
-        }
-
-        return FALSE;
     }   //    function getInstance()
-
 
     /**
      * Clear the cache storage

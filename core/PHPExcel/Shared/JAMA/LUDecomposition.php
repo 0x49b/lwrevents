@@ -159,17 +159,6 @@ class PHPExcel_Shared_JAMA_LUDecomposition {
 		return new PHPExcel_Shared_JAMA_Matrix($U);
 	}	//	function getU()
 
-
-	/**
-	 *	Return pivot permutation vector.
-	 *
-	 *	@return array Pivot vector
-	 */
-	public function getPivot() {
-		return $this->piv;
-	}	//	function getPivot()
-
-
 	/**
 	 *	Alias for getPivot
 	 *
@@ -177,23 +166,16 @@ class PHPExcel_Shared_JAMA_LUDecomposition {
 	 */
 	public function getDoublePivot() {
 		return $this->getPivot();
-	}	//	function getDoublePivot()
-
+	}    //	function getPivot()
 
 	/**
-	 *	Is the matrix nonsingular?
+	 *    Return pivot permutation vector.
 	 *
-	 *	@return true if U, and hence A, is nonsingular.
+	 * @return array Pivot vector
 	 */
-	public function isNonsingular() {
-		for ($j = 0; $j < $this->n; ++$j) {
-			if ($this->LU[$j][$j] == 0) {
-				return false;
-			}
-		}
-		return true;
-	}	//	function isNonsingular()
-
+	public function getPivot() {
+		return $this->piv;
+	}	//	function getDoublePivot()
 
 	/**
 	 *	Count determinants
@@ -210,13 +192,13 @@ class PHPExcel_Shared_JAMA_LUDecomposition {
 		} else {
 			throw new PHPExcel_Calculation_Exception(PHPExcel_Shared_JAMA_Matrix::MatrixDimensionException);
 		}
-	}	//	function det()
-
+	}    //	function isNonsingular()
 
 	/**
 	 *	Solve A*X = B
 	 *
 	 *	@param  $B  A Matrix with as many rows as A and any number of columns.
+	 *
 	 *	@return  X so that L*U*X = B(piv,:)
 	 *	@PHPExcel_Calculation_Exception  IllegalArgumentException Matrix row dimensions must agree.
 	 *	@PHPExcel_Calculation_Exception  RuntimeException  Matrix is singular.
@@ -253,6 +235,21 @@ class PHPExcel_Shared_JAMA_LUDecomposition {
 		} else {
 			throw new PHPExcel_Calculation_Exception(self::MatrixSquareException);
 		}
+	}    //	function det()
+
+	/**
+	 *    Is the matrix nonsingular?
+	 *
+	 * @return true if U, and hence A, is nonsingular.
+	 */
+	public function isNonsingular() {
+		for ( $j = 0; $j < $this->n; ++ $j ) {
+			if ( $this->LU[ $j ][ $j ] == 0 ) {
+				return false;
+			}
+		}
+
+		return true;
 	}	//	function solve()
 
 }	//	class PHPExcel_Shared_JAMA_LUDecomposition

@@ -165,28 +165,6 @@ class PHPExcel_Style_Borders extends PHPExcel_Style_Supervisor implements PHPExc
     }
 
 	/**
-	 * Get the shared style component for the currently active cell in currently active sheet.
-	 * Only used for style supervisor
-	 *
-	 * @return PHPExcel_Style_Borders
-	 */
-	public function getSharedComponent()
-	{
-		return $this->_parent->getSharedComponent()->getBorders();
-	}
-
-	/**
-	 * Build style array from subcomponents
-	 *
-	 * @param array $array
-	 * @return array
-	 */
-	public function getStyleArray($array)
-	{
-		return array('borders' => $array);
-	}
-
-	/**
      * Apply styles from array
      *
      * <code>
@@ -258,6 +236,17 @@ class PHPExcel_Style_Borders extends PHPExcel_Style_Supervisor implements PHPExc
 			throw new PHPExcel_Exception("Invalid style array passed.");
 		}
 		return $this;
+	}
+
+	/**
+	 * Build style array from subcomponents
+	 *
+	 * @param array $array
+	 *
+	 * @return array
+	 */
+	public function getStyleArray( $array ) {
+		return array( 'borders' => $array );
 	}
 
     /**
@@ -370,6 +359,36 @@ class PHPExcel_Style_Borders extends PHPExcel_Style_Supervisor implements PHPExc
 		return $this->_horizontal;
     }
 
+	/**
+	 * Get hash code
+	 *
+	 * @return string    Hash code
+	 */
+	public function getHashCode() {
+		if ( $this->_isSupervisor ) {
+			return $this->getSharedComponent()
+			            ->getHashcode();
+		}
+
+		return md5( $this->getLeft()
+		                 ->getHashCode() . $this->getRight()
+		                                        ->getHashCode() . $this->getTop()
+		                                                               ->getHashCode() . $this->getBottom()
+		                                                                                      ->getHashCode() . $this->getDiagonal()
+		                                                                                                             ->getHashCode() . $this->getDiagonalDirection() . __CLASS__ );
+	}
+
+	/**
+	 * Get the shared style component for the currently active cell in currently active sheet.
+	 * Only used for style supervisor
+	 *
+	 * @return PHPExcel_Style_Borders
+	 */
+	public function getSharedComponent() {
+		return $this->_parent->getSharedComponent()
+		                     ->getBorders();
+	}
+
     /**
      * Get DiagonalDirection
      *
@@ -399,26 +418,6 @@ class PHPExcel_Style_Borders extends PHPExcel_Style_Supervisor implements PHPExc
 			$this->_diagonalDirection = $pValue;
 		}
 		return $this;
-    }
-
-	/**
-	 * Get hash code
-	 *
-	 * @return string	Hash code
-	 */
-	public function getHashCode() {
-		if ($this->_isSupervisor) {
-			return $this->getSharedComponent()->getHashcode();
-		}
-    	return md5(
-    		  $this->getLeft()->getHashCode()
-    		. $this->getRight()->getHashCode()
-    		. $this->getTop()->getHashCode()
-    		. $this->getBottom()->getHashCode()
-    		. $this->getDiagonal()->getHashCode()
-    		. $this->getDiagonalDirection()
-    		. __CLASS__
-    	);
     }
 
 }

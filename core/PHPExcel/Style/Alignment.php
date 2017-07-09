@@ -117,28 +117,6 @@ class PHPExcel_Style_Alignment extends PHPExcel_Style_Supervisor implements PHPE
 	}
 
 	/**
-	 * Get the shared style component for the currently active cell in currently active sheet.
-	 * Only used for style supervisor
-	 *
-	 * @return PHPExcel_Style_Alignment
-	 */
-	public function getSharedComponent()
-	{
-		return $this->_parent->getSharedComponent()->getAlignment();
-	}
-
-	/**
-	 * Build style array from subcomponents
-	 *
-	 * @param array $array
-	 * @return array
-	 */
-	public function getStyleArray($array)
-	{
-		return array('alignment' => $array);
-	}
-
-	/**
 	 * Apply styles from array
 	 *
 	 * <code>
@@ -188,6 +166,17 @@ class PHPExcel_Style_Alignment extends PHPExcel_Style_Supervisor implements PHPE
 	}
 
 	/**
+	 * Build style array from subcomponents
+	 *
+	 * @param array $array
+	 *
+	 * @return array
+	 */
+	public function getStyleArray( $array ) {
+		return array( 'alignment' => $array );
+	}
+
+	/**
 	 * Get Horizontal
 	 *
 	 * @return string
@@ -218,6 +207,17 @@ class PHPExcel_Style_Alignment extends PHPExcel_Style_Supervisor implements PHPE
 			$this->_horizontal = $pValue;
 		}
 		return $this;
+	}
+
+	/**
+	 * Get the shared style component for the currently active cell in currently active sheet.
+	 * Only used for style supervisor
+	 *
+	 * @return PHPExcel_Style_Alignment
+	 */
+	public function getSharedComponent() {
+		return $this->_parent->getSharedComponent()
+		                     ->getAlignment();
 	}
 
 	/**

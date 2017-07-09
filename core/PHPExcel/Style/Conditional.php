@@ -192,15 +192,6 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     }
 
     /**
-     * Get Conditions
-     *
-     * @return string[]
-     */
-    public function getConditions() {
-    	return $this->_condition;
-    }
-
-    /**
      * Set Conditions
      *
      * @param string[] $pValue	Condition
@@ -213,6 +204,15 @@ class PHPExcel_Style_Conditional implements PHPExcel_IComparable
     	$this->_condition = $pValue;
     	return $this;
     }
+
+	/**
+	 * Get Conditions
+	 *
+	 * @return string[]
+	 */
+	public function getConditions() {
+		return $this->_condition;
+	}
 
     /**
      * Add Condition

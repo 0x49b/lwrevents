@@ -87,6 +87,72 @@ class PHPExcel_Shared_OLE
 	public $smallBlockSize;
 
 	/**
+	 * Utility function to transform ASCII text to Unicode
+	 *
+	 * @access public
+	 * @static
+	 *
+	 * @param string $ascii The ASCII string to transform
+	 *
+	 * @return string The string in Unicode
+	 */
+	public static function Asc2Ucs( $ascii ) {
+		$rawname = '';
+		for ( $i = 0; $i < strlen( $ascii ); ++ $i ) {
+			$rawname .= $ascii{$i} . "\x00";
+		}
+
+		return $rawname;
+	}
+
+	/**
+	 * Utility function
+	 * Returns a string for the OLE container with the date given
+	 *
+	 * @access public
+	 * @static
+	 *
+	 * @param integer $date A timestamp
+	 *
+	 * @return string The string for the OLE container
+	 */
+	public static function LocalDate2OLE( $date = null ) {
+		if ( ! isset( $date ) ) {
+			return "\x00\x00\x00\x00\x00\x00\x00\x00";
+		}
+
+		// factor used for separating numbers into 4 bytes parts
+		$factor = pow( 2, 32 );
+
+		// days from 1-1-1601 until the beggining of UNIX era
+		$days = 134774;
+		// calculate seconds
+		$big_date = $days * 24 * 3600 + gmmktime( date( "H", $date ), date( "i", $date ), date( "s", $date ), date( "m", $date ), date( "d", $date ), date( "Y", $date ) );
+		// multiply just to make MS happy
+		$big_date *= 10000000;
+
+		$high_part = floor( $big_date / $factor );
+		// lower 4 bytes
+		$low_part = floor( ( ( $big_date / $factor ) - $high_part ) * $factor );
+
+		// Make HEX string
+		$res = '';
+
+		for ( $i = 0; $i < 4; ++ $i ) {
+			$hex      = $low_part % 0x100;
+			$res      .= pack( 'c', $hex );
+			$low_part /= 0x100;
+		}
+		for ( $i = 0; $i < 4; ++ $i ) {
+			$hex       = $high_part % 0x100;
+			$res       .= pack( 'c', $hex );
+			$high_part /= 0x100;
+		}
+
+		return $res;
+	}
+
+	/**
 	 * Reads an OLE container from the contents of the file given.
 	 *
 	 * @acces public
@@ -179,6 +245,34 @@ class PHPExcel_Shared_OLE
 	}
 
 	/**
+	 * Reads an unsigned short (2 octets).
+	 *
+	 * @param   resource  file handle
+	 *
+	 * @return  int
+	 * @access public
+	 */
+	private static function _readInt2( $fh ) {
+		list( , $tmp ) = unpack( "v", fread( $fh, 2 ) );
+
+		return $tmp;
+	}
+
+	/**
+	 * Reads an unsigned long (4 octets).
+	 *
+	 * @param   resource  file handle
+	 *
+	 * @return  int
+	 * @access public
+	 */
+	private static function _readInt4( $fh ) {
+		list( , $tmp ) = unpack( "V", fread( $fh, 4 ) );
+
+		return $tmp;
+	}
+
+	/**
 	 * @param  int  block id
 	 * @param  int  byte offset from beginning of file
 	 * @access public
@@ -217,42 +311,6 @@ class PHPExcel_Shared_OLE
 			$path .= '&blockId=' . $blockIdOrPps;
 		}
 		return fopen($path, 'r');
-	}
-
-	/**
-	 * Reads a signed char.
-	 * @param   resource  file handle
-	 * @return  int
-	 * @access public
-	 */
-	private static function _readInt1($fh)
-	{
-		list(, $tmp) = unpack("c", fread($fh, 1));
-		return $tmp;
-	}
-
-	/**
-	 * Reads an unsigned short (2 octets).
-	 * @param   resource  file handle
-	 * @return  int
-	 * @access public
-	 */
-	private static function _readInt2($fh)
-	{
-		list(, $tmp) = unpack("v", fread($fh, 2));
-		return $tmp;
-	}
-
-	/**
-	 * Reads an unsigned long (4 octets).
-	 * @param   resource  file handle
-	 * @return  int
-	 * @access public
-	 */
-	private static function _readInt4($fh)
-	{
-		list(, $tmp) = unpack("V", fread($fh, 4));
-		return $tmp;
 	}
 
 	/**
@@ -330,6 +388,53 @@ class PHPExcel_Shared_OLE
 		}
 
 		return true;
+	}
+
+	/**
+	 * Reads a signed char.
+	 *
+	 * @param   resource  file handle
+	 *
+	 * @return  int
+	 * @access public
+	 */
+	private static function _readInt1( $fh ) {
+		list( , $tmp ) = unpack( "c", fread( $fh, 1 ) );
+
+		return $tmp;
+	}
+
+	/**
+	 * Returns a timestamp from an OLE container's date
+	 *
+	 * @access public
+	 * @static
+	 *
+	 * @param integer $string A binary string with the encoded date
+	 *
+	 * @return string The timestamp corresponding to the string
+	 */
+	public static function OLE2LocalDate( $string ) {
+		if ( strlen( $string ) != 8 ) {
+			return new PEAR_Error( "Expecting 8 byte string" );
+		}
+
+		// factor used for separating numbers into 4 bytes parts
+		$factor = pow( 2, 32 );
+		list( , $high_part ) = unpack( 'V', substr( $string, 4, 4 ) );
+		list( , $low_part ) = unpack( 'V', substr( $string, 0, 4 ) );
+
+		$big_date = ( $high_part * $factor ) + $low_part;
+		// translate to seconds
+		$big_date /= 10000000;
+
+		// days from 1-1-1601 until the beggining of UNIX era
+		$days = 134774;
+
+		// translate to seconds from beggining of UNIX era
+		$big_date -= $days * 24 * 3600;
+
+		return floor($big_date);
 	}
 
 	/**
@@ -433,99 +538,5 @@ class PHPExcel_Shared_OLE
 			return $this->_list[$index]->Size;
 		}
 		return 0;
-	}
-
-	/**
-	* Utility function to transform ASCII text to Unicode
-	*
-	* @access public
-	* @static
-	* @param string $ascii The ASCII string to transform
-	* @return string The string in Unicode
-	*/
-	public static function Asc2Ucs($ascii)
-	{
-		$rawname = '';
-		for ($i = 0; $i < strlen($ascii); ++$i) {
-			$rawname .= $ascii{$i} . "\x00";
-		}
-		return $rawname;
-	}
-
-	/**
-	* Utility function
-	* Returns a string for the OLE container with the date given
-	*
-	* @access public
-	* @static
-	* @param integer $date A timestamp
-	* @return string The string for the OLE container
-	*/
-	public static function LocalDate2OLE($date = null)
-	{
-		if (!isset($date)) {
-			return "\x00\x00\x00\x00\x00\x00\x00\x00";
-		}
-
-		// factor used for separating numbers into 4 bytes parts
-		$factor = pow(2, 32);
-
-		// days from 1-1-1601 until the beggining of UNIX era
-		$days = 134774;
-		// calculate seconds
-		$big_date = $days*24*3600 + gmmktime(date("H",$date),date("i",$date),date("s",$date),
-											 date("m",$date),date("d",$date),date("Y",$date));
-		// multiply just to make MS happy
-		$big_date *= 10000000;
-
-		$high_part = floor($big_date / $factor);
-		// lower 4 bytes
-		$low_part = floor((($big_date / $factor) - $high_part) * $factor);
-
-		// Make HEX string
-		$res = '';
-
-		for ($i = 0; $i < 4; ++$i) {
-			$hex = $low_part % 0x100;
-			$res .= pack('c', $hex);
-			$low_part /= 0x100;
-		}
-		for ($i = 0; $i < 4; ++$i) {
-			$hex = $high_part % 0x100;
-			$res .= pack('c', $hex);
-			$high_part /= 0x100;
-		}
-		return $res;
-	}
-
-	/**
-	* Returns a timestamp from an OLE container's date
-	*
-	* @access public
-	* @static
-	* @param integer $string A binary string with the encoded date
-	* @return string The timestamp corresponding to the string
-	*/
-	public static function OLE2LocalDate($string)
-	{
-		if (strlen($string) != 8) {
-			return new PEAR_Error("Expecting 8 byte string");
-		}
-
-		// factor used for separating numbers into 4 bytes parts
-		$factor = pow(2,32);
-		list(, $high_part) = unpack('V', substr($string, 4, 4));
-		list(, $low_part) = unpack('V', substr($string, 0, 4));
-
-		$big_date = ($high_part * $factor) + $low_part;
-		// translate to seconds
-		$big_date /= 10000000;
-
-		// days from 1-1-1601 until the beggining of UNIX era
-		$days = 134774;
-
-		// translate to seconds from beggining of UNIX era
-		$big_date -= $days * 24 * 3600;
-		return floor($big_date);
 	}
 }

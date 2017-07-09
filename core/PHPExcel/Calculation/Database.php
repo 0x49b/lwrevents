@@ -45,6 +45,51 @@ if (!defined('PHPEXCEL_ROOT')) {
  */
 class PHPExcel_Calculation_Database {
 
+	/**
+	 * DAVERAGE
+	 *
+	 * Averages the values in a column of a list or database that match conditions you specify.
+	 *
+	 * Excel Function:
+	 *        DAVERAGE(database,field,criteria)
+	 *
+	 * @access    public
+	 * @category Database Functions
+	 *
+	 * @param    mixed[] $database The range of cells that makes up the list or database.
+	 *                                        A database is a list of related data in which rows of related
+	 *                                        information are records, and columns of data are fields. The
+	 *                                        first row of the list contains labels for each column.
+	 * @param    string|integer $field Indicates which column is used in the function. Enter the
+	 *                                        column label enclosed between double quotation marks, such as
+	 *                                        "Age" or "Yield," or a number (without quotation marks) that
+	 *                                        represents the position of the column within the list: 1 for
+	 *                                        the first column, 2 for the second column, and so on.
+	 * @param    mixed[] $criteria The range of cells that contains the conditions you specify.
+	 *                                        You can use any range for the criteria argument, as long as it
+	 *                                        includes at least one column label and at least one cell below
+	 *                                        the column label in which you specify a condition for the
+	 *                                        column.
+	 *
+	 * @return    float
+	 *
+	 */
+	public static function DAVERAGE( $database, $field, $criteria ) {
+		$field = self::__fieldExtract( $database, $field );
+		if ( is_null( $field ) ) {
+			return null;
+		}
+		//	reduce the database to a set of rows that match all the criteria
+		$database = self::__filter( $database, $criteria );
+		//	extract an array of values for the requested column
+		$colData = array();
+		foreach ( $database as $row ) {
+			$colData[] = $row[ $field ];
+		}
+
+		// Return
+		return PHPExcel_Calculation_Statistical::AVERAGE( $colData );
+	}
 
 	/**
 	 * __fieldExtract
@@ -147,55 +192,9 @@ class PHPExcel_Calculation_Database {
 		}
 
 		return $database;
-	}
-
-
-	/**
-	 * DAVERAGE
-	 *
-	 * Averages the values in a column of a list or database that match conditions you specify.
-	 *
-	 * Excel Function:
-	 *		DAVERAGE(database,field,criteria)
-	 *
-	 * @access	public
-	 * @category Database Functions
-	 * @param	mixed[]			$database	The range of cells that makes up the list or database.
-	 *										A database is a list of related data in which rows of related
-	 *										information are records, and columns of data are fields. The
-	 *										first row of the list contains labels for each column.
-	 * @param	string|integer	$field		Indicates which column is used in the function. Enter the
-	 *										column label enclosed between double quotation marks, such as
-	 *										"Age" or "Yield," or a number (without quotation marks) that
-	 *										represents the position of the column within the list: 1 for
-	 *										the first column, 2 for the second column, and so on.
-	 * @param	mixed[]			$criteria	The range of cells that contains the conditions you specify.
-	 *										You can use any range for the criteria argument, as long as it
-	 *										includes at least one column label and at least one cell below
-	 *										the column label in which you specify a condition for the
-	 *										column.
-	 * @return	float
-	 *
-	 */
-	public static function DAVERAGE($database,$field,$criteria) {
-		$field = self::__fieldExtract($database,$field);
-		if (is_null($field)) {
-			return NULL;
-		}
-		//	reduce the database to a set of rows that match all the criteria
-		$database = self::__filter($database,$criteria);
-		//	extract an array of values for the requested column
-		$colData = array();
-		foreach($database as $row) {
-			$colData[] = $row[$field];
-		}
-
-		// Return
-		return PHPExcel_Calculation_Statistical::AVERAGE($colData);
 	}	//	function DAVERAGE()
 
-
-	/**
+/**
 	 * DCOUNT
 	 *
 	 * Counts the cells that contain numbers in a column of a list or database that match conditions

@@ -66,6 +66,70 @@ class PHPExcel_Reader_Excel2003XML extends PHPExcel_Reader_Abstract implements P
 		$this->_readFilter 	= new PHPExcel_Reader_DefaultReadFilter();
 	}
 
+	/**
+	 * pixel units to excel width units(units of 1/256th of a character width)
+	 *
+	 * @param pxs
+	 *
+	 * @return
+	 */
+	private static function _pixel2WidthUnits( $pxs ) {
+		$UNIT_OFFSET_MAP = array( 0, 36, 73, 109, 146, 182, 219 );
+
+		$widthUnits = 256 * ( $pxs / 7 );
+		$widthUnits += $UNIT_OFFSET_MAP[ ( $pxs % 7 ) ];
+
+		return $widthUnits;
+	}
+
+	/**
+	 * excel width units(units of 1/256th of a character width) to pixel units
+	 *
+	 * @param widthUnits
+	 *
+	 * @return
+	 */
+	private static function _widthUnits2Pixel( $widthUnits ) {
+		$pixels           = ( $widthUnits / 256 ) * 7;
+		$offsetWidthUnits = $widthUnits % 256;
+		$pixels           += round( $offsetWidthUnits / ( 256 / 7 ) );
+
+		return $pixels;
+	}
+
+	private static function _hex2str( $hex ) {
+		return chr( hexdec( $hex[1] ) );
+	}
+
+	/**
+	 * Reads names of the worksheets from a file, without parsing the whole file to a PHPExcel object
+	 *
+	 * @param    string $pFilename
+	 *
+	 * @throws    PHPExcel_Reader_Exception
+	 */
+	public function listWorksheetNames( $pFilename ) {
+		// Check if file exists
+		if ( ! file_exists( $pFilename ) ) {
+			throw new PHPExcel_Reader_Exception( "Could not open " . $pFilename . " for reading! File does not exist." );
+		}
+		if ( ! $this->canRead( $pFilename ) ) {
+			throw new PHPExcel_Reader_Exception( $pFilename . " is an Invalid Spreadsheet file." );
+		}
+
+		$worksheetNames = array();
+
+		$xml        = simplexml_load_file( $pFilename, 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions() );
+		$namespaces = $xml->getNamespaces( true );
+
+		$xml_ss = $xml->children( $namespaces['ss'] );
+		foreach ( $xml_ss->Worksheet as $worksheet ) {
+			$worksheet_ss     = $worksheet->attributes( $namespaces['ss'] );
+			$worksheetNames[] = self::_convertStringEncoding( (string) $worksheet_ss['Name'], $this->_charSet );
+		}
+
+		return $worksheetNames;
+	}
 
 	/**
 	 * Can the current PHPExcel_Reader_IReader read the file?
@@ -95,7 +159,7 @@ class PHPExcel_Reader_Excel2003XML extends PHPExcel_Reader_Abstract implements P
 		// Open file
 		$this->_openFile($pFilename);
 		$fileHandle = $this->_fileHandle;
-		
+
 		// Read sample data (first 2 KB will do)
 		$data = fread($fileHandle, 2048);
 		fclose($fileHandle);
@@ -118,37 +182,12 @@ class PHPExcel_Reader_Excel2003XML extends PHPExcel_Reader_Abstract implements P
 		return $valid;
 	}
 
-
-	/**
-	 * Reads names of the worksheets from a file, without parsing the whole file to a PHPExcel object
-	 *
-	 * @param 	string 		$pFilename
-	 * @throws 	PHPExcel_Reader_Exception
-	 */
-	public function listWorksheetNames($pFilename)
-	{
-		// Check if file exists
-		if (!file_exists($pFilename)) {
-			throw new PHPExcel_Reader_Exception("Could not open " . $pFilename . " for reading! File does not exist.");
+	private static function _convertStringEncoding( $string, $charset ) {
+		if ( $charset != 'UTF-8' ) {
+			return PHPExcel_Shared_String::ConvertEncoding( $string,'UTF-8', $charset );
 		}
-		if (!$this->canRead($pFilename)) {
-			throw new PHPExcel_Reader_Exception($pFilename . " is an Invalid Spreadsheet file.");
-		}
-
-		$worksheetNames = array();
-
-		$xml = simplexml_load_file($pFilename, 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());
-		$namespaces = $xml->getNamespaces(true);
-
-		$xml_ss = $xml->children($namespaces['ss']);
-		foreach($xml_ss->Worksheet as $worksheet) {
-			$worksheet_ss = $worksheet->attributes($namespaces['ss']);
-			$worksheetNames[] = self::_convertStringEncoding((string) $worksheet_ss['Name'],$this->_charSet);
-		}
-
-		return $worksheetNames;
+		return $string;
 	}
-
 
 	/**
 	 * Return worksheet info (Name, Last Column Letter, Last Column Index, Total Rows, Total Columns)
@@ -220,7 +259,6 @@ class PHPExcel_Reader_Excel2003XML extends PHPExcel_Reader_Abstract implements P
 		return $worksheetInfo;
 	}
 
-
     /**
 	 * Loads PHPExcel from file
 	 *
@@ -236,51 +274,6 @@ class PHPExcel_Reader_Excel2003XML extends PHPExcel_Reader_Abstract implements P
 		// Load into this instance
 		return $this->loadIntoExisting($pFilename, $objPHPExcel);
 	}
-
-
-	private static function identifyFixedStyleValue($styleList,&$styleAttributeValue) {
-		$styleAttributeValue = strtolower($styleAttributeValue);
-		foreach($styleList as $style) {
-			if ($styleAttributeValue == strtolower($style)) {
-				$styleAttributeValue = $style;
-				return true;
-			}
-		}
-		return false;
-	}
-
-
- 	/**
- 	 * pixel units to excel width units(units of 1/256th of a character width)
- 	 * @param pxs
- 	 * @return
- 	 */
- 	private static function _pixel2WidthUnits($pxs) {
-		$UNIT_OFFSET_MAP = array(0, 36, 73, 109, 146, 182, 219);
-
-		$widthUnits = 256 * ($pxs / 7);
-		$widthUnits += $UNIT_OFFSET_MAP[($pxs % 7)];
-		return $widthUnits;
-	}
-
-
-	/**
-	 * excel width units(units of 1/256th of a character width) to pixel units
-	 * @param widthUnits
-	 * @return
-	 */
-	private static function _widthUnits2Pixel($widthUnits) {
-		$pixels = ($widthUnits / 256) * 7;
-		$offsetWidthUnits = $widthUnits % 256;
-		$pixels += round($offsetWidthUnits / (256 / 7));
-		return $pixels;
-	}
-
-
-	private static function _hex2str($hex) {
-		return chr(hexdec($hex[1]));
-	}
-
 
 	/**
 	 * Loads PHPExcel from file into PHPExcel instance
@@ -782,14 +775,17 @@ class PHPExcel_Reader_Excel2003XML extends PHPExcel_Reader_Abstract implements P
 		return $objPHPExcel;
 	}
 
+	private static function identifyFixedStyleValue( $styleList, &$styleAttributeValue ) {
+		$styleAttributeValue = strtolower( $styleAttributeValue );
+		foreach ( $styleList as $style ) {
+			if ( $styleAttributeValue == strtolower( $style ) ) {
+				$styleAttributeValue = $style;
 
-	private static function _convertStringEncoding($string,$charset) {
-		if ($charset != 'UTF-8') {
-			return PHPExcel_Shared_String::ConvertEncoding($string,'UTF-8',$charset);
+				return true;
+			}
 		}
-		return $string;
+		return false;
 	}
-
 
 	private function _parseRichText($is = '') {
 		$value = new PHPExcel_RichText();

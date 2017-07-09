@@ -109,48 +109,6 @@ class PHPExcel_Calculation_FormulaParser {
     }
 
     /**
-     * Get Formula
-     *
-     * @return string
-     */
-    public function getFormula() {
-    	return $this->_formula;
-    }
-
-    /**
-     * Get Token
-     *
-     * @param 	int		$pId	Token id
-     * @return	string
-     * @throws  PHPExcel_Calculation_Exception
-     */
-    public function getToken($pId = 0) {
-    	if (isset($this->_tokens[$pId])) {
-    		return $this->_tokens[$pId];
-    	} else {
-    		throw new PHPExcel_Calculation_Exception("Token with id $pId does not exist.");
-    	}
-    }
-
-    /**
-     * Get Token count
-     *
-     * @return string
-     */
-    public function getTokenCount() {
-    	return count($this->_tokens);
-    }
-
-    /**
-     * Get Tokens
-     *
-     * @return PHPExcel_Calculation_FormulaToken[]
-     */
-    public function getTokens() {
-    	return $this->_tokens;
-    }
-
-    /**
      * Parse to tokens
      */
     private function _parseToTokens() {
@@ -611,4 +569,47 @@ class PHPExcel_Calculation_FormulaParser {
         	$this->_tokens[] = $token;
 		}
     }
+
+	/**
+	 * Get Formula
+	 *
+	 * @return string
+	 */
+	public function getFormula() {
+		return $this->_formula;
+	}
+
+	/**
+	 * Get Token
+	 *
+	 * @param    int $pId Token id
+	 *
+	 * @return    string
+	 * @throws  PHPExcel_Calculation_Exception
+	 */
+	public function getToken( $pId = 0 ) {
+		if ( isset( $this->_tokens[ $pId ] ) ) {
+			return $this->_tokens[ $pId ];
+		} else {
+			throw new PHPExcel_Calculation_Exception( "Token with id $pId does not exist." );
+		}
+	}
+
+	/**
+	 * Get Token count
+	 *
+	 * @return string
+	 */
+	public function getTokenCount() {
+		return count( $this->_tokens );
+	}
+
+	/**
+	 * Get Tokens
+	 *
+	 * @return PHPExcel_Calculation_FormulaToken[]
+	 */
+	public function getTokens() {
+		return $this->_tokens;
+	}
 }

@@ -35,6 +35,37 @@
 class PHPExcel_Shared_Excel5
 {
 	/**
+	 * Get the horizontal distance in pixels between two anchors
+	 * The distanceX is found as sum of all the spanning columns widths minus correction for the two offsets
+	 *
+	 * @param PHPExcel_Worksheet $sheet
+	 * @param string $startColumn
+	 * @param integer $startOffsetX Offset within start cell measured in 1/1024 of the cell width
+	 * @param string $endColumn
+	 * @param integer $endOffsetX Offset within end cell measured in 1/1024 of the cell width
+	 *
+	 * @return integer Horizontal measured in pixels
+	 */
+	public static function getDistanceX( PHPExcel_Worksheet $sheet, $startColumn = 'A', $startOffsetX = 0, $endColumn = 'A', $endOffsetX = 0 ) {
+		$distanceX = 0;
+
+		// add the widths of the spanning columns
+		$startColumnIndex = PHPExcel_Cell::columnIndexFromString( $startColumn ) - 1; // 1-based
+		$endColumnIndex   = PHPExcel_Cell::columnIndexFromString( $endColumn ) - 1; // 1-based
+		for ( $i = $startColumnIndex; $i <= $endColumnIndex; ++ $i ) {
+			$distanceX += self::sizeCol( $sheet, PHPExcel_Cell::stringFromColumnIndex( $i ) );
+		}
+
+		// correct for offsetX in startcell
+		$distanceX -= (int) floor( self::sizeCol( $sheet, $startColumn ) * $startOffsetX / 1024 );
+
+		// correct for offsetX in endcell
+		$distanceX -= (int) floor( self::sizeCol( $sheet, $endColumn ) * ( 1 - $endOffsetX / 1024 ) );
+
+		return $distanceX;
+	}
+
+	/**
 	 * Get the width of a column in pixels. We use the relationship y = ceil(7x) where
 	 * x is the width in intrinsic Excel units (measuring width in number of normal characters)
 	 * This holds for Arial 10
@@ -79,6 +110,35 @@ class PHPExcel_Shared_Excel5
 		}
 
 		return $effectivePixelWidth;
+	}
+
+	/**
+	 * Get the vertical distance in pixels between two anchors
+	 * The distanceY is found as sum of all the spanning rows minus two offsets
+	 *
+	 * @param PHPExcel_Worksheet $sheet
+	 * @param integer $startRow (1-based)
+	 * @param integer $startOffsetY Offset within start cell measured in 1/256 of the cell height
+	 * @param integer $endRow (1-based)
+	 * @param integer $endOffsetY Offset within end cell measured in 1/256 of the cell height
+	 *
+	 * @return integer Vertical distance measured in pixels
+	 */
+	public static function getDistanceY( PHPExcel_Worksheet $sheet, $startRow = 1, $startOffsetY = 0, $endRow = 1, $endOffsetY = 0 ) {
+		$distanceY = 0;
+
+		// add the widths of the spanning rows
+		for ( $row = $startRow; $row <= $endRow; ++ $row ) {
+			$distanceY += self::sizeRow( $sheet, $row );
+		}
+
+		// correct for offsetX in startcell
+		$distanceY -= (int) floor( self::sizeRow( $sheet, $startRow ) * $startOffsetY / 256 );
+
+		// correct for offsetX in endcell
+		$distanceY -= (int) floor( self::sizeRow( $sheet, $endRow ) * ( 1 - $endOffsetY / 256 ) );
+
+		return $distanceY;
 	}
 
 	/**
@@ -128,66 +188,6 @@ class PHPExcel_Shared_Excel5
 		}
 
 		return $effectivePixelRowHeight;
-	}
-
-	/**
-	 * Get the horizontal distance in pixels between two anchors
-	 * The distanceX is found as sum of all the spanning columns widths minus correction for the two offsets
-	 *
-	 * @param PHPExcel_Worksheet $sheet
-	 * @param string $startColumn
-	 * @param integer $startOffsetX Offset within start cell measured in 1/1024 of the cell width
-	 * @param string $endColumn
-	 * @param integer $endOffsetX Offset within end cell measured in 1/1024 of the cell width
-	 * @return integer Horizontal measured in pixels
-	 */
-	public static function getDistanceX(PHPExcel_Worksheet $sheet, $startColumn = 'A', $startOffsetX = 0, $endColumn = 'A', $endOffsetX = 0)
-	{
-		$distanceX = 0;
-
-		// add the widths of the spanning columns
-		$startColumnIndex = PHPExcel_Cell::columnIndexFromString($startColumn) - 1; // 1-based
-		$endColumnIndex = PHPExcel_Cell::columnIndexFromString($endColumn) - 1; // 1-based
-		for ($i = $startColumnIndex; $i <= $endColumnIndex; ++$i) {
-			$distanceX += self::sizeCol($sheet, PHPExcel_Cell::stringFromColumnIndex($i));
-		}
-
-		// correct for offsetX in startcell
-		$distanceX -= (int) floor(self::sizeCol($sheet, $startColumn) * $startOffsetX / 1024);
-
-		// correct for offsetX in endcell
-		$distanceX -= (int) floor(self::sizeCol($sheet, $endColumn) * (1 - $endOffsetX / 1024));
-
-		return $distanceX;
-	}
-
-	/**
-	 * Get the vertical distance in pixels between two anchors
-	 * The distanceY is found as sum of all the spanning rows minus two offsets
-	 *
-	 * @param PHPExcel_Worksheet $sheet
-	 * @param integer $startRow (1-based)
-	 * @param integer $startOffsetY Offset within start cell measured in 1/256 of the cell height
-	 * @param integer $endRow (1-based)
-	 * @param integer $endOffsetY Offset within end cell measured in 1/256 of the cell height
-	 * @return integer Vertical distance measured in pixels
-	 */
-	public static function getDistanceY(PHPExcel_Worksheet $sheet, $startRow = 1, $startOffsetY = 0, $endRow = 1, $endOffsetY = 0)
-	{
-		$distanceY = 0;
-
-		// add the widths of the spanning rows
-		for ($row = $startRow; $row <= $endRow; ++$row) {
-			$distanceY += self::sizeRow($sheet, $row);
-		}
-
-		// correct for offsetX in startcell
-		$distanceY -= (int) floor(self::sizeRow($sheet, $startRow) * $startOffsetY / 256);
-
-		// correct for offsetX in endcell
-		$distanceY -= (int) floor(self::sizeRow($sheet, $endRow) * (1 - $endOffsetY / 256));
-
-		return $distanceY;
 	}
 
 	/**

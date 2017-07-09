@@ -20,22 +20,6 @@ class LWREventsCPT
     private $ext = "";
 
     /**
-     * @return string
-     */
-    public function getExt()
-    {
-        return $this->ext;
-    }
-
-    /**
-     * @param string $ext
-     */
-    public function setExt($ext)
-    {
-        $this->ext = $ext;
-    }
-
-    /**
      * LWREventsCPT constructor.
      */
     function __construct()
@@ -54,75 +38,6 @@ class LWREventsCPT
                 $this->generateExcel($_GET['eid']);
             }
         }
-    }
-
-    /**
-     * Update Row Actions
-     *
-     * @param $actions
-     *
-     * @return mixed
-     */
-    function lwr_event_remove_row_actions($actions)
-    {
-        if (get_post_type() === 'lwrevents') { //remove "slider" post_type to whatever post_type you want the row-actions to hide
-            unset($actions['view']);    // view
-            unset($actions['inline hide-if-no-js']);  // quick edit
-            unset($actions['edit']);    // edit
-            unset($actions['trash']);    // trash
-        }
-
-        //return $actions array
-        return $actions;
-    }
-
-    /**
-     * Customize Table Heads in Admin Backend
-     *
-     * @param $defaults
-     *
-     * @return mixed
-     */
-    public static function lwr_event_table_head($defaults)
-    {
-        $defaults['lwrOrt'] = 'Ort';
-        $defaults['lwrDatum'] = 'am/von';
-        $defaults['lwrAnmelden'] = 'Anmelden bis';
-        $defaults['lwrMaxTN'] = 'max TN';
-        $defaults['lwrOK'] = 'OK';
-        $defaults['lwrAction'] = 'TN Liste';
-        unset($defaults['date']);
-
-        return $defaults;
-    }
-
-    /**
-     * Populate Customized Table in Admin with Data
-     *
-     * @param $column_name
-     * @param $post_id
-     */
-    public function lwr_event_table_content($column_name, $post_id)
-    {
-        if ($column_name == 'lwrOrt') {
-            echo get_post_meta($post_id, 'lwrOrt', true);
-        }
-        if ($column_name == 'lwrDatum') {
-            echo get_post_meta($post_id, 'lwrDatumVon', true);
-        }
-        if ($column_name == 'lwrAnmelden') {
-            echo get_post_meta($post_id, 'lwrAnmelden', true);
-        }
-        if ($column_name == 'lwrMaxTN') {
-            echo get_post_meta($post_id, 'lwrMaxTN', true);
-        }
-        if ($column_name == 'lwrOK') {
-            echo get_post_meta($post_id, 'lwrOK', true);
-        }
-        if ($column_name == 'lwrAction') {
-            echo "<a href='./edit.php?post_type=lwrevents&download=1&eid=" . $post_id . "'><i class=\"fa fa-file-excel-o\" aria-hidden=\"true\"></i></a>";
-        }
-
     }
 
     public function generateExcel($eventID)
@@ -215,22 +130,6 @@ class LWREventsCPT
         $objWriter->save('php://output');
     }
 
-    private function checkForComments($eventID)
-    {
-        global $wpdb;
-        $checkSQL = $wpdb->get_var("Select COUNT(comment_ID) as count from " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "'");
-
-        return $checkSQL;
-    }
-
-    private function loadCommentsForEvent($eventID)
-    {
-        global $wpdb;
-        $comments = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "' AND comment_approved = 1 ORDER BY comment_date ASC", ARRAY_A);
-
-        return $comments;
-    }
-
     private function getEventTitle($eventID)
     {
         global $wpdb;
@@ -270,127 +169,40 @@ class LWREventsCPT
 
     }
 
-    /**
-     * @return string
-     */
-    public function getMo()
+	private function checkForComments( $eventID )
     {
-        return $this->mo;
+	    global $wpdb;
+	    $checkSQL = $wpdb->get_var( "SELECT COUNT(comment_ID) AS count FROM " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "'" );
+
+	    return $checkSQL;
+    }
+
+	private function loadCommentsForEvent( $eventID )
+    {
+	    global $wpdb;
+	    $comments = $wpdb->get_results( "SELECT * FROM " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "' AND comment_approved = 1 ORDER BY comment_date ASC", ARRAY_A );
+
+	    return $comments;
     }
 
     /**
-     * @param string $mo
+     * Customize Table Heads in Admin Backend
+     *
+     * @param $defaults
+     *
+     * @return mixed
      */
-    public function setMo($mo)
+	public static function lwr_event_table_head( $defaults )
     {
-        $this->mo = $mo;
-    }
+	    $defaults['lwrOrt']      = 'Ort';
+	    $defaults['lwrDatum']    = 'am/von';
+	    $defaults['lwrAnmelden'] = 'Anmelden bis';
+	    $defaults['lwrMaxTN']    = 'max TN';
+	    $defaults['lwrOK']       = 'OK';
+	    $defaults['lwrAction']   = 'TN Liste';
+	    unset( $defaults['date'] );
 
-    /**
-     * @return string
-     */
-    public function getDi()
-    {
-        return $this->di;
-    }
-
-    /**
-     * @param string $di
-     */
-    public function setDi($di)
-    {
-        $this->di = $di;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMi()
-    {
-        return $this->mi;
-    }
-
-    /**
-     * @param string $mi
-     */
-    public function setMi($mi)
-    {
-        $this->mi = $mi;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDo()
-    {
-        return $this->do;
-    }
-
-    /**
-     * @param string $do
-     */
-    public function setDo($do)
-    {
-        $this->do = $do;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFr()
-    {
-        return $this->fr;
-    }
-
-    /**
-     * @param string $fr
-     */
-    public function setFr($fr)
-    {
-        $this->fr = $fr;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSa()
-    {
-        return $this->sa;
-    }
-
-    /**
-     * @param string $sa
-     */
-    public function setSa($sa)
-    {
-        $this->sa = $sa;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSo()
-    {
-        return $this->so;
-    }
-
-    /**
-     * @param string $so
-     */
-    public function setSo($so)
-    {
-        $this->so = $so;
-    }
-
-    /**
-     * Remove Mediabutton from Editor
-     */
-    function check_post_type_and_remove_media_buttons()
-    {
-        global $current_screen;
-        if ('lwrevents' == $current_screen->post_type) {
-            remove_action('media_buttons', 'media_buttons');
-        }
+	    return $defaults;
     }
 
     /**
@@ -446,6 +258,77 @@ class LWREventsCPT
         ));
     }
 
+	/**
+	 * @return string
+	 */
+	public function getExt() {
+		return $this->ext;
+	}
+
+	/**
+	 * @param string $ext
+	 */
+	public function setExt( $ext ) {
+		$this->ext = $ext;
+	}
+
+	/**
+	 * Update Row Actions
+	 *
+	 * @param $actions
+	 *
+	 * @return mixed
+	 */
+	function lwr_event_remove_row_actions( $actions ) {
+		if ( get_post_type() === 'lwrevents' ) { //remove "slider" post_type to whatever post_type you want the row-actions to hide
+			unset( $actions['view'] );    // view
+			unset( $actions['inline hide-if-no-js'] );  // quick edit
+			unset( $actions['edit'] );    // edit
+			unset( $actions['trash'] );    // trash
+		}
+
+		//return $actions array
+		return $actions;
+	}
+
+	/**
+	 * Populate Customized Table in Admin with Data
+	 *
+	 * @param $column_name
+	 * @param $post_id
+	 */
+	public function lwr_event_table_content( $column_name, $post_id ) {
+		if ( $column_name == 'lwrOrt' ) {
+			echo get_post_meta( $post_id, 'lwrOrt', true );
+		}
+		if ( $column_name == 'lwrDatum' ) {
+			echo get_post_meta( $post_id, 'lwrDatumVon', true );
+		}
+		if ( $column_name == 'lwrAnmelden' ) {
+			echo get_post_meta( $post_id, 'lwrAnmelden', true );
+		}
+		if ( $column_name == 'lwrMaxTN' ) {
+			echo get_post_meta( $post_id, 'lwrMaxTN', true );
+		}
+		if ( $column_name == 'lwrOK' ) {
+			echo get_post_meta( $post_id, 'lwrOK', true );
+		}
+		if ( $column_name == 'lwrAction' ) {
+			echo "<a href='./edit.php?post_type=lwrevents&download=1&eid=" . $post_id . "'><i class=\"fa fa-file-excel-o\" aria-hidden=\"true\"></i></a>";
+		}
+
+	}
+
+	/**
+	 * Remove Mediabutton from Editor
+	 */
+	function check_post_type_and_remove_media_buttons() {
+		global $current_screen;
+		if ( 'lwrevents' == $current_screen->post_type ) {
+			remove_action( 'media_buttons', 'media_buttons' );
+		}
+	}
+
     /**
      * Add the Metabox to the Post
      */
@@ -455,44 +338,6 @@ class LWREventsCPT
             $this,
             'lwr_events_mbx'
         ), 'lwrevents', 'normal', 'default');
-    }
-
-    /**
-     * Extract all Days from Metaarray
-     *
-     * @param $tagearray
-     */
-    function extractDaysFromArray($tagearray)
-    {
-
-        $tage = explode(',', $tagearray);
-        //$round = count($tage);
-
-        foreach ($tage as $tag) {
-            switch ($tag) {
-                case 'mo':
-                    $this->setMo('checked');
-                    break;
-                case 'di':
-                    $this->setDi('checked');
-                    break;
-                case 'mi':
-                    $this->setMi('checked');
-                    break;
-                case 'do':
-                    $this->setDo('checked');
-                    break;
-                case 'fr':
-                    $this->setFr('checked');
-                    break;
-                case 'sa':
-                    $this->setSa('checked');
-                    break;
-                case 'so':
-                    $this->setSo('checked');
-                    break;
-            }
-        }
     }
 
     /**
@@ -583,6 +428,141 @@ class LWREventsCPT
         ';
 
     }
+
+	/**
+	 * Extract all Days from Metaarray
+	 *
+	 * @param $tagearray
+	 */
+	function extractDaysFromArray( $tagearray ) {
+
+		$tage = explode( ',', $tagearray );
+		//$round = count($tage);
+
+		foreach ( $tage as $tag ) {
+			switch ( $tag ) {
+				case 'mo':
+					$this->setMo( 'checked' );
+					break;
+				case 'di':
+					$this->setDi( 'checked' );
+					break;
+				case 'mi':
+					$this->setMi( 'checked' );
+					break;
+				case 'do':
+					$this->setDo( 'checked' );
+					break;
+				case 'fr':
+					$this->setFr( 'checked' );
+					break;
+				case 'sa':
+					$this->setSa( 'checked' );
+					break;
+				case 'so':
+					$this->setSo( 'checked' );
+					break;
+			}
+		}
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getMo() {
+		return $this->mo;
+	}
+
+	/**
+	 * @param string $mo
+	 */
+	public function setMo( $mo ) {
+		$this->mo = $mo;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDi() {
+		return $this->di;
+	}
+
+	/**
+	 * @param string $di
+	 */
+	public function setDi( $di ) {
+		$this->di = $di;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getMi() {
+		return $this->mi;
+	}
+
+	/**
+	 * @param string $mi
+	 */
+	public function setMi( $mi ) {
+		$this->mi = $mi;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDo() {
+		return $this->do;
+	}
+
+	/**
+	 * @param string $do
+	 */
+	public function setDo( $do ) {
+		$this->do = $do;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getFr() {
+		return $this->fr;
+	}
+
+	/**
+	 * @param string $fr
+	 */
+	public function setFr( $fr ) {
+		$this->fr = $fr;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSa() {
+		return $this->sa;
+	}
+
+	/**
+	 * @param string $sa
+	 */
+	public function setSa( $sa ) {
+		$this->sa = $sa;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSo() {
+		return $this->so;
+	}
+
+	/**
+	 * @param string $so
+	 */
+	public function setSo( $so ) {
+		$this->so = $so;
+	}
 
     /**
      * Save the Metabox Data

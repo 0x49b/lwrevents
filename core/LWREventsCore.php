@@ -18,16 +18,30 @@ class LWREventsCore {
 	}
 
 	/**
+	 * Ajax Funktionen im Core registrieren
+	 */
+	function registerAJAXFunctions() {
+		//add_action( 'wp_ajax_signInUserForEvent', array($this, 'signInUserForEvent') );
+		//add_action( 'wp_ajax_nopriv_signInUserForEvent', array($this, 'signInUserForEvent') );
+
+		add_action( 'wp_ajax_user_sign_event', array( $this, 'user_sign_event' ) );
+		add_action( 'wp_ajax_nopriv_user_sign_event', array( $this, 'user_sign_event' ) );
+
+		add_action( 'wp_ajax_update_sign_table', array( $this, 'update_sign_table' ) );
+		add_action( 'wp_ajax_nopriv_update_sign_table', array( $this, 'update_sign_table' ) );
+	}
+
+	/**
 	 * Return a list with all events ordered by now to the past
 	 * @return string
 	 */
 	static function lwrShortcodeList() {
 		$lwr  = new LWREventsCore();
 		$args = array(
-			'post_type' => 'lwrevents',
-			'order'     => $lwr->getSettingsFromDB( 'lwr_sort_list' ),
-			'orderby'   => 'meta_value',
-			'meta_key'  => 'lwrDatumVonSQL',
+			'post_type'      => 'lwrevents',
+			'order'          => $lwr->getSettingsFromDB( 'lwr_sort_list' ),
+			'orderby'        => 'meta_value',
+			'meta_key'       => 'lwrDatumVonSQL',
 			'posts_per_page' => $lwr->getSettingsFromDB( 'lwr_all_max' ),
 		);
 
@@ -61,7 +75,32 @@ class LWREventsCore {
 		}
 
 		$returnstring .= '</tbody></table>';
+
 		return $returnstring;
+	}
+
+	/**
+	 * Einstellungen aus der Datenbank laden
+	 * @return String
+	 */
+	function getSettingsFromDB( $option_name ) {
+		global $wpdb;
+		$setting = $wpdb->get_row( "SELECT * FROM " . $wpdb->prefix . "options WHERE option_name = '" . $option_name . "'", ARRAY_A );
+
+		return $setting['option_value'];
+	}
+
+	/**
+	 * Gibt eine Metainformation für einen Post als String zurück
+	 *
+	 * @param $id
+	 * @param $key
+	 *
+	 * @return mixed
+	 */
+	function getEventMeta( $id, $key ) {
+
+		return get_post_meta( $id, $key, true );
 	}
 
 	/**
@@ -71,14 +110,14 @@ class LWREventsCore {
 	 */
 
 	static function lwrShortcodeListFuture() {
-		$lwr   = new LWREventsCore();
-		$today = date( 'Y-m-d' );
-		$todayUnix = strtotime(date('d.m.Y H:i:s'));
+		$lwr       = new LWREventsCore();
+		$today     = date( 'Y-m-d' );
+		$todayUnix = strtotime( date( 'd.m.Y H:i:s' ) );
 
 		$args = array(
-			'post_type'  => 'lwrevents',
+			'post_type'      => 'lwrevents',
 			'posts_per_page' => $lwr->getSettingsFromDB( 'lwr_future_max' ),
-			'meta_query' => array(
+			'meta_query'     => array(
 				'relation'       => 'AND',
 				'lwrZeitVon'     => array(
 					'key'     => 'lwrZeitVon',
@@ -90,9 +129,9 @@ class LWREventsCore {
 					'value'   => $today
 				),
 			),
-			'orderby'   => 'meta_value',
-			'meta_key'  => 'lwrDatumZeitVonUnix',
-			'order'      => $lwr->getSettingsFromDB( 'lwr_sort_list_future' )
+			'orderby'        => 'meta_value',
+			'meta_key'       => 'lwrDatumZeitVonUnix',
+			'order'          => $lwr->getSettingsFromDB( 'lwr_sort_list_future' )
 		);
 
 		$custom_posts = new WP_Query( $args );
@@ -107,7 +146,7 @@ class LWREventsCore {
 
 				$bis = '';
 				if ( $lwr->getEventMeta( get_the_ID(), 'lwrDatumBis' ) != '' ) {
-					$bis = '-' . $lwr->getEventMeta( get_the_ID(), 'lwrDatumBis' );
+					$bis = '-<br/>' . $lwr->getEventMeta( get_the_ID(), 'lwrDatumBis' );
 				}
 
 				$returnstring .= '
@@ -130,6 +169,7 @@ class LWREventsCore {
 		}
 
 		$returnstring .= '</tbody></table>';
+
 		return $returnstring;
 	}
 
@@ -142,20 +182,6 @@ class LWREventsCore {
 
 	function lwr_settings_page() {
 		return ( include_once( LWR_PLUGIN_PATH . '/views/backend/lwr-settings-view.php' ) );
-	}
-
-	/**
-	 * Ajax Funktionen im Core registrieren
-	 */
-	function registerAJAXFunctions() {
-		//add_action( 'wp_ajax_signInUserForEvent', array($this, 'signInUserForEvent') );
-		//add_action( 'wp_ajax_nopriv_signInUserForEvent', array($this, 'signInUserForEvent') );
-
-		add_action( 'wp_ajax_user_sign_event', array( $this, 'user_sign_event' ) );
-		add_action( 'wp_ajax_nopriv_user_sign_event', array( $this, 'user_sign_event' ) );
-
-		add_action( 'wp_ajax_update_sign_table', array( $this, 'update_sign_table' ) );
-		add_action( 'wp_ajax_nopriv_update_sign_table', array( $this, 'update_sign_table' ) );
 	}
 
 	/**
@@ -280,19 +306,6 @@ class LWREventsCore {
 			return false;
 		}
 
-	}
-
-	/**
-	 * Gibt eine Metainformation für einen Post als String zurück
-	 *
-	 * @param $id
-	 * @param $key
-	 *
-	 * @return mixed
-	 */
-	function getEventMeta( $id, $key ) {
-
-		return get_post_meta( $id, $key, true );
 	}
 
 	/**
@@ -496,6 +509,11 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'" );
 		) );
 
 		$wpdb->replace( $wpdb->prefix . 'options', array(
+			'option_name'  => 'lwr_events_contact_mail',
+			'option_value' => $post['lwr_events_contact_mail']
+		) );
+
+		$wpdb->replace( $wpdb->prefix . 'options', array(
 			'option_name'  => 'lwr_empty_events',
 			'option_value' => $post['lwr_empty_events']
 		) );
@@ -517,17 +535,6 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'" );
 			) );
 		}
 
-	}
-
-	/**
-	 * Einstellungen aus der Datenbank laden
-	 * @return String
-	 */
-	function getSettingsFromDB( $option_name ) {
-		global $wpdb;
-		$setting = $wpdb->get_row( "SELECT * from " . $wpdb->prefix . "options WHERE option_name = '" . $option_name . "'", ARRAY_A );
-
-		return $setting['option_value'];
 	}
 
 	/**

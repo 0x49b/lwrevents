@@ -226,6 +226,25 @@ class PHPExcel_Calculation_Logical {
 	}	//	function NOT()
 
 	/**
+	 * IFERROR
+	 *
+	 * Excel Function:
+	 *        =IFERROR(testValue,errorpart)
+	 *
+	 * @access    public
+	 * @category Logical Functions
+	 * @param    mixed $testValue Value to check, is also the value returned when no error
+	 * @param    mixed $errorpart Value to return when testValue is an error condition
+	 * @return    mixed    The value of errorpart or testValue determined by error condition
+	 */
+	public static function IFERROR( $testValue = '', $errorpart = '' ) {
+		$testValue = ( is_null( $testValue ) ) ? '' : PHPExcel_Calculation_Functions::flattenSingleValue( $testValue );
+		$errorpart = ( is_null( $errorpart ) ) ? '' : PHPExcel_Calculation_Functions::flattenSingleValue( $errorpart );
+
+		return self::STATEMENT_IF( PHPExcel_Calculation_Functions::IS_ERROR( $testValue ), $errorpart, $testValue );
+	}    //	function STATEMENT_IF()
+
+	/**
 	 * STATEMENT_IF
 	 *
 	 * Returns one value if a condition you specify evaluates to TRUE and another value if it evaluates to FALSE.
@@ -263,26 +282,6 @@ class PHPExcel_Calculation_Logical {
 		$returnIfFalse	= (is_null($returnIfFalse))	? FALSE :	PHPExcel_Calculation_Functions::flattenSingleValue($returnIfFalse);
 
 		return ($condition) ? $returnIfTrue : $returnIfFalse;
-	}	//	function STATEMENT_IF()
-
-
-	/**
-	 * IFERROR
-	 *
-	 * Excel Function:
-	 *		=IFERROR(testValue,errorpart)
-	 *
-	 * @access	public
-	 * @category Logical Functions
-	 * @param	mixed	$testValue	Value to check, is also the value returned when no error
-	 * @param	mixed	$errorpart	Value to return when testValue is an error condition
-	 * @return	mixed	The value of errorpart or testValue determined by error condition
-	 */
-	public static function IFERROR($testValue = '', $errorpart = '') {
-		$testValue	= (is_null($testValue))	? '' :	PHPExcel_Calculation_Functions::flattenSingleValue($testValue);
-		$errorpart	= (is_null($errorpart))	? '' :	PHPExcel_Calculation_Functions::flattenSingleValue($errorpart);
-
-		return self::STATEMENT_IF(PHPExcel_Calculation_Functions::IS_ERROR($testValue), $errorpart, $testValue);
 	}	//	function IFERROR()
 
 }	//	class PHPExcel_Calculation_Logical

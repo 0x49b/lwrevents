@@ -188,20 +188,6 @@ class PHPExcel_Reader_Gnumeric extends PHPExcel_Reader_Abstract implements PHPEx
 		return $worksheetInfo;
 	}
 
-
-	private function _gzfileGetContents($filename) {
-		$file = @gzopen($filename, 'rb');
-		if ($file !== false) {
-			$data = '';
-			while (!gzeof($file)) {
-				$data .= gzread($file, 1024);
-			}
-			gzclose($file);
-		}
-		return $data;
-	}
-
-
 	/**
 	 * Loads PHPExcel from file
 	 *
@@ -217,7 +203,6 @@ class PHPExcel_Reader_Gnumeric extends PHPExcel_Reader_Abstract implements PHPEx
 		// Load into this instance
 		return $this->loadIntoExisting($pFilename, $objPHPExcel);
 	}
-
 
 	/**
 	 * Loads PHPExcel from file into PHPExcel instance
@@ -793,6 +778,37 @@ class PHPExcel_Reader_Gnumeric extends PHPExcel_Reader_Abstract implements PHPEx
 		return $objPHPExcel;
 	}
 
+	private function _gzfileGetContents( $filename ) {
+		$file = @gzopen( $filename, 'rb' );
+		if ( $file !== false ) {
+			$data = '';
+			while ( ! gzeof( $file ) ) {
+				$data .= gzread( $file, 1024 );
+			}
+			gzclose( $file );
+		}
+
+		return $data;
+	}
+
+	private function _parseRichText( $is = '' ) {
+		$value = new PHPExcel_RichText();
+
+		$value->createText( $is );
+
+		return $value;
+	}
+
+	private static function _parseGnumericColour( $gnmColour ) {
+		list( $gnmR, $gnmG, $gnmB ) = explode( ':', $gnmColour );
+		$gnmR = substr( str_pad( $gnmR, 4, '0', STR_PAD_RIGHT ), 0, 2 );
+		$gnmG = substr( str_pad( $gnmG, 4, '0', STR_PAD_RIGHT ), 0, 2 );
+		$gnmB = substr( str_pad( $gnmB, 4, '0', STR_PAD_RIGHT ), 0, 2 );
+		$RGB  = $gnmR . $gnmG . $gnmB;
+
+		//		echo 'Excel Colour: ',$RGB,'<br />';
+		return $RGB;
+	}
 
 	private static function _parseBorderAttributes($borderAttributes)
 	{
@@ -848,26 +864,6 @@ class PHPExcel_Reader_Gnumeric extends PHPExcel_Reader_Abstract implements PHPEx
 				break;
 		}
 		return $styleArray;
-	}
-
-
-	private function _parseRichText($is = '') {
-		$value = new PHPExcel_RichText();
-
-		$value->createText($is);
-
-		return $value;
-	}
-
-
-	private static function _parseGnumericColour($gnmColour) {
-		list($gnmR,$gnmG,$gnmB) = explode(':',$gnmColour);
-		$gnmR = substr(str_pad($gnmR,4,'0',STR_PAD_RIGHT),0,2);
-		$gnmG = substr(str_pad($gnmG,4,'0',STR_PAD_RIGHT),0,2);
-		$gnmB = substr(str_pad($gnmB,4,'0',STR_PAD_RIGHT),0,2);
-		$RGB = $gnmR.$gnmG.$gnmB;
-//		echo 'Excel Colour: ',$RGB,'<br />';
-		return $RGB;
 	}
 
 }

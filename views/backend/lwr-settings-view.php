@@ -58,6 +58,10 @@ if ( $_POST ) {
                 <td><h3>Diverses</h3></td>
             </tr>
             <tr>
+                <td colspan="2">Kontakt E-Mail</td>
+                <td colspan="3"><input name="lwr_events_contact_mail" type="text" class="regular-text" value="<?php print( $lwr->getSettingsFromDB( 'lwr_events_contact_mail' ) ); ?>"></td>
+            </tr>
+            <tr>
                 <td colspan="2">Hinweis keine Anlässe</td>
                 <td colspan="3"><input name="lwr_empty_events" type="text" class="regular-text" value="<?php print( $lwr->getSettingsFromDB( 'lwr_empty_events' ) ); ?>"></td>
             </tr>

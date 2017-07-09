@@ -230,18 +230,6 @@ class PHPExcel_Writer_Excel5 extends PHPExcel_Writer_Abstract implements PHPExce
 	}
 
 	/**
-	 * Set temporary storage directory
-	 *
-	 * @deprecated
-	 * @param	string	$pValue		Temporary storage directory
-	 * @throws	PHPExcel_Writer_Exception	when directory does not exist
-	 * @return PHPExcel_Writer_Excel5
-	 */
-	public function setTempDir($pValue = '') {
-		return $this;
-	}
-
-	/**
 	 * Build the Worksheet Escher objects
 	 *
 	 */
@@ -931,5 +919,19 @@ class PHPExcel_Writer_Excel5 extends PHPExcel_Writer_Abstract implements PHPExce
 		$data .= $dataSection_Content;
 
 		return $data;
+	}
+
+	/**
+	 * Set temporary storage directory
+	 *
+	 * @deprecated
+	 *
+	 * @param    string $pValue Temporary storage directory
+	 *
+	 * @throws    PHPExcel_Writer_Exception    when directory does not exist
+	 * @return PHPExcel_Writer_Excel5
+	 */
+	public function setTempDir( $pValue = '' ) {
+		return $this;
 	}
 }

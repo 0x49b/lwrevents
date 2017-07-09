@@ -166,6 +166,111 @@ class PHPExcel_Writer_Excel2007_Style extends PHPExcel_Writer_Excel2007_WriterPa
 	}
 
 	/**
+	 * Write NumberFormat
+	 *
+	 * @param    PHPExcel_Shared_XMLWriter $objWriter XML Writer
+	 * @param    PHPExcel_Style_NumberFormat $pNumberFormat Number Format
+	 * @param    int $pId Number Format identifier
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	private function _writeNumFmt( PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Style_NumberFormat $pNumberFormat = null, $pId = 0 ) {
+		// Translate formatcode
+		$formatCode = $pNumberFormat->getFormatCode();
+
+		// numFmt
+		if ( $formatCode !== null ) {
+			$objWriter->startElement( 'numFmt' );
+			$objWriter->writeAttribute( 'numFmtId', ( $pId + 164 ) );
+			$objWriter->writeAttribute( 'formatCode', $formatCode );
+			$objWriter->endElement();
+		}
+	}
+
+	/**
+	 * Write Font
+	 *
+	 * @param    PHPExcel_Shared_XMLWriter $objWriter XML Writer
+	 * @param    PHPExcel_Style_Font $pFont Font style
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	private function _writeFont( PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Style_Font $pFont = null ) {
+		// font
+		$objWriter->startElement( 'font' );
+		//	Weird! The order of these elements actually makes a difference when opening Excel2007
+		//		files in Excel2003 with the compatibility pack. It's not documented behaviour,
+		//		and makes for a real WTF!
+
+		// Bold. We explicitly write this element also when false (like MS Office Excel 2007 does
+		// for conditional formatting). Otherwise it will apparently not be picked up in conditional
+		// formatting style dialog
+		if ( $pFont->getBold() !== null ) {
+			$objWriter->startElement( 'b' );
+			$objWriter->writeAttribute( 'val', $pFont->getBold() ? '1' : '0' );
+			$objWriter->endElement();
+		}
+
+		// Italic
+		if ( $pFont->getItalic() !== null ) {
+			$objWriter->startElement( 'i' );
+			$objWriter->writeAttribute( 'val', $pFont->getItalic() ? '1' : '0' );
+			$objWriter->endElement();
+		}
+
+		// Strikethrough
+		if ( $pFont->getStrikethrough() !== null ) {
+			$objWriter->startElement( 'strike' );
+			$objWriter->writeAttribute( 'val', $pFont->getStrikethrough() ? '1' : '0' );
+			$objWriter->endElement();
+		}
+
+		// Underline
+		if ( $pFont->getUnderline() !== null ) {
+			$objWriter->startElement( 'u' );
+			$objWriter->writeAttribute( 'val', $pFont->getUnderline() );
+			$objWriter->endElement();
+		}
+
+		// Superscript / subscript
+		if ( $pFont->getSuperScript() === true || $pFont->getSubScript() === true ) {
+			$objWriter->startElement( 'vertAlign' );
+			if ( $pFont->getSuperScript() === true ) {
+				$objWriter->writeAttribute( 'val', 'superscript' );
+			} else if ( $pFont->getSubScript() === true ) {
+				$objWriter->writeAttribute( 'val', 'subscript' );
+			}
+			$objWriter->endElement();
+		}
+
+		// Size
+		if ( $pFont->getSize() !== null ) {
+			$objWriter->startElement( 'sz' );
+			$objWriter->writeAttribute( 'val', $pFont->getSize() );
+			$objWriter->endElement();
+		}
+
+		// Foreground color
+		if ( $pFont->getColor()
+		           ->getARGB() !== null
+		) {
+			$objWriter->startElement( 'color' );
+			$objWriter->writeAttribute( 'rgb', $pFont->getColor()
+			                                         ->getARGB() );
+			$objWriter->endElement();
+		}
+
+		// Name
+		if ( $pFont->getName() !== null ) {
+			$objWriter->startElement( 'name' );
+			$objWriter->writeAttribute( 'val', $pFont->getName() );
+			$objWriter->endElement();
+		}
+
+		$objWriter->endElement();
+	}
+
+	/**
 	 * Write Fill
 	 *
 	 * @param 	PHPExcel_Shared_XMLWriter 	$objWriter 		XML Writer
@@ -268,86 +373,6 @@ class PHPExcel_Writer_Excel2007_Style extends PHPExcel_Writer_Excel2007_WriterPa
 	}
 
 	/**
-	 * Write Font
-	 *
-	 * @param 	PHPExcel_Shared_XMLWriter		$objWriter 		XML Writer
-	 * @param 	PHPExcel_Style_Font				$pFont			Font style
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	private function _writeFont(PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Style_Font $pFont = null)
-	{
-		// font
-		$objWriter->startElement('font');
-			//	Weird! The order of these elements actually makes a difference when opening Excel2007
-			//		files in Excel2003 with the compatibility pack. It's not documented behaviour,
-			//		and makes for a real WTF!
-
-			// Bold. We explicitly write this element also when false (like MS Office Excel 2007 does
-			// for conditional formatting). Otherwise it will apparently not be picked up in conditional
-			// formatting style dialog
-			if ($pFont->getBold() !== NULL) {
-				$objWriter->startElement('b');
-					$objWriter->writeAttribute('val', $pFont->getBold() ? '1' : '0');
-				$objWriter->endElement();
-			}
-
-			// Italic
-			if ($pFont->getItalic() !== NULL) {
-				$objWriter->startElement('i');
-					$objWriter->writeAttribute('val', $pFont->getItalic() ? '1' : '0');
-				$objWriter->endElement();
-			}
-
-			// Strikethrough
-			if ($pFont->getStrikethrough() !== NULL) {
-				$objWriter->startElement('strike');
-				$objWriter->writeAttribute('val', $pFont->getStrikethrough() ? '1' : '0');
-				$objWriter->endElement();
-			}
-
-			// Underline
-			if ($pFont->getUnderline() !== NULL) {
-				$objWriter->startElement('u');
-				$objWriter->writeAttribute('val', $pFont->getUnderline());
-				$objWriter->endElement();
-			}
-
-			// Superscript / subscript
-			if ($pFont->getSuperScript() === TRUE || $pFont->getSubScript() === TRUE) {
-				$objWriter->startElement('vertAlign');
-				if ($pFont->getSuperScript() === TRUE) {
-					$objWriter->writeAttribute('val', 'superscript');
-				} else if ($pFont->getSubScript() === TRUE) {
-					$objWriter->writeAttribute('val', 'subscript');
-				}
-				$objWriter->endElement();
-			}
-
-			// Size
-			if ($pFont->getSize() !== NULL) {
-				$objWriter->startElement('sz');
-					$objWriter->writeAttribute('val', $pFont->getSize());
-				$objWriter->endElement();
-			}
-
-			// Foreground color
-			if ($pFont->getColor()->getARGB() !== NULL) {
-				$objWriter->startElement('color');
-				$objWriter->writeAttribute('rgb', $pFont->getColor()->getARGB());
-				$objWriter->endElement();
-			}
-
-			// Name
-			if ($pFont->getName() !== NULL) {
-				$objWriter->startElement('name');
-					$objWriter->writeAttribute('val', $pFont->getName());
-				$objWriter->endElement();
-			}
-
-		$objWriter->endElement();
-	}
-
-	/**
 	 * Write Border
 	 *
 	 * @param 	PHPExcel_Shared_XMLWriter			$objWriter 		XML Writer
@@ -381,6 +406,31 @@ class PHPExcel_Writer_Excel2007_Style extends PHPExcel_Writer_Excel2007_WriterPa
 			$this->_writeBorderPr($objWriter, 'bottom',		$pBorders->getBottom());
 			$this->_writeBorderPr($objWriter, 'diagonal',	$pBorders->getDiagonal());
 		$objWriter->endElement();
+	}
+
+	/**
+	 * Write BorderPr
+	 *
+	 * @param    PHPExcel_Shared_XMLWriter $objWriter XML Writer
+	 * @param    string $pName Element name
+	 * @param    PHPExcel_Style_Border $pBorder Border style
+	 *
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	private function _writeBorderPr( PHPExcel_Shared_XMLWriter $objWriter = null, $pName = 'left', PHPExcel_Style_Border $pBorder = null ) {
+		// Write BorderPr
+		if ( $pBorder->getBorderStyle() != PHPExcel_Style_Border::BORDER_NONE ) {
+			$objWriter->startElement( $pName );
+			$objWriter->writeAttribute( 'style', $pBorder->getBorderStyle() );
+
+			// color
+			$objWriter->startElement( 'color' );
+			$objWriter->writeAttribute( 'rgb', $pBorder->getColor()
+			                                           ->getARGB() );
+			$objWriter->endElement();
+
+			$objWriter->endElement();
+		}
 	}
 
 	/**
@@ -522,66 +572,6 @@ class PHPExcel_Writer_Excel2007_Style extends PHPExcel_Writer_Excel2007_WriterPa
 	}
 
 	/**
-	 * Write BorderPr
-	 *
-	 * @param 	PHPExcel_Shared_XMLWriter		$objWriter 		XML Writer
-	 * @param 	string							$pName			Element name
-	 * @param 	PHPExcel_Style_Border			$pBorder		Border style
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	private function _writeBorderPr(PHPExcel_Shared_XMLWriter $objWriter = null, $pName = 'left', PHPExcel_Style_Border $pBorder = null)
-	{
-		// Write BorderPr
-		if ($pBorder->getBorderStyle() != PHPExcel_Style_Border::BORDER_NONE) {
-			$objWriter->startElement($pName);
-			$objWriter->writeAttribute('style', 	$pBorder->getBorderStyle());
-
-				// color
-				$objWriter->startElement('color');
-				$objWriter->writeAttribute('rgb', 	$pBorder->getColor()->getARGB());
-				$objWriter->endElement();
-
-			$objWriter->endElement();
-		}
-	}
-
-	/**
-	 * Write NumberFormat
-	 *
-	 * @param 	PHPExcel_Shared_XMLWriter			$objWriter 		XML Writer
-	 * @param 	PHPExcel_Style_NumberFormat			$pNumberFormat	Number Format
-	 * @param 	int									$pId			Number Format identifier
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	private function _writeNumFmt(PHPExcel_Shared_XMLWriter $objWriter = null, PHPExcel_Style_NumberFormat $pNumberFormat = null, $pId = 0)
-	{
-		// Translate formatcode
-		$formatCode = $pNumberFormat->getFormatCode();
-
-		// numFmt
-		if ($formatCode !== NULL) {
-			$objWriter->startElement('numFmt');
-				$objWriter->writeAttribute('numFmtId', ($pId + 164));
-				$objWriter->writeAttribute('formatCode', $formatCode);
-			$objWriter->endElement();
-		}
-	}
-
-	/**
-	 * Get an array of all styles
-	 *
-	 * @param 	PHPExcel				$pPHPExcel
-	 * @return 	PHPExcel_Style[]		All styles in PHPExcel
-	 * @throws 	PHPExcel_Writer_Exception
-	 */
-	public function allStyles(PHPExcel $pPHPExcel = null)
-	{
-		$aStyles = $pPHPExcel->getCellXfCollection();
-
-		return $aStyles;
-	}
-
-	/**
 	 * Get an array of all conditional styles
 	 *
 	 * @param 	PHPExcel							$pPHPExcel
@@ -634,6 +624,20 @@ class PHPExcel_Writer_Excel2007_Style extends PHPExcel_Writer_Excel2007_WriterPa
 		}
 
 		return $aFills;
+	}
+
+	/**
+	 * Get an array of all styles
+	 *
+	 * @param    PHPExcel $pPHPExcel
+	 *
+	 * @return    PHPExcel_Style[]        All styles in PHPExcel
+	 * @throws    PHPExcel_Writer_Exception
+	 */
+	public function allStyles( PHPExcel $pPHPExcel = null ) {
+		$aStyles = $pPHPExcel->getCellXfCollection();
+
+		return $aStyles;
 	}
 
 	/**

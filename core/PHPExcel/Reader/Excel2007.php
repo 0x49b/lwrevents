@@ -45,19 +45,17 @@ if (!defined('PHPEXCEL_ROOT')) {
 class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPExcel_Reader_IReader
 {
 	/**
-	 * PHPExcel_ReferenceHelper instance
-	 *
-	 * @var PHPExcel_ReferenceHelper
-	 */
-	private $_referenceHelper = NULL;
-
-	/**
 	 * PHPExcel_Reader_Excel2007_Theme instance
 	 *
 	 * @var PHPExcel_Reader_Excel2007_Theme
 	 */
 	private static $_theme = NULL;
-
+	/**
+	 * PHPExcel_ReferenceHelper instance
+	 *
+	 * @var PHPExcel_ReferenceHelper
+	 */
+	private $_referenceHelper = null;
 
 	/**
 	 * Create a new PHPExcel_Reader_Excel2007 instance
@@ -113,6 +111,21 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		return $xl;
 	}
 
+	public function _getFromZipArchive( $archive, $fileName = '' ) {
+		// Root-relative paths
+		if ( strpos( $fileName, '//' ) !== false ) {
+			$fileName = substr( $fileName, strpos( $fileName, '//' ) + 1 );
+		}
+		$fileName = PHPExcel_Shared_File::realpath( $fileName );
+
+		// Apache POI fixes
+		$contents = $archive->getFromName( $fileName );
+		if ( $contents === false ) {
+			$contents = $archive->getFromName( substr( $fileName, 1 ) );
+		}
+
+		return $contents;
+	}
 
 	/**
 	 * Reads names of the worksheets from a file, without parsing the whole file to a PHPExcel object
@@ -158,7 +171,6 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 
 		return $worksheetNames;
 	}
-
 
 	/**
 	 * Return worksheet info (Name, Last Column Letter, Last Column Index, Total Rows, Total Columns)
@@ -238,101 +250,11 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		$zip->close();
 
 		return $worksheetInfo;
-	}
-
-
-	private static function _castToBool($c) {
-//		echo 'Initial Cast to Boolean', PHP_EOL;
-		$value = isset($c->v) ? (string) $c->v : NULL;
-		if ($value == '0') {
-			return FALSE;
-		} elseif ($value == '1') {
-			return TRUE;
-		} else {
-			return (bool)$c->v;
-		}
-		return $value;
 	}	//	function _castToBool()
 
-
-	private static function _castToError($c) {
-//		echo 'Initial Cast to Error', PHP_EOL;
-		return isset($c->v) ? (string) $c->v : NULL;
+	private static function array_item( $array, $key = 0 ) {
+		return ( isset( $array[ $key ] ) ? $array[ $key ] : null );
 	}	//	function _castToError()
-
-
-	private static function _castToString($c) {
-//		echo 'Initial Cast to String, PHP_EOL;
-		return isset($c->v) ? (string) $c->v : NULL;
-	}	//	function _castToString()
-
-
-	private function _castToFormula($c,$r,&$cellDataType,&$value,&$calculatedValue,&$sharedFormulas,$castBaseType) {
-//		echo 'Formula', PHP_EOL;
-//		echo '$c->f is ', $c->f, PHP_EOL;
-		$cellDataType 		= 'f';
-		$value 				= "={$c->f}";
-		$calculatedValue 	= self::$castBaseType($c);
-
-		// Shared formula?
-		if (isset($c->f['t']) && strtolower((string)$c->f['t']) == 'shared') {
-//			echo 'SHARED FORMULA', PHP_EOL;
-			$instance = (string)$c->f['si'];
-
-//			echo 'Instance ID = ', $instance, PHP_EOL;
-//
-//			echo 'Shared Formula Array:', PHP_EOL;
-//			print_r($sharedFormulas);
-			if (!isset($sharedFormulas[(string)$c->f['si']])) {
-//				echo 'SETTING NEW SHARED FORMULA', PHP_EOL;
-//				echo 'Master is ', $r, PHP_EOL;
-//				echo 'Formula is ', $value, PHP_EOL;
-				$sharedFormulas[$instance] = array(	'master' => $r,
-													'formula' => $value
-												  );
-//				echo 'New Shared Formula Array:', PHP_EOL;
-//				print_r($sharedFormulas);
-			} else {
-//				echo 'GETTING SHARED FORMULA', PHP_EOL;
-//				echo 'Master is ', $sharedFormulas[$instance]['master'], PHP_EOL;
-//				echo 'Formula is ', $sharedFormulas[$instance]['formula'], PHP_EOL;
-				$master = PHPExcel_Cell::coordinateFromString($sharedFormulas[$instance]['master']);
-				$current = PHPExcel_Cell::coordinateFromString($r);
-
-				$difference = array(0, 0);
-				$difference[0] = PHPExcel_Cell::columnIndexFromString($current[0]) - PHPExcel_Cell::columnIndexFromString($master[0]);
-				$difference[1] = $current[1] - $master[1];
-
-				$value = $this->_referenceHelper->updateFormulaReferences(	$sharedFormulas[$instance]['formula'],
-																			'A1',
-																			$difference[0],
-																			$difference[1]
-																		 );
-//				echo 'Adjusted Formula is ', $value, PHP_EOL;
-			}
-		}
-	}
-
-
-	public function _getFromZipArchive($archive, $fileName = '')
-	{
-		// Root-relative paths
-		if (strpos($fileName, '//') !== false)
-		{
-			$fileName = substr($fileName, strpos($fileName, '//') + 1);
-		}
-		$fileName = PHPExcel_Shared_File::realpath($fileName);
-
-		// Apache POI fixes
-		$contents = $archive->getFromName($fileName);
-		if ($contents === false)
-		{
-			$contents = $archive->getFromName(substr($fileName, 1));
-		}
-
-		return $contents;
-	}
-
 
 	/**
 	 * Loads PHPExcel from file
@@ -478,7 +400,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
                     $macros = $customUI = NULL;
 					foreach ($relsWorkbook->Relationship as $ele) {
 						switch($ele['Type']){
-						case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet": 
+							case "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet":
 							$worksheets[(string) $ele["Id"]] = $ele["Target"];
 							break;
 						// a vbaProject ? (: some macros)
@@ -1749,8 +1671,113 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		$zip->close();
 
 		return $excel;
+	}    //	function _castToString()
+
+	private function _readRibbon( $excel, $customUITarget, $zip ) {
+		$baseDir      = dirname( $customUITarget );
+		$nameCustomUI = basename( $customUITarget );
+		// get the xml file (ribbon)
+		$localRibbon            = $this->_getFromZipArchive( $zip, $customUITarget );
+		$customUIImagesNames    = array();
+		$customUIImagesBinaries = array();
+		// something like customUI/_rels/customUI.xml.rels
+		$pathRels = $baseDir . '/_rels/' . $nameCustomUI . '.rels';
+		$dataRels = $this->_getFromZipArchive( $zip, $pathRels );
+		if ( $dataRels ) {
+			// exists and not empty if the ribbon have some pictures (other than internal MSO)
+			$UIRels = simplexml_load_string( $dataRels, 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions() );
+			if ( $UIRels ) {
+				// we need to save id and target to avoid parsing customUI.xml and "guess" if it's a pseudo callback who load the image
+				foreach ( $UIRels->Relationship as $ele ) {
+					if ( $ele["Type"] == 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image' ) {
+						// an image ?
+						$customUIImagesNames[ (string) $ele['Id'] ]        = (string) $ele['Target'];
+						$customUIImagesBinaries[ (string) $ele['Target'] ] = $this->_getFromZipArchive( $zip, $baseDir . '/' . (string) $ele['Target'] );
+					}
+				}
+			}
+		}
+		if ( $localRibbon ) {
+			$excel->setRibbonXMLData( $customUITarget, $localRibbon );
+			if ( count( $customUIImagesNames ) > 0 && count( $customUIImagesBinaries ) > 0 ) {
+				$excel->setRibbonBinObjects( $customUIImagesNames, $customUIImagesBinaries );
+			} else {
+				$excel->setRibbonBinObjects( null );
+			}
+		} else {
+			$excel->setRibbonXMLData( null );
+			$excel->setRibbonBinObjects( null );
+		}
 	}
 
+	private function _parseRichText( $is = null ) {
+		$value = new PHPExcel_RichText();
+
+		if ( isset( $is->t ) ) {
+			$value->createText( PHPExcel_Shared_String::ControlCharacterOOXML2PHP( (string) $is->t ) );
+		} else {
+			foreach ( $is->r as $run ) {
+				if ( ! isset( $run->rPr ) ) {
+					$objText = $value->createText( PHPExcel_Shared_String::ControlCharacterOOXML2PHP( (string) $run->t ) );
+
+				} else {
+					$objText = $value->createTextRun( PHPExcel_Shared_String::ControlCharacterOOXML2PHP( (string) $run->t ) );
+
+					if ( isset( $run->rPr->rFont["val"] ) ) {
+						$objText->getFont()
+						        ->setName( (string) $run->rPr->rFont["val"] );
+					}
+
+					if ( isset( $run->rPr->sz["val"] ) ) {
+						$objText->getFont()
+						        ->setSize( (string) $run->rPr->sz["val"] );
+					}
+
+					if ( isset( $run->rPr->color ) ) {
+						$objText->getFont()
+						        ->setColor( new PHPExcel_Style_Color( self::_readColor( $run->rPr->color ) ) );
+					}
+
+					if ( ( isset( $run->rPr->b["val"] ) && self::boolean( (string) $run->rPr->b["val"] ) ) || ( isset( $run->rPr->b ) && ! isset( $run->rPr->b["val"] ) ) ) {
+						$objText->getFont()
+						        ->setBold( true );
+					}
+
+					if ( ( isset( $run->rPr->i["val"] ) && self::boolean( (string) $run->rPr->i["val"] ) ) || ( isset( $run->rPr->i ) && ! isset( $run->rPr->i["val"] ) ) ) {
+						$objText->getFont()
+						        ->setItalic( true );
+					}
+
+					if ( isset( $run->rPr->vertAlign ) && isset( $run->rPr->vertAlign["val"] ) ) {
+						$vertAlign = strtolower( (string) $run->rPr->vertAlign["val"] );
+						if ( $vertAlign == 'superscript' ) {
+							$objText->getFont()
+							        ->setSuperScript( true );
+						}
+						if ( $vertAlign == 'subscript' ) {
+							$objText->getFont()
+							        ->setSubScript( true );
+						}
+					}
+
+					if ( isset( $run->rPr->u ) && ! isset( $run->rPr->u["val"] ) ) {
+						$objText->getFont()
+						        ->setUnderline( PHPExcel_Style_Font::UNDERLINE_SINGLE );
+					} else if ( isset( $run->rPr->u ) && isset( $run->rPr->u["val"] ) ) {
+						$objText->getFont()
+						        ->setUnderline( (string) $run->rPr->u["val"] );
+					}
+
+					if ( ( isset( $run->rPr->strike["val"] ) && self::boolean( (string) $run->rPr->strike["val"] ) ) || ( isset( $run->rPr->strike ) && ! isset( $run->rPr->strike["val"] ) ) ) {
+						$objText->getFont()
+						        ->setStrikethrough( true );
+					}
+				}
+			}
+		}
+
+		return $value;
+	}
 
 	private static function _readColor($color, $background=FALSE) {
 		if (isset($color["rgb"])) {
@@ -1774,6 +1801,16 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		return 'FF000000';
 	}
 
+	private static function boolean( $value = null ) {
+		if ( is_object( $value ) ) {
+			$value = (string) $value;
+		}
+		if ( is_numeric( $value ) ) {
+			return (bool) $value;
+		}
+
+		return ( $value === 'true' || $value === 'TRUE' );
+	}
 
 	private static function _readStyle($docStyle, $style) {
 		// format code
@@ -1915,116 +1952,75 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		}
 	}
 
-
-	private function _parseRichText($is = null) {
-		$value = new PHPExcel_RichText();
-
-		if (isset($is->t)) {
-			$value->createText( PHPExcel_Shared_String::ControlCharacterOOXML2PHP( (string) $is->t ) );
+	private static function _castToBool( $c ) {
+		//		echo 'Initial Cast to Boolean', PHP_EOL;
+		$value = isset( $c->v ) ? (string) $c->v : null;
+		if ( $value == '0' ) {
+			return false;
+		} elseif ( $value == '1' ) {
+			return true;
 		} else {
-			foreach ($is->r as $run) {
-				if (!isset($run->rPr)) {
-					$objText = $value->createText( PHPExcel_Shared_String::ControlCharacterOOXML2PHP( (string) $run->t ) );
-
-				} else {
-					$objText = $value->createTextRun( PHPExcel_Shared_String::ControlCharacterOOXML2PHP( (string) $run->t ) );
-
-					if (isset($run->rPr->rFont["val"])) {
-						$objText->getFont()->setName((string) $run->rPr->rFont["val"]);
-					}
-
-					if (isset($run->rPr->sz["val"])) {
-						$objText->getFont()->setSize((string) $run->rPr->sz["val"]);
-					}
-
-					if (isset($run->rPr->color)) {
-						$objText->getFont()->setColor( new PHPExcel_Style_Color( self::_readColor($run->rPr->color) ) );
-					}
-
-					if ((isset($run->rPr->b["val"]) && self::boolean((string) $run->rPr->b["val"])) ||
-						(isset($run->rPr->b) && !isset($run->rPr->b["val"]))) {
-						$objText->getFont()->setBold(TRUE);
-					}
-
-					if ((isset($run->rPr->i["val"]) && self::boolean((string) $run->rPr->i["val"])) ||
-						(isset($run->rPr->i) && !isset($run->rPr->i["val"]))) {
-						$objText->getFont()->setItalic(TRUE);
-					}
-
-					if (isset($run->rPr->vertAlign) && isset($run->rPr->vertAlign["val"])) {
-						$vertAlign = strtolower((string)$run->rPr->vertAlign["val"]);
-						if ($vertAlign == 'superscript') {
-							$objText->getFont()->setSuperScript(TRUE);
-						}
-						if ($vertAlign == 'subscript') {
-							$objText->getFont()->setSubScript(TRUE);
-						}
-					}
-
-					if (isset($run->rPr->u) && !isset($run->rPr->u["val"])) {
-						$objText->getFont()->setUnderline(PHPExcel_Style_Font::UNDERLINE_SINGLE);
-					} else if (isset($run->rPr->u) && isset($run->rPr->u["val"])) {
-						$objText->getFont()->setUnderline((string)$run->rPr->u["val"]);
-					}
-
-					if ((isset($run->rPr->strike["val"]) && self::boolean((string) $run->rPr->strike["val"])) ||
-						(isset($run->rPr->strike) && !isset($run->rPr->strike["val"]))) {
-						$objText->getFont()->setStrikethrough(TRUE);
-					}
-				}
-			}
+			return (bool) $c->v;
 		}
-
 		return $value;
 	}
 
-	private function _readRibbon($excel, $customUITarget, $zip)
-    {
-		$baseDir = dirname($customUITarget);
-		$nameCustomUI = basename($customUITarget);
-        // get the xml file (ribbon)
-		$localRibbon = $this->_getFromZipArchive($zip, $customUITarget);
-		$customUIImagesNames = array(); 
-        $customUIImagesBinaries = array();
-        // something like customUI/_rels/customUI.xml.rels
-		$pathRels = $baseDir . '/_rels/' . $nameCustomUI . '.rels';
-		$dataRels = $this->_getFromZipArchive($zip, $pathRels);
-		if ($dataRels) {
-            // exists and not empty if the ribbon have some pictures (other than internal MSO)
-			$UIRels = simplexml_load_string($dataRels, 'SimpleXMLElement', PHPExcel_Settings::getLibXmlLoaderOptions());
-			if ($UIRels) {
-				// we need to save id and target to avoid parsing customUI.xml and "guess" if it's a pseudo callback who load the image
-				foreach ($UIRels->Relationship as $ele) {
-					if ($ele["Type"] == 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image') {
-                        // an image ?
-						$customUIImagesNames[(string) $ele['Id']] = (string)$ele['Target'];
-						$customUIImagesBinaries[(string)$ele['Target']] = $this->_getFromZipArchive($zip, $baseDir . '/' . (string) $ele['Target']);
-					}
-				}
-			}
-		}
-		if ($localRibbon) {
-			$excel->setRibbonXMLData($customUITarget, $localRibbon);
-			if (count($customUIImagesNames) > 0 && count($customUIImagesBinaries) > 0) {
-				$excel->setRibbonBinObjects($customUIImagesNames, $customUIImagesBinaries);
+	private function _castToFormula( $c, $r, &$cellDataType, &$value, &$calculatedValue, &$sharedFormulas, $castBaseType ) {
+		//		echo 'Formula', PHP_EOL;
+		//		echo '$c->f is ', $c->f, PHP_EOL;
+		$cellDataType    = 'f';
+		$value           = "={$c->f}";
+		$calculatedValue = self::$castBaseType( $c );
+
+		// Shared formula?
+		if ( isset( $c->f['t'] ) && strtolower( (string) $c->f['t'] ) == 'shared' ) {
+			//			echo 'SHARED FORMULA', PHP_EOL;
+			$instance = (string) $c->f['si'];
+
+			//			echo 'Instance ID = ', $instance, PHP_EOL;
+			//
+			//			echo 'Shared Formula Array:', PHP_EOL;
+			//			print_r($sharedFormulas);
+			if ( ! isset( $sharedFormulas[ (string) $c->f['si'] ] ) ) {
+				//				echo 'SETTING NEW SHARED FORMULA', PHP_EOL;
+				//				echo 'Master is ', $r, PHP_EOL;
+				//				echo 'Formula is ', $value, PHP_EOL;
+				$sharedFormulas[ $instance ] = array(
+					'master'  => $r,
+					'formula' => $value
+				);
+				//				echo 'New Shared Formula Array:', PHP_EOL;
+				//				print_r($sharedFormulas);
 			} else {
-				$excel->setRibbonBinObjects(NULL);
+				//				echo 'GETTING SHARED FORMULA', PHP_EOL;
+				//				echo 'Master is ', $sharedFormulas[$instance]['master'], PHP_EOL;
+				//				echo 'Formula is ', $sharedFormulas[$instance]['formula'], PHP_EOL;
+				$master  = PHPExcel_Cell::coordinateFromString( $sharedFormulas[ $instance ]['master'] );
+				$current = PHPExcel_Cell::coordinateFromString( $r );
+
+				$difference    = array( 0, 0 );
+				$difference[0] = PHPExcel_Cell::columnIndexFromString( $current[0] ) - PHPExcel_Cell::columnIndexFromString( $master[0] );
+				$difference[1] = $current[1] - $master[1];
+
+				$value = $this->_referenceHelper->updateFormulaReferences( $sharedFormulas[ $instance ]['formula'], 'A1', $difference[0], $difference[1] );
+				//				echo 'Adjusted Formula is ', $value, PHP_EOL;
 			}
-		} else {
-			$excel->setRibbonXMLData(NULL);
-			$excel->setRibbonBinObjects(NULL);
 		}
 	}
 
-	private static function array_item($array, $key = 0) {
-		return (isset($array[$key]) ? $array[$key] : null);
+	private static function _castToError( $c ) {
+		//		echo 'Initial Cast to Error', PHP_EOL;
+		return isset( $c->v ) ? (string) $c->v : null;
 	}
 
+	private static function _castToString( $c ) {
+		//		echo 'Initial Cast to String, PHP_EOL;
+		return isset( $c->v ) ? (string) $c->v : null;
+	}
 
 	private static function dir_add($base, $add) {
 		return preg_replace('~[^/]+/\.\./~', '', dirname($base) . "/$add");
 	}
-
 
 	private static function toCSSArray($style) {
 		$style = str_replace(array("\r","\n"), "", $style);
@@ -2054,16 +2050,5 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		}
 
 		return $style;
-	}
-
-	private static function boolean($value = NULL)
-	{
-        if (is_object($value)) {
-			$value = (string) $value;
-        }
-		if (is_numeric($value)) {
-			return (bool) $value;
-        }
-		return ($value === 'true' || $value === 'TRUE');
 	}
 }

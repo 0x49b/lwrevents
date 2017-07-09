@@ -116,28 +116,6 @@ class PHPExcel_Style_Fill extends PHPExcel_Style_Supervisor implements PHPExcel_
 	}
 
 	/**
-	 * Get the shared style component for the currently active cell in currently active sheet.
-	 * Only used for style supervisor
-	 *
-	 * @return PHPExcel_Style_Fill
-	 */
-	public function getSharedComponent()
-	{
-		return $this->_parent->getSharedComponent()->getFill();
-	}
-
-	/**
-	 * Build style array from subcomponents
-	 *
-	 * @param array $array
-	 * @return array
-	 */
-	public function getStyleArray($array)
-	{
-		return array('fill' => $array);
-	}
-
-	/**
 	 * Apply styles from array
 	 *
 	 * <code>
@@ -187,59 +165,14 @@ class PHPExcel_Style_Fill extends PHPExcel_Style_Supervisor implements PHPExcel_
 	}
 
 	/**
-	 * Get Fill Type
+	 * Build style array from subcomponents
 	 *
-	 * @return string
-	 */
-	public function getFillType() {
-		if ($this->_isSupervisor) {
-			return $this->getSharedComponent()->getFillType();
-		}
-		return $this->_fillType;
-	}
-
-	/**
-	 * Set Fill Type
+	 * @param array $array
 	 *
-	 * @param string $pValue	PHPExcel_Style_Fill fill type
-	 * @return PHPExcel_Style_Fill
+	 * @return array
 	 */
-	public function setFillType($pValue = PHPExcel_Style_Fill::FILL_NONE) {
-		if ($this->_isSupervisor) {
-			$styleArray = $this->getStyleArray(array('type' => $pValue));
-			$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
-		} else {
-			$this->_fillType = $pValue;
-		}
-		return $this;
-	}
-
-	/**
-	 * Get Rotation
-	 *
-	 * @return double
-	 */
-	public function getRotation() {
-		if ($this->_isSupervisor) {
-			return $this->getSharedComponent()->getRotation();
-		}
-		return $this->_rotation;
-	}
-
-	/**
-	 * Set Rotation
-	 *
-	 * @param double $pValue
-	 * @return PHPExcel_Style_Fill
-	 */
-	public function setRotation($pValue = 0) {
-		if ($this->_isSupervisor) {
-			$styleArray = $this->getStyleArray(array('rotation' => $pValue));
-			$this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
-		} else {
-			$this->_rotation = $pValue;
-		}
-		return $this;
+	public function getStyleArray( $array ) {
+		return array( 'fill' => $array);
 	}
 
 	/**
@@ -316,6 +249,85 @@ class PHPExcel_Style_Fill extends PHPExcel_Style_Supervisor implements PHPExcel_
 			. $this->getEndColor()->getHashCode()
 			. __CLASS__
 		);
+	}
+
+	/**
+	 * Get the shared style component for the currently active cell in currently active sheet.
+	 * Only used for style supervisor
+	 *
+	 * @return PHPExcel_Style_Fill
+	 */
+	public function getSharedComponent() {
+		return $this->_parent->getSharedComponent()
+		                     ->getFill();
+	}
+
+	/**
+	 * Get Fill Type
+	 *
+	 * @return string
+	 */
+	public function getFillType() {
+		if ( $this->_isSupervisor ) {
+			return $this->getSharedComponent()
+			            ->getFillType();
+		}
+
+		return $this->_fillType;
+	}
+
+	/**
+	 * Set Fill Type
+	 *
+	 * @param string $pValue PHPExcel_Style_Fill fill type
+	 *
+	 * @return PHPExcel_Style_Fill
+	 */
+	public function setFillType( $pValue = PHPExcel_Style_Fill::FILL_NONE ) {
+		if ( $this->_isSupervisor ) {
+			$styleArray = $this->getStyleArray( array( 'type' => $pValue ) );
+			$this->getActiveSheet()
+			     ->getStyle( $this->getSelectedCells() )
+			     ->applyFromArray( $styleArray );
+		} else {
+			$this->_fillType = $pValue;
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Get Rotation
+	 *
+	 * @return double
+	 */
+	public function getRotation() {
+		if ( $this->_isSupervisor ) {
+			return $this->getSharedComponent()
+			            ->getRotation();
+		}
+
+		return $this->_rotation;
+	}
+
+	/**
+	 * Set Rotation
+	 *
+	 * @param double $pValue
+	 *
+	 * @return PHPExcel_Style_Fill
+	 */
+	public function setRotation( $pValue = 0 ) {
+		if ( $this->_isSupervisor ) {
+			$styleArray = $this->getStyleArray( array( 'rotation' => $pValue ) );
+			$this->getActiveSheet()
+			     ->getStyle( $this->getSelectedCells() )
+			     ->applyFromArray( $styleArray );
+		} else {
+			$this->_rotation = $pValue;
+		}
+
+		return $this;
 	}
 
 }

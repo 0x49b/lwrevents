@@ -36,42 +36,6 @@
 abstract class PHPExcel_Writer_PDF_Core extends PHPExcel_Writer_HTML
 {
     /**
-     * Temporary storage directory
-     *
-     * @var string
-     */
-    protected $_tempDir = '';
-
-    /**
-     * Font
-     *
-     * @var string
-     */
-    protected $_font = 'freesans';
-
-    /**
-     * Orientation (Over-ride)
-     *
-     * @var string
-     */
-    protected $_orientation    = NULL;
-
-    /**
-     * Paper size (Over-ride)
-     *
-     * @var int
-     */
-    protected $_paperSize    = NULL;
-
-
-    /**
-     * Temporary storage for Save Array Return type
-     *
-     * @var string
-     */
-	private $_saveArrayReturnType;
-
-    /**
      * Paper Sizes xRef List
      *
      * @var array
@@ -210,6 +174,36 @@ abstract class PHPExcel_Writer_PDF_Core extends PHPExcel_Writer_HTML
         PHPExcel_Worksheet_PageSetup::PAPERSIZE_A3_EXTRA_TRANSVERSE_PAPER
             => array(912.76, 1261.42)    //    (322 mm by 445 mm)
     );
+	/**
+	 * Temporary storage directory
+	 *
+	 * @var string
+	 */
+	protected $_tempDir = '';
+	/**
+	 * Font
+	 *
+	 * @var string
+	 */
+	protected $_font = 'freesans';
+	/**
+	 * Orientation (Over-ride)
+	 *
+	 * @var string
+	 */
+	protected $_orientation = null;
+	/**
+	 * Paper size (Over-ride)
+	 *
+	 * @var int
+	 */
+	protected $_paperSize = null;
+	/**
+	 * Temporary storage for Save Array Return type
+	 *
+	 * @var string
+	 */
+	private $_saveArrayReturnType;
 
     /**
      *  Create a new PHPExcel_Writer_PDF
