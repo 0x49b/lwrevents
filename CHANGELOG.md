@@ -22,3 +22,6 @@
 
 ### 1.7.3.3: 
 * Sortierung in Agenda-> Zukünftig gefixed
+
+### 1.7.3.4
+* Neue Archivseite für Events hinzugefügt. Diese werden nun als Liste wie bei den Shortcodes angezeigt.

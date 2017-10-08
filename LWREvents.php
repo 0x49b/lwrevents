@@ -25,16 +25,14 @@ include('core/PHPExcel.php');                               // Excel Generator
 include('core/pupdatechecker/plugin-update-checker.php');   // Plugin Update Checker
 
 if (!class_exists('LWREvents')) {
-    class LWREvents
-    {
+    class LWREvents {
 
         public $lwrCore;
 
         /**
          * LWREvents constructor.
          */
-        function __construct()
-        {
+        function __construct() {
 
             // Initilaize LWREventsCore
             $lwrCore = new LWREventsCore();
@@ -60,8 +58,7 @@ if (!class_exists('LWREvents')) {
         /**
          * @param mixed $lwrCore
          */
-        public function setLwrCore($lwrCore)
-        {
+        public function setLwrCore($lwrCore) {
             $this->lwrCore = $lwrCore;
 
             add_action('admin_enqueue_scripts', array($this, 'lwr_events_loadStylesAndJSBackend'));
@@ -71,8 +68,7 @@ if (!class_exists('LWREvents')) {
         /**
          * LWREvents Plugin activation Hook
          */
-        public function lwr_events_activate()
-        {
+        public function lwr_events_activate() {
             global $wpdb;
             $lwr_events_table = $wpdb->prefix . 'lwrevents_signin';
 
@@ -87,8 +83,7 @@ if (!class_exists('LWREvents')) {
         /**
          * LWREvents Plugin deactivation Hook
          */
-        public function lwr_events_deactivate()
-        {
+        public function lwr_events_deactivate() {
 
             // Ajax gschmeus löschen.
             remove_action('wp_ajax_user_sign_event', array('LWREventsCore', 'user_sign_event'));
@@ -99,14 +94,12 @@ if (!class_exists('LWREvents')) {
 
         }
 
-        public function lwr_events_uninstall()
-        {
+        public function lwr_events_uninstall() {
             global $wpdb;
             $wpdb->query("DROP TABLE '" . $wpdb->prefix . "lwrevents_signin'");
         }
 
-        function lwr_events_widget_init()
-        {
+        function lwr_events_widget_init() {
             $lwrEventsWidget = new LWREventsWidget();
             add_action('widgets_init', array($lwrEventsWidget, 'lwr_load_widget'));
 
@@ -119,8 +112,7 @@ if (!class_exists('LWREvents')) {
         /**
          * Adds the WordPress Ajax Library to the frontend.
          */
-        public function add_ajax_library()
-        {
+        public function add_ajax_library() {
 
             $html = '<script type="text/javascript">';
             $html .= 'var ajaxurl = "' . admin_url('admin-ajax.php') . '"';
@@ -131,8 +123,7 @@ if (!class_exists('LWREvents')) {
         } // end add_ajax_library
 
 
-        function lwr_events_loadStylesAndJSBackend()
-        {
+        function lwr_events_loadStylesAndJSBackend() {
             wp_register_script('jqueryvalidate', plugin_dir_url(__FILE__) . 'views/assets/js/jqvalidate/jquery.validate.js');
             wp_enqueue_script('jqueryvalidate');
             wp_register_script('lwrevents-backend', plugin_dir_url(__FILE__) . 'views/assets/js/lwr-events-backend.min.js');
@@ -142,39 +133,44 @@ if (!class_exists('LWREvents')) {
 
         }
 
-        function lwr_events_loadStylesAndJSFrontend()
-        {
+        function lwr_events_loadStylesAndJSFrontend() {
             //Load Fontawesome
             wp_enqueue_style('fontawesome', plugin_dir_url(__FILE__) . 'views/assets/css/font-awesome.min.css');
             wp_enqueue_style('lwrevent-style', plugin_dir_url(__FILE__) . 'views/assets/css/lwr-event-style.min.css');
             wp_localize_script('lwrevents', 'lwrevent', array('ajax_url' => admin_url('admin-ajax.php')));
 
-	        wp_register_script('lwrevents-frontend', plugin_dir_url(__FILE__) . 'views/assets/js/lwr-events-frontend.min.js');
-	        wp_enqueue_script('lwrevents-frontend');
+            wp_register_script('lwrevents-frontend', plugin_dir_url(__FILE__) . 'views/assets/js/lwr-events-frontend.min.js');
+            wp_enqueue_script('lwrevents-frontend');
 
-	        wp_register_script('jquery-metadata', plugin_dir_url(__FILE__) . 'views/assets/js/jquery.metadata.js');
-	        wp_enqueue_script('jquery-metadata');
+            wp_register_script('jquery-metadata', plugin_dir_url(__FILE__) . 'views/assets/js/jquery.metadata.js');
+            wp_enqueue_script('jquery-metadata');
 
-	        wp_register_script('jquery-tablesorter', plugin_dir_url(__FILE__) . 'views/assets/js/jquery.tablesorter.min.js');
-	        wp_enqueue_script('jquery-tablesorter');
+            wp_register_script('jquery-tablesorter', plugin_dir_url(__FILE__) . 'views/assets/js/jquery.tablesorter.min.js');
+            wp_enqueue_script('jquery-tablesorter');
         }
 
-        public static function lwr_frontview_templates($template)
-        {
+        public static function lwr_frontview_templates($template) {
 
             //LWREvent Single Template laden
             if (is_singular('lwrevents')) {
                 $template = plugin_dir_path(__FILE__) . 'views/frontend/single-lwrevents.php';
             }
 
-            //TODO Nur Anzeige der Archivseite für lwrevents. "Normale" Wordpress Archive dürfen nicht beeinträchtigt werden.
-            /*
-            if (is_archive('lwrevents')) {
-                $template = plugin_dir_path(__FILE__) . 'views/frontend/cracked-archive-lwrevents.php';
-            } */
-
             return $template;
         }
+
+        function get_custom_post_type_template($archive_template) {
+            //Get Query Object for actual WP Query
+            $qobj = get_queried_object();
+            // Check for Taxonomy to display custom archive page
+            if (is_archive() && $qobj->taxonomy == 'Sportart') {
+                $archive_template = plugin_dir_path(__FILE__) . 'views/frontend/archive-lwrevents.php';
+            }
+
+            return $archive_template;
+        }
+
+
     }
 }
 
@@ -189,7 +185,10 @@ if (isset($lwrPluginObject)) {
     $lwrPluginObject->lwr_events_widget_init();
 
     add_action('init', array('LWREventsCPT', 'lwr_events_cpt_config'), 0);
+
     add_filter('template_include', array('LWREvents', 'lwr_frontview_templates'), 0);
+    add_filter('archive_template', array('LWREvents', 'get_custom_post_type_template'), 0);
+
     add_shortcode('lwrevents-list-future', array('LWREventsCore', 'lwrShortcodeListFuture'));
     add_shortcode('lwrevents-list', array('LWREventsCore', 'lwrShortcodeList'));
 
