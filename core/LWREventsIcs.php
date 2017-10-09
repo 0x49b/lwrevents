@@ -1,39 +1,92 @@
 <?php
 
 /**
- * User:        u210645
- * Date:        29.08.2016
+ * User:        Florian Thiévent
+ * Date:        09.10.2017
  * Time:        14:12
  * File:        LWREventsIcs.php
- * Project:     wordpress
+ * Project:     lwrevents
  * Version:     0.1
- * Description:
  */
 class LWREventsIcs {
+    const DT_FORMAT = 'Ymd\THis\Z';
+    protected $properties = array();
+    private $available_properties = array(
+        'description',
+        'dtend',
+        'dtstart',
+        'location',
+        'summary',
+        'url'
+    );
 
-    var $data;
-    var $name;
-
-    function __construct($start,$end,$name,$description,$location) {
-        $this->name = $name;
-        $this->data = "BEGIN:VCALENDAR\nVERSION:2.0\nMETHOD:PUBLISH\nBEGIN:VEVENT\nDTSTART:".date("Ymd\THis\Z",strtotime($start))."\nDTEND:".date("Ymd\THis\Z",strtotime($end))."\nLOCATION:".$location."\nTRANSP: OPAQUE\nSEQUENCE:0\nUID:\nDTSTAMP:".date("Ymd\THis\Z")."\nSUMMARY:".$name."\nDESCRIPTION:".$description."\nPRIORITY:1\nCLASS:PUBLIC\nBEGIN:VALARM\nTRIGGER:-PT10080M\nACTION:DISPLAY\nDESCRIPTION:Reminder\nEND:VALARM\nEND:VEVENT\nEND:VCALENDAR\n";
-    }
-    function ics_save() {
-        file_put_contents($this->name.".ics",$this->data);
-    }
-
-    function ics_download(){
-        header("Content-Type: application/octet-stream");
-        header("Content-Transfer-Encoding: Binary");
-        header("Content-disposition: attachment; filename='".$this->name.".ics'");
-        echo readfile($this->name.'.ics');
+    public function __construct($props) {
+        $this->set($props);
     }
 
-    function ics_show() {
-        header("Content-type:text/calendar");
-        header('Content-Disposition: attachment; filename="'.$this->name.'.ics"');
-        header('Content-Length: '.strlen($this->data));
-        header('Connection: close');
-        echo $this->data;
+    public function set($key, $val = false) {
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
+                $this->set($k, $v);
+            }
+        } else {
+            if (in_array($key, $this->available_properties)) {
+                $this->properties[$key] = $this->sanitize_val($val, $key);
+            }
+        }
+    }
+
+    public function to_string() {
+        $rows = $this->build_props();
+        return implode("\r\n", $rows);
+    }
+
+    private function build_props() {
+        // Build ICS properties - add header
+        $ics_props = array(
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//hacksw/handcal//NONSGML v1.0//EN',
+            'CALSCALE:GREGORIAN',
+            'BEGIN:VEVENT'
+        );
+        // Build ICS properties - add header
+        $props = array();
+        foreach ($this->properties as $k => $v) {
+            $props[strtoupper($k . ($k === 'url' ? ';VALUE=URI' : ''))] = $v;
+        }
+        // Set some default values
+        $props['DTSTAMP'] = $this->format_timestamp('now');
+        $props['UID'] = uniqid();
+        // Append properties
+        foreach ($props as $k => $v) {
+            $ics_props[] = "$k:$v";
+        }
+        // Build ICS properties - add footer
+        $ics_props[] = 'END:VEVENT';
+        $ics_props[] = 'END:VCALENDAR';
+        return $ics_props;
+    }
+
+    private function sanitize_val($val, $key = false) {
+        switch ($key) {
+            case 'dtend':
+            case 'dtstamp':
+            case 'dtstart':
+                $val = $this->format_timestamp($val);
+                break;
+            default:
+                $val = $this->escape_string($val);
+        }
+        return $val;
+    }
+
+    private function format_timestamp($timestamp) {
+        $dt = new DateTime($timestamp);
+        return $dt->format(self::DT_FORMAT);
+    }
+
+    private function escape_string($str) {
+        return preg_replace('/([\,;])/', '\\\$1', $str);
     }
 }

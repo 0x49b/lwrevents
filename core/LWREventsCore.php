@@ -91,7 +91,7 @@ class LWREventsCore {
             'order' => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
             'orderby' => 'meta_value',
             'meta_key' => 'lwrDatumVonSQL',
-            'posts_per_page' => $lwr->getSettingsFromDB('lwr_archive_max'),
+            'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
             'tax_query' => array(
                 array(
                     'taxonomy' => 'Sportart',
