@@ -79,6 +79,56 @@ class LWREventsCore {
 		return $returnstring;
 	}
 
+    /**
+     * Get a list for an archive page with category
+     * @param $category
+     * @return string
+     */
+	function lwrGetArchiveForCategory($category){
+        $lwr  = new LWREventsCore();
+        $custom_posts = new WP_Query(array(
+            'post_type' => 'lwrevents',
+            'tax_query' => array(
+                array(
+                    'taxonomy' => 'Sportart',
+                    'field'    => 'slug',
+                    'terms'    => $category,
+                ),
+            ),
+        ));
+        $returnstring = '<table id="agendaTable"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr><thead><tbody>';
+
+
+        if ( $custom_posts->have_posts() ) {
+
+            while ( $custom_posts->have_posts() ) {
+                $custom_posts->the_post();
+                $term         = get_the_terms( get_the_ID(), 'Sportart' );
+                $returnstring .= '
+                <tr><td>
+                    ' . $lwr->getEventMeta( get_the_ID(), 'lwrDatumVon' ) . ' <br/>
+                    ' . $lwr->getEventMeta( get_the_ID(), 'lwrDatumBis' ) . '
+                </td>
+                <td>
+                <strong><a href="' . get_the_permalink() . '">' . $term[0]->name . ' : ' . get_the_title() . '</a></strong><br/>
+                ' . get_the_excerpt() . '
+                </td>
+                <td>
+                <a href="' . get_comments_link( get_the_ID() ) . '">' . get_comments_number() . '</a>
+                </td>
+                </tr>';
+            }
+        } else {
+
+            $returnstring .= "<tr><td colspan='3'>" . $lwr->getSettingsFromDB( 'lwr_empty_events' ) . "</td></tr>";
+
+        }
+
+        $returnstring .= '</tbody></table>';
+
+        return $returnstring;
+    }
+
 	/**
 	 * Einstellungen aus der Datenbank laden
 	 * @return String
@@ -624,5 +674,51 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'" );
 		endif;
 
 	}
+
+    function lwr_display_postmeta() {
+
+        // Get Theme Options from Database
+        $theme_options = array('meta_date' => true, 'meta_author' => true);
+
+        // Display Date unless user has deactivated it via settings
+        if (isset($theme_options['meta_date']) and $theme_options['meta_date'] == true) : ?>
+
+            <span class="meta-date sep">
+			<?php printf('<a href="%1$s" title="%2$s" rel="bookmark"><time class="entry-date published updated" datetime="%3$s">%4$s</time></a>',
+                esc_url(get_permalink()),
+                esc_attr(get_the_time()),
+                esc_attr(get_the_date('c')),
+                esc_html(get_the_date())
+            );
+            ?>
+			</span>
+
+        <?php endif;
+
+        // Display Author unless user has deactivated it via settings
+        if (isset($theme_options['meta_author']) and $theme_options['meta_author'] == true) : ?>
+
+            <span class="meta-author sep">
+			<?php printf('<span class="author vcard"><a class="fn" href="%1$s" title="%2$s" rel="author">%3$s</a></span>',
+                esc_url(get_author_posts_url(get_the_author_meta('ID'))),
+                esc_attr(sprintf(__('View all posts by %s', 'dynamic-news-lite'), get_the_author())),
+                get_the_author()
+            );
+            ?>
+			</span>
+
+        <?php endif;
+
+        if (comments_open()) : ?>
+
+            <span class="meta-comments">
+				<?php comments_popup_link(__('Leave a comment', 'dynamic-news-lite'), __('One comment', 'dynamic-news-lite'), __('% comments', 'dynamic-news-lite')); ?>
+			</span>
+
+        <?php endif; ?>
+
+        <?php
+        edit_post_link('Edit Event');
+    }
 
 }

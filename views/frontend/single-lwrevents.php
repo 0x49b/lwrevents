@@ -75,7 +75,7 @@ get_header(); ?>
                 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
                     <h1 class="entry-title post-title"><?php echo get_the_term_list( $post->ID, 'Sportart','', ', ', '' ) . ': ' . get_the_title(); ?></h1>
-                    <div class="entry-meta postmeta clearfix"><?php //dynamicnews_display_postmeta(); ?></div>
+                    <div class="entry-meta postmeta clearfix"><?php  $lwr->lwr_display_postmeta(); ?></div>
 
 					<?php //dynamicnews_display_thumbnail_single(); ?>
 

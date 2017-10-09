@@ -32,56 +32,12 @@ get_header(); ?>
 
                 <div class="entry clearfix">
 
-                    <table>
-                        <tr>
-                            <th>Datum</th>
-                            <th>Anlass</th>
-                            <th>Kommentare</th>
-                        </tr>
+                    <?php
+                    $qobj = get_queried_object();
 
+                    echo $lwr->lwrGetArchiveForCategory($qobj->slug);
 
-                        <?php
-                        global $wpdb;
-                        $title_raw = get_the_archive_title();
-                        $title     = explode( ': ', $title_raw );
-                        $term_name = $title[1];
-
-                        $term_id = $wpdb->get_var( "SELECT " . $wpdb->prefix . "terms.term_id FROM " . $wpdb->prefix . "terms where " . $wpdb->prefix . "terms.name = '$term_name'" );
-                        // Use the new tax_query WP_Query argument (as of 3.1)
-                        $taxonomy_query = new WP_Query( array(
-                            'tax_query' => array(
-                                array(
-                                    'taxonomy' => 'Sportart',
-                                    'field'    => 'id',
-                                    'terms'    => array( $term_id ),
-
-                                ),
-                            ),
-                            'order'     => $lwr->getSettingsFromDB( 'lwr_sort_list_archive' ),
-                            'posts_per_page' => $lwr->getSettingsFromDB( 'lwr_archiv_max' ),
-                        ) );
-                        ?>
-
-
-                        <?php if ( $taxonomy_query->have_posts() ) :
-                        while ( $taxonomy_query->have_posts() ) : $taxonomy_query->the_post(); ?>
-
-
-                            <tr>
-                                <td>
-                                    <?php echo $lwr->getEventMeta( get_the_ID(), 'lwrDatumVon' ); ?><br/>
-                                    <?php echo $lwr->getEventMeta( get_the_ID(), 'lwrDatumBis' ); ?>
-                                </td>
-                                <td>
-                                    <strong><a href="<?php echo get_the_permalink(); ?>"><?php echo get_the_title(); ?></a></strong><br/>
-                                    <?php echo get_the_excerpt(); ?>
-                                </td>
-                                <td>
-                                    <a href="<?php echo get_comments_link( get_the_ID() ); ?>"><?php echo get_comments_number(); ?></a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </table>
+                    ?>
 
                 </div>
 
@@ -91,9 +47,6 @@ get_header(); ?>
         </div>
 
 
-    <?php
-    //$lwr->getPagination();
-    endif; ?>
 
     </div>
 
