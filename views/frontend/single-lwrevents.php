@@ -240,12 +240,14 @@
                                     <td id="tblusernein"><?php echo($lwr->getSigninUsersForEventAndStatus($post->ID, 0)); ?></td>
                                 </tr>
                             </table>
+
+                            <p>
+                                <a href="#" data-postid="<?php echo $post->ID; ?>" id="lwrCalendarLink"><i
+                                            class="fa fa-calendar" aria-hidden="true"></i> Zum Kalender hinzufügen
+                                    <i id="lwrCalendarLoader" class="fa fa-cog fa-spin fa-fw"></i></a>
+                            </p>
                         <?php } ?>
-                        <p>
-                            <a href="#" data-postid="<?php echo $post->ID; ?>" id="lwrCalendarLink"><i
-                                        class="fa fa-calendar" aria-hidden="true"></i> Zum Kalender hinzufügen
-                                <i id="lwrCalendarLoader" class="fa fa-cog fa-spin fa-fw"></i></a>
-                        </p>
+
 
                     </div>
 
@@ -309,7 +311,9 @@
                             var postid = jQuery('#lwrCalendarLink').attr('data-postid');
 
                             jQuery.get(ajaxurl, {
-                                beforeSend: function(){jQuery("#lwrCalendarLoader").show();},
+                                beforeSend: function () {
+                                    jQuery("#lwrCalendarLoader").show();
+                                },
                                 action: 'generate_calendar',
                                 eventID: postid,
                             }, function (response) {
