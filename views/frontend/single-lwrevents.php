@@ -1,13 +1,13 @@
 <?php
-/**
- * Template Name: LWREvents
- * File:        single-lwrevents.php
- * Project:     LWREvents
- * Version:     0.1
- * Description: Displays a LWR Event
- */
+    /**
+     * Template Name: LWREvents
+     * File:        single-lwrevents.php
+     * Project:     LWREvents
+     * Version:     0.1
+     * Description: Displays a LWR Event
+     */
 
-get_header(); ?>
+    get_header(); ?>
 
     <style>
         .lwr-event-detail-table {
@@ -62,243 +62,298 @@ get_header(); ?>
 
         <section id="content" class="primary" role="main">
 
-			<?php if ( function_exists( 'themezee_breadcrumbs' ) ) {
-				themezee_breadcrumbs();
-			}
-			$loop = new WP_Query( array( 'post_type' => 'lwrevents', ) );
-			$lwr  = new LWREventsCore( $post->ID );
-			?>
+            <?php if (function_exists('themezee_breadcrumbs')) {
+                themezee_breadcrumbs();
+            }
+                $loop = new WP_Query(array('post_type' => 'lwrevents',));
+                $lwr = new LWREventsCore($post->ID);
+            ?>
 
-			<?php if ( have_posts() ) : while ( have_posts() ) : the_post();
+            <?php if (have_posts()) : while (have_posts()) : the_post();
 
-				?>
+                ?>
                 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
-                    <h1 class="entry-title post-title"><?php echo get_the_term_list( $post->ID, 'Sportart','', ', ', '' ) . ': ' . get_the_title(); ?></h1>
-                    <div class="entry-meta postmeta clearfix"><?php  $lwr->lwr_display_postmeta(); ?></div>
+                    <h1 class="entry-title post-title"><?php echo get_the_term_list($post->ID, 'Sportart', '', ', ', '') . ': ' . get_the_title(); ?></h1>
+                    <div class="entry-meta postmeta clearfix"><?php $lwr->lwrDisplayPostMeta(); ?></div>
 
-					<?php //dynamicnews_display_thumbnail_single(); ?>
+                    <?php //dynamicnews_display_thumbnail_single(); ?>
 
                     <div class="entry clearfix">
 
-						<?php the_content(); ?>
+                        <?php the_content(); ?>
 
                         <h4>Details</h4>
                         <table class="lwr-event-detail-table">
-							<?php echo $lwr->getEventTime( $post->ID ) . '<br/>'; ?>
+                            <?php echo $lwr->getEventTime($post->ID) . '<br/>'; ?>
                             <br/>
-							<?php
-							$days = $lwr->getEventMeta( $post->ID, 'lwrTage' );
-							if ( $days != '' ) {
-								?>
-                                <small><?php echo $lwr->getDayString( $days ); ?></small>
-								<?php
-							}
-							?>
+                            <?php
+                                $days = $lwr->getEventMeta($post->ID, 'lwrTage');
+                                if ($days != '') {
+                                    ?>
+                                    <small><?php echo $lwr->getDayString($days); ?></small>
+                                    <?php
+                                }
+                            ?>
                             </td>
                             </tr>
                             <tr>
                                 <td>Ort</td>
-                                <td><?php $lwr->eventMeta( $post->ID, 'lwrOrt' ); ?></td>
+                                <td><?php $lwr->eventMeta($post->ID, 'lwrOrt'); ?></td>
                             </tr>
 
-							<?php
+                            <?php
 
-							if ( $lwr->getEventMeta( $post->ID, 'lwrOK' ) ) {
-								?>
-                                <tr>
-                                    <td>Organisation</td>
-                                    <td><?php $lwr->eventMeta( $post->ID, 'lwrOK' ); ?></td>
-                                </tr>
-								<?php
-							}
-
-							if ( $lwr->getEventMeta( $post->ID, 'lwrMaxTN' ) ) {
-								?>
-                                <tr>
-                                    <td>max. Teilnehmer</td>
-                                    <td><?php $lwr->eventMeta( $post->ID, 'lwrMaxTN' ); ?></td>
-                                </tr>
-								<?php
-							}
-
-							if ( $lwr->getEventMeta( $post->ID, 'lwrVoraussetzung' ) ) {
-								?>
-                                <tr>
-                                    <td>Voraussetzungen</td>
-                                    <td><?php $lwr->eventMeta( $post->ID, 'lwrVoraussetzung' ); ?><?php ?></td>
-                                </tr>
-								<?php
-							}
-
-							if ( $lwr->getEventMeta( $post->ID, 'lwrAusruestung' ) ) {
-								?>
-                                <tr>
-                                    <td>Ausrüstung</td>
-                                    <td><?php $lwr->eventMeta( $post->ID, 'lwrAusruestung' ); ?></td>
-                                </tr>
-								<?php
-							}
-
-							if ( new DateTime() < new DateTime( $lwr->getEventMeta( $post->ID, 'lwrAnmelden' ) ) ) {
-
-
-								?>
-                                <tr>
-                                    <td>Anmelden bis</td>
-                                    <td>
-										<?php $lwr->eventMeta( $post->ID, 'lwrAnmelden' ); ?>
-                                    </td>
-                                </tr>
-
-								<?php if ( is_user_logged_in() ) {
-
-									if ( $lwr->checkSignInForEvent( $post->ID ) == false ) {
-
-
-										$state = $lwr->getEventUserState( $post->ID, get_current_user_id() );
-
-										$ja = $evtl = $nein = '';
-
-										switch ( $state ) {
-											case '0':
-												$nein = 'checked';
-												break;
-											case '1':
-												$evtl = 'checked';
-												break;
-											case '2':
-												$ja = 'checked';
-												break;
-											default:
-												$ja = $evtl = $nein = '';
-												break;
-										}
-										?>
-                                        <tr>
-                                            <td>
-                                                <label><input type="radio" class="signInVal" name="signInState[]"
-                                                              value="2" <?php echo $ja; ?>/> Ja</label>&nbsp;&nbsp;
-                                                <label><input type="radio" class="signInVal" name="signInState[]"
-                                                              value="1" <?php echo $evtl; ?>/> Evtl.</label>&nbsp;&nbsp;
-                                                <label><input type="radio" class="signInVal" name="signInState[]"
-                                                              value="0" <?php echo $nein; ?>/> Nein</label>
-                                            </td>
-                                            <td><a id="lwrSignInLink"
-                                                   href="#"><?php ( $state != '' ) ? print( 'Änderung speichern' ) : print( 'anmelden' ); ?></a>
-                                            </td>
-                                        </tr>
-										<?php
-									} else {
-										?>
-                                        <tr>
-                                            <td colspan="2">Anmeldung ist geschlossen, die maximale Teilnehmerzahl ist
-                                                erreicht.
-                                            </td>
-                                        </tr>
-										<?php
-									}
-
-								} else {
-									?>
+                                if ($lwr->getEventMeta($post->ID, 'lwrOK')) {
+                                    ?>
                                     <tr>
-                                        <td colspan="2">Die Anmeldung steht nur Mitgliedern zur Verfügung.</td>
+                                        <td>Organisation</td>
+                                        <td><?php $lwr->eventMeta($post->ID, 'lwrOK'); ?></td>
                                     </tr>
-									<?php
+                                    <?php
+                                }
 
-								}
-							} else {
-								?>
-                                <tr>
-                                    <td colspan="2">Anmeldefrist ist abgelaufen.</td>
-                                </tr>
-								<?php
-							}
-							?>
+                                if ($lwr->getEventMeta($post->ID, 'lwrMaxTN')) {
+                                    ?>
+                                    <tr>
+                                        <td>max. Teilnehmer</td>
+                                        <td><?php $lwr->eventMeta($post->ID, 'lwrMaxTN'); ?></td>
+                                    </tr>
+                                    <?php
+                                }
+
+                                if ($lwr->getEventMeta($post->ID, 'lwrVoraussetzung')) {
+                                    ?>
+                                    <tr>
+                                        <td>Voraussetzungen</td>
+                                        <td><?php $lwr->eventMeta($post->ID, 'lwrVoraussetzung'); ?><?php ?></td>
+                                    </tr>
+                                    <?php
+                                }
+
+                                if ($lwr->getEventMeta($post->ID, 'lwrAusruestung')) {
+                                    ?>
+                                    <tr>
+                                        <td>Ausrüstung</td>
+                                        <td><?php $lwr->eventMeta($post->ID, 'lwrAusruestung'); ?></td>
+                                    </tr>
+                                    <?php
+                                }
+
+                                if (new DateTime() < new DateTime($lwr->getEventMeta($post->ID, 'lwrAnmelden'))) {
+
+
+                                    ?>
+                                    <tr>
+                                        <td>Anmelden bis</td>
+                                        <td>
+                                            <?php $lwr->eventMeta($post->ID, 'lwrAnmelden'); ?>
+                                        </td>
+                                    </tr>
+
+                                    <?php if (is_user_logged_in()) {
+
+                                        if ($lwr->checkSignInForEvent($post->ID) == false) {
+
+
+                                            $state = $lwr->getEventUserState($post->ID, get_current_user_id());
+
+                                            $ja = $evtl = $nein = '';
+
+                                            switch ($state) {
+                                                case '0':
+                                                    $nein = 'checked';
+                                                    break;
+                                                case '1':
+                                                    $evtl = 'checked';
+                                                    break;
+                                                case '2':
+                                                    $ja = 'checked';
+                                                    break;
+                                                default:
+                                                    $ja = $evtl = $nein = '';
+                                                    break;
+                                            }
+                                            ?>
+                                            <tr>
+                                                <td>
+                                                    <label><input type="radio" class="signInVal" name="signInState[]"
+                                                                  value="2" <?php echo $ja; ?>/> Ja</label>&nbsp;&nbsp;
+                                                    <label><input type="radio" class="signInVal" name="signInState[]"
+                                                                  value="1" <?php echo $evtl; ?>/> Evtl.</label>&nbsp;&nbsp;
+                                                    <label><input type="radio" class="signInVal" name="signInState[]"
+                                                                  value="0" <?php echo $nein; ?>/> Nein</label>
+                                                </td>
+                                                <td><a id="lwrSignInLink"
+                                                       href="#"><?php ($state != '') ? print('Änderung speichern') : print('anmelden'); ?></a>
+                                                </td>
+                                            </tr>
+                                            <?php
+                                        } else {
+                                            ?>
+                                            <tr>
+                                                <td colspan="2">Anmeldung ist geschlossen, die maximale Teilnehmerzahl
+                                                    ist
+                                                    erreicht.
+                                                </td>
+                                            </tr>
+                                            <?php
+                                        }
+
+                                    } else {
+                                        ?>
+                                        <tr>
+                                            <td colspan="2">Die Anmeldung steht nur Mitgliedern zur Verfügung.</td>
+                                        </tr>
+                                        <?php
+
+                                    }
+                                } else {
+                                    ?>
+                                    <tr>
+                                        <td colspan="2">Anmeldefrist ist abgelaufen.</td>
+                                    </tr>
+                                    <?php
+                                }
+                            ?>
                         </table>
 
-						<?php if ( $lwr->getCheckboxStateBool( 'lwr_signin_for_users' ) == true || is_user_logged_in() ) { ?>
+                        <?php if ($lwr->getCheckboxStateBool('lwr_signin_for_users') == true || is_user_logged_in()) { ?>
 
                             <table class="lwr-event-detail-user-table">
                                 <tr class="lwr-event-detail-user-table-first">
                                     <td class="lwr-event-detail-user-table-number"
-                                        id="tblja"><?php echo( $lwr->getSigninCountForEventAndStatus( $post->ID, 2 ) ); ?></td>
+                                        id="tblja"><?php echo($lwr->getSigninCountForEventAndStatus($post->ID, 2)); ?></td>
                                     <td class="lwr-event-detail-user-table-title">Ich bin dabei</td>
-                                    <td id="tbluserja"><?php echo( $lwr->getSigninUsersForEventAndStatus( $post->ID, 2 ) ); ?></td>
+                                    <td id="tbluserja"><?php echo($lwr->getSigninUsersForEventAndStatus($post->ID, 2)); ?></td>
                                 </tr>
                                 <tr class="lwr-event-detail-user-table-second">
                                     <td class="lwr-event-detail-user-table-number"
-                                        id="tblevtl"><?php echo( $lwr->getSigninCountForEventAndStatus( $post->ID, 1 ) ); ?></td>
+                                        id="tblevtl"><?php echo($lwr->getSigninCountForEventAndStatus($post->ID, 1)); ?></td>
                                     <td class="lwr-event-detail-user-table-title">Ich bin nicht sicher</td>
-                                    <td id="tbluserevtl"><?php echo( $lwr->getSigninUsersForEventAndStatus( $post->ID, 1 ) ); ?></td>
+                                    <td id="tbluserevtl"><?php echo($lwr->getSigninUsersForEventAndStatus($post->ID, 1)); ?></td>
                                 </tr>
                                 <tr class="lwr-event-detail-user-table-third">
                                     <td class="lwr-event-detail-user-table-number"
-                                        id="tblnein"><?php echo( $lwr->getSigninCountForEventAndStatus( $post->ID, 0 ) ); ?></td>
+                                        id="tblnein"><?php echo($lwr->getSigninCountForEventAndStatus($post->ID, 0)); ?></td>
                                     <td class="lwr-event-detail-user-table-title">Ich kann nicht teilnehmen</td>
-                                    <td id="tblusernein"><?php echo( $lwr->getSigninUsersForEventAndStatus( $post->ID, 0 ) ); ?></td>
+                                    <td id="tblusernein"><?php echo($lwr->getSigninUsersForEventAndStatus($post->ID, 0)); ?></td>
                                 </tr>
                             </table>
-						<?php } ?>
+                        <?php } ?>
+                        <p>
+                            <a href="#" data-postid="<?php echo $post->ID; ?>" id="lwrCalendarLink"><i
+                                        class="fa fa-calendar" aria-hidden="true"></i> Zum Kalender hinzufügen
+                                <i id="lwrCalendarLoader" class="fa fa-cog fa-spin fa-fw"></i></a>
+                        </p>
+
                     </div>
 
                     <div class="postinfo clearfix lwr-comments">
                 <span class="meta-category">
-                        <?php echo get_the_term_list( $post->ID, 'Sportart', '<ul class="post-categories"><li>', '</li><li>', '</li></ul>' ); ?>
+                        <?php echo get_the_term_list($post->ID, 'Sportart', '<ul class="post-categories"><li>', '</li><li>', '</li></ul>'); ?>
                     </span>
                     </div>
 
                 </article>
 
                 <script type="text/javascript">
-                    jQuery('#lwrSignInLink').click(function (e) {
-                        // Dem Link nicht folgen, so dass es keinen Sprung in der Seite gibt
-                        e.preventDefault();
 
-                        jQuery('#lwrSignInLink').html("wird gespeichert ....");
+                    jQuery(document).ready(function () {
 
-                        var state = jQuery('.signInVal:checked').val();
+                        jQuery("#lwrCalendarLoader").hide();
 
-                        jQuery.post(ajaxurl,{
-                            action:'user_sign_event',
-                            signInState:state,
-                            userID: <?php print get_current_user_id(); ?>,
-                            eventID: <?php print $post->ID; ?>,
-                        },function (response) {
-                            jQuery('#lwrSignInLink').html('Änderungen speichern.');
-                            console.log(JSON.stringify(response));
-                            updateSignTable();
+                        jQuery('#lwrSignInLink').click(function (e) {
+                            // Dem Link nicht folgen, so dass es keinen Sprung in der Seite gibt
+                            e.preventDefault();
+
+                            jQuery('#lwrSignInLink').html("wird gespeichert ....");
+
+                            var state = jQuery('.signInVal:checked').val();
+
+                            jQuery.post(ajaxurl, {
+                                action: 'user_sign_event',
+                                signInState: state,
+                                userID: <?php print get_current_user_id(); ?>,
+                                eventID: <?php print $post->ID; ?>,
+                            }, function (response) {
+                                jQuery('#lwrSignInLink').html('Änderungen speichern.');
+                                console.log(JSON.stringify(response));
+                                updateSignTable();
+                            });
+
+                            function updateSignTable() {
+                                jQuery.post(ajaxurl, {
+                                    action: 'update_sign_table',
+                                    eventID: <?php print $post->ID; ?>,
+                                    dataType: 'json',
+                                }, function (response) {
+
+                                    //Abfüllen der Daten in die Tabelle
+                                    var data = JSON.parse(response);
+
+                                    jQuery('#tblja').html(data.ja.count);
+                                    jQuery('#tblevtl').html(data.evtl.count);
+                                    jQuery('#tblnein').html(data.nein.count);
+
+                                    jQuery('#tblusernein').html(data.nein.users);
+                                    jQuery('#tbluserevtl').html(data.evtl.users);
+                                    jQuery('#tbluserja').html(data.ja.users);
+                                });
+                            }
                         });
 
-                        function updateSignTable() {
-                            jQuery.post(ajaxurl,{
-                                action:'update_sign_table',
-                                eventID: <?php print $post->ID; ?>,
-                                dataType:'json',
-                            },function (response) {
+                        jQuery('#lwrCalendarLink').click(function (e) {
 
-                                //Abfüllen der Daten in die Tabelle
+                            e.preventDefault();
+                            var postid = jQuery('#lwrCalendarLink').attr('data-postid');
+
+                            jQuery.get(ajaxurl, {
+                                beforeSend: function(){jQuery("#lwrCalendarLoader").show();},
+                                action: 'generate_calendar',
+                                eventID: postid,
+                            }, function (response) {
+                                console.log("generate calendar ics for event " + postid);
+                                console.log(response);
+
                                 var data = JSON.parse(response);
 
-                                jQuery('#tblja').html(data.ja.count);
-                                jQuery('#tblevtl').html(data.evtl.count);
-                                jQuery('#tblnein').html(data.nein.count);
+                                var subject = data.postinfo.post_title;
+                                var description = data.postinfo.post_content;
+                                var location = data.postmeta.lwrOrt;
+                                var begin = data.postmeta.lwrDatumVonSQL + " " + data.postmeta.lwrZeitVon;
+                                var end = data.postmeta.lwrDatumBisSQL + " " + data.postmeta.lwrZeitBis;
 
-                                jQuery('#tblusernein').html(data.nein.users);
-                                jQuery('#tbluserevtl').html(data.evtl.users);
-                                jQuery('#tbluserja').html(data.ja.users);
+                                if (location == null) {
+                                    location = "";
+                                }
+
+                                console.log(subject);
+                                console.log(description);
+                                console.log(location);
+                                console.log(begin);
+                                console.log(end);
+
+                                var cal = ics();
+                                cal.addEvent(subject, description, location, begin, end);
+                                cal.download(subject + " " + data.postmeta.lwrDatumVon);
+                                jQuery("#lwrCalendarLoader").hide();
+
                             });
-                        }
+
+
+                        });
                     });
+
 
                 </script>
 
-				<?php
+                <?php
 
-			endwhile;
-			endif; ?>
-			<?php comments_template(); ?>
+            endwhile;
+            endif; ?>
+            <?php comments_template(); ?>
         </section>
-		<?php get_sidebar(); ?>
+        <?php get_sidebar(); ?>
     </div>
 <?php get_footer(); ?>
