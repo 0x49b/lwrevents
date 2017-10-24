@@ -32,132 +32,6 @@ class LWREventsCore {
     }
 
     /**
-     * Return a list with all events ordered by now to the past
-     * @return string
-     */
-    static function lwrShortcodeList() {
-        $lwr = new LWREventsCore();
-        $args = array(
-            'post_type' => 'lwrevents',
-            'order' => $lwr->getSettingsFromDB('lwr_sort_list'),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumVonSQL',
-            'posts_per_page' => $lwr->getSettingsFromDB('lwr_all_max'),
-        );
-
-        $custom_posts = new WP_Query($args);
-        $returnstring = '<table id="agendaTable"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr><thead><tbody>';
-
-
-        if ($custom_posts->have_posts()) {
-
-            while ($custom_posts->have_posts()) {
-                $custom_posts->the_post();
-                $term = get_the_terms(get_the_ID(), 'Sportart');
-                $returnstring .= '
-                <tr><td>
-                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumVon') . ' <br/>
-                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumBis') . '
-                </td>
-                <td>
-                <strong><a href="' . get_the_permalink() . '">' . $term[0]->name . ' : ' . get_the_title() . '</a></strong><br/>
-                ' . get_the_excerpt() . '
-                </td>
-                <td>
-                <a href="' . get_comments_link(get_the_ID()) . '">' . get_comments_number() . '</a>
-                </td>
-                </tr>';
-            }
-        } else {
-
-            $returnstring .= "<tr><td colspan='3'>" . $lwr->getSettingsFromDB('lwr_empty_events') . "</td></tr>";
-
-        }
-
-        $returnstring .= '</tbody></table>';
-
-        return $returnstring;
-    }
-
-    /**
-     * Get a list for an archive page with category
-     * @param $category
-     * @return string
-     */
-    function lwrGetArchiveForCategory($category) {
-        $lwr = new LWREventsCore();
-        $custom_posts = new WP_Query(array(
-            'post_type' => 'lwrevents',
-            'order' => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumVonSQL',
-            'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
-            'tax_query' => array(
-                array(
-                    'taxonomy' => 'Sportart',
-                    'field' => 'slug',
-                    'terms' => $category,
-                ),
-            ),
-        ));
-        $returnstring = '<table id="agendaTable"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr><thead><tbody>';
-
-
-        if ($custom_posts->have_posts()) {
-
-            while ($custom_posts->have_posts()) {
-                $custom_posts->the_post();
-                $term = get_the_terms(get_the_ID(), 'Sportart');
-                $returnstring .= '
-                <tr><td>
-                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumVon') . ' <br/>
-                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumBis') . '
-                </td>
-                <td>
-                <strong><a href="' . get_the_permalink() . '">' . $term[0]->name . ' : ' . get_the_title() . '</a></strong><br/>
-                ' . get_the_excerpt() . '
-                </td>
-                <td>
-                <a href="' . get_comments_link(get_the_ID()) . '">' . get_comments_number() . '</a>
-                </td>
-                </tr>';
-            }
-        } else {
-
-            $returnstring .= "<tr><td colspan='3'>" . $lwr->getSettingsFromDB('lwr_empty_events') . "</td></tr>";
-
-        }
-
-        $returnstring .= '</tbody></table>';
-
-        return $returnstring;
-    }
-
-    /**
-     * Einstellungen aus der Datenbank laden
-     * @return String
-     */
-    function getSettingsFromDB($option_name) {
-        global $wpdb;
-        $setting = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "options WHERE option_name = '" . $option_name . "'", ARRAY_A);
-
-        return $setting['option_value'];
-    }
-
-    /**
-     * Gibt eine Metainformation für einen Post als String zurück
-     *
-     * @param $id
-     * @param $key
-     *
-     * @return mixed
-     */
-    function getEventMeta($id, $key) {
-
-        return get_post_meta($id, $key, true);
-    }
-
-    /**
      * Return a List with all Events in the Future
      * added correct ordering key, finally
      * @return string
@@ -225,6 +99,149 @@ class LWREventsCore {
         $returnstring .= '</tbody></table>';
 
         return $returnstring;
+    }
+
+    /**
+     * Return a list with all events ordered by now to the past
+     * @return string
+     */
+    static function lwrShortcodeList() {
+        $lwr = new LWREventsCore();
+        $args = array(
+            'post_type' => 'lwrevents',
+            'order' => $lwr->getSettingsFromDB('lwr_sort_list'),
+            'orderby' => 'meta_value',
+            'meta_key' => 'lwrDatumVonSQL',
+            'posts_per_page' => $lwr->getSettingsFromDB('lwr_all_max'),
+        );
+
+        $custom_posts = new WP_Query($args);
+        $returnstring = '<table id="agendaTable"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr><thead><tbody>';
+
+
+        if ($custom_posts->have_posts()) {
+
+            while ($custom_posts->have_posts()) {
+                $custom_posts->the_post();
+                $term = get_the_terms(get_the_ID(), 'Sportart');
+                $returnstring .= '
+                <tr><td>
+                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumVon') . ' <br/>
+                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumBis') . '
+                </td>
+                <td>
+                <strong><a href="' . get_the_permalink() . '">' . $term[0]->name . ' : ' . get_the_title() . '</a></strong><br/>
+                ' . get_the_excerpt() . '
+                </td>
+                <td>
+                <a href="' . get_comments_link(get_the_ID()) . '">' . get_comments_number() . '</a>
+                </td>
+                </tr>';
+            }
+        } else {
+
+            $returnstring .= "<tr><td colspan='3'>" . $lwr->getSettingsFromDB('lwr_empty_events') . "</td></tr>";
+
+        }
+
+        $returnstring .= '</tbody></table>';
+
+        return $returnstring;
+    }
+
+    /**
+     * Get a list for an archive page with category
+     * @param $category
+     * @return string
+     */
+    function lwrGetArchiveForCategory($category) {
+        $lwr = new LWREventsCore();
+        $today = date('Y-m-d');
+        $todayUnix = strtotime(date('d.m.Y H:i:s'));
+
+        $custom_posts = new WP_Query(array(
+            'post_type' => 'lwrevents',
+            'order' => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
+            'orderby' => 'meta_value',
+            'meta_key' => 'lwrDatumVonSQL',
+            'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
+            'tax_query' => array(
+                array(
+                    'taxonomy' => 'Sportart',
+                    'field' => 'slug',
+                    'terms' => $category,
+                ),
+            ),
+            'meta_query' => array(
+                'relation' => 'AND',
+                'lwrZeitVon' => array(
+                    'key' => 'lwrZeitVon',
+                    'compare' => 'EXISTS',
+                ),
+                'lwrDatumVonSQL' => array(
+                    'key' => 'lwrDatumVonSQL',
+                    'compare' => '>=',
+                    'value' => $today
+                ),
+            ),
+            'orderby' => 'meta_value',
+            'meta_key' => 'lwrDatumZeitVonUnix',
+        ));
+        $returnstring = '<table id="agendaTable"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr><thead><tbody>';
+
+
+        if ($custom_posts->have_posts()) {
+
+            while ($custom_posts->have_posts()) {
+                $custom_posts->the_post();
+                $term = get_the_terms(get_the_ID(), 'Sportart');
+                $returnstring .= '
+                <tr><td>
+                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumVon') . ' <br/>
+                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumBis') . '
+                </td>
+                <td>
+                <strong><a href="' . get_the_permalink() . '">' . $term[0]->name . ' : ' . get_the_title() . '</a></strong><br/>
+                ' . get_the_excerpt() . '
+                </td>
+                <td>
+                <a href="' . get_comments_link(get_the_ID()) . '">' . get_comments_number() . '</a>
+                </td>
+                </tr>';
+            }
+        } else {
+
+            $returnstring .= "<tr><td colspan='3'>" . $lwr->getSettingsFromDB('lwr_empty_events') . "</td></tr>";
+
+        }
+
+        $returnstring .= '</tbody></table>';
+
+        return $returnstring;
+    }
+
+    /**
+     * Einstellungen aus der Datenbank laden
+     * @return String
+     */
+    function getSettingsFromDB($option_name) {
+        global $wpdb;
+        $setting = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "options WHERE option_name = '" . $option_name . "'", ARRAY_A);
+
+        return $setting['option_value'];
+    }
+
+    /**
+     * Gibt eine Metainformation für einen Post als String zurück
+     *
+     * @param $id
+     * @param $key
+     *
+     * @return mixed
+     */
+    function getEventMeta($id, $key) {
+
+        return get_post_meta($id, $key, true);
     }
 
     /**
