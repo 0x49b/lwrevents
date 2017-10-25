@@ -35,3 +35,5 @@
 ### 1.7.3.7
 * Die Archivseite wird umgenutzt. Es werden nun auf einer Plugin Archivseite nur noch die zukünftigen Daten einer Kategorie als Tabelle angezeigt.
 
+### 1.7.4.0
+* Für jeden Event kann nun ein Kalendereintrag exportiert werden. Diese Funktion ist nur für angemeldete User nutzbar
