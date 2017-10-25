@@ -25,3 +25,13 @@
 
 ### 1.7.3.4
 * Neue Archivseite für Events hinzugefügt. Diese werden nun als Liste wie bei den Shortcodes angezeigt.
+
+### 1.7.3.5
+* Aufruf der Archivseite angepasst, so dass dieser nicht mehr auf das Template zugreift, sondern die Archivseite aus dem Plugin aufruft.
+
+### 1.7.3.6
+* Die Sortierung für eine Archivseite wurde angepasst. Dies kann in den Einstellungen des Plugins angepasst werden
+
+### 1.7.3.7
+* Die Archivseite wird umgenutzt. Es werden nun auf einer Plugin Archivseite nur noch die zukünftigen Daten einer Kategorie als Tabelle angezeigt.
+
