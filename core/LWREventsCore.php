@@ -27,10 +27,13 @@
             add_action('wp_ajax_user_sign_event', array($this, 'user_sign_event'));
             add_action('wp_ajax_nopriv_user_sign_event', array($this, 'user_sign_event'));
             add_action('wp_ajax_nopriv_generate_calendar', array($this, 'generate_calendar'));
+            add_action('wp_ajax_nopriv_generate_calendar_category', array($this, 'generate_calendar_category'));
+
 
             add_action('wp_ajax_update_sign_table', array($this, 'update_sign_table'));
             add_action('wp_ajax_nopriv_update_sign_table', array($this, 'update_sign_table'));
             add_action('wp_ajax_generate_calendar', array($this, 'generate_calendar'));
+            add_action('wp_ajax_generate_calendar_category', array($this, 'generate_calendar_category'));
         }
 
         /**
@@ -275,6 +278,76 @@
             );
 
             echo json_encode($event);
+            die();
+
+        }
+
+        /**
+         * Generate .ics for Event
+         * @param $post_id
+         */
+        function generate_calendar_category() {
+
+            $category = $_GET['category'];
+
+            $lwr = new LWREventsCore();
+            $today = date('Y-m-d');
+            $todayUnix = strtotime(date('d.m.Y H:i:s'));
+
+            $custom_posts = new WP_Query(array(
+                'post_type'      => 'lwrevents',
+                'order'          => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
+                'orderby'        => 'meta_value',
+                'meta_key'       => 'lwrDatumVonSQL',
+                'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
+                'tax_query'      => array(
+                    array(
+                        'taxonomy' => 'Sportart',
+                        'field'    => 'slug',
+                        'terms'    => $category,
+                    ),
+                ),
+                'meta_query'     => array(
+                    'relation'       => 'AND',
+                    'lwrZeitVon'     => array(
+                        'key'     => 'lwrZeitVon',
+                        'compare' => 'EXISTS',
+                    ),
+                    'lwrDatumVonSQL' => array(
+                        'key'     => 'lwrDatumVonSQL',
+                        'compare' => '>=',
+                        'value'   => $today,
+                    ),
+                ),
+                'orderby'        => 'meta_value',
+                'meta_key'       => 'lwrDatumZeitVonUnix',
+            ));
+
+            $postarr = array();
+
+            if ($custom_posts->have_posts()) {
+
+                while ($custom_posts->have_posts()) {
+                    $custom_posts->the_post();
+                    $term = get_the_terms(get_the_ID(), 'Sportart');
+                    $postarr[] .= '
+                <tr><td>
+                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumVon') . ' <br/>
+                    ' . $lwr->getEventMeta(get_the_ID(), 'lwrDatumBis') . '
+                </td>
+                <td>
+                <strong><a href="' . get_the_permalink() . '">' . $term[0]->name . ' : ' . get_the_title() . '</a></strong><br/>
+                ' . get_the_excerpt() . '
+                </td>
+                <td>
+                <a href="' . get_comments_link(get_the_ID()) . '">' . get_comments_number() . '</a>
+                </td>
+                </tr>';
+                }
+            }
+
+            //echo json_encode($custom_posts->posts);
+            echo json_encode($postarr);
             die();
 
         }

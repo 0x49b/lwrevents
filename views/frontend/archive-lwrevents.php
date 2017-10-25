@@ -39,6 +39,12 @@ get_header(); ?>
 
                     ?>
 
+                    <!--p>
+                        <a href="#" data-postid="<?php echo $qobj->slug; ?>" id="lwrCalendarLink"><i
+                                    class="fa fa-calendar" aria-hidden="true"></i> Kalender herunterladen
+                            <i id="lwrCalendarLoader" class="fa fa-cog fa-spin fa-fw"></i></a>
+                    </p-->
+
                 </div>
 
             </div>
@@ -54,3 +60,52 @@ get_header(); ?>
 </div>
 
 <?php get_footer(); ?>
+
+<script>
+    jQuery(document).ready(function(){
+        jQuery("#lwrCalendarLoader").hide();
+        jQuery('#lwrCalendarLink').click(function (e) {
+
+            e.preventDefault();
+            var category = jQuery('#lwrCalendarLink').attr('data-postid');
+
+            jQuery.get(ajaxurl, {
+                beforeSend: function () {
+                    jQuery("#lwrCalendarLoader").show();
+                },
+                action: 'generate_calendar_category',
+                category: category,
+            }, function (response) {
+                console.log("generate calendar ics for events " + category);
+                console.log(response);
+/*
+                var data = JSON.parse(response);
+
+                var subject = data.postinfo.post_title;
+                var description = data.postinfo.post_content;
+                var location = data.postmeta.lwrOrt;
+                var begin = data.postmeta.lwrDatumVonSQL + " " + data.postmeta.lwrZeitVon;
+                var end = data.postmeta.lwrDatumBisSQL + " " + data.postmeta.lwrZeitBis;
+
+                if (location == null) {
+                    location = "";
+                }
+
+                console.log(subject);
+                console.log(description);
+                console.log(location);
+                console.log(begin);
+                console.log(end);
+
+                var cal = ics();
+                cal.addEvent(subject, description, location, begin, end);
+                cal.download(subject + " " + data.postmeta.lwrDatumVon);
+                jQuery("#lwrCalendarLoader").hide();
+                */
+
+            });
+
+
+        });
+    });
+</script>

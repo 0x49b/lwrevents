@@ -263,8 +263,6 @@
 
                     jQuery(document).ready(function () {
 
-                        jQuery("#lwrCalendarLoader").hide();
-
                         jQuery('#lwrSignInLink').click(function (e) {
                             // Dem Link nicht folgen, so dass es keinen Sprung in der Seite gibt
                             e.preventDefault();
@@ -305,6 +303,7 @@
                             }
                         });
 
+                        jQuery("#lwrCalendarLoader").hide();
                         jQuery('#lwrCalendarLink').click(function (e) {
 
                             e.preventDefault();
