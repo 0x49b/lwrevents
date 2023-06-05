@@ -37,3 +37,6 @@
 
 ### 1.7.4.0
 * Für jeden Event kann nun ein Kalendereintrag exportiert werden. Diese Funktion ist nur für angemeldete User nutzbar
+
+### 1.8.0.0
+* PHPExcel ausgebaut und diverse Fehler behoben

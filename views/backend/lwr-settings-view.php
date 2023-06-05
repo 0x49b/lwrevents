@@ -1,6 +1,5 @@
 <?php
 /**
- * Created by PhpStorm.
  * User: Florian Thiévent
  * Date: 22.11.2016
  * Time: 16:02
@@ -67,7 +66,7 @@ if ( $_POST ) {
             </tr>
             <tr>
                 <td colspan="2">Anmeldung öffentlich</td>
-                <td><input name="lwr_signin_for_users" type="checkbox" value="1" <?php print( $lwr->getCheckboxState( 'lwr_signin_for_users' ) ); ?>/></td>
+                <td><input name="lwr_signin_for_users" type="checkbox" value="1" <?php print( $lwr->getSettingsFromDB( 'lwr_signin_for_users' ) ); ?>/></td>
             </tr>
             <tr><td colspan="5"><br/><br/></td></tr>
             <tr>

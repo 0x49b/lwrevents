@@ -1,11 +1,11 @@
 <?php
     /*
     Plugin Name: LWR Events
-    Plugin URI: http://www.lichtwellenreiter.ch
+    Plugin URI: http://www.thievent.org
     Description: LWREvents ist ein Plugin, um Kurse und Anlässe eines Vereins auf der Webseite darzustellen. Es bietet den registrierten Nutzern ebenfalls die Möglichkeit, sich direkt anzumelden. Ein Widget für die kommenden Anlässe und ein Excel Export der Anmeldungen steht ebenfalls zur Verfügung.
-    Author: licht.wellen.reiter
-    Author URI: http://www.lichtwellenreiter.ch
-    Version: 1.7.4.0
+    Author: florian.thievent
+    Author URI: http://www.thievent.org
+    Version: 1.8.0.0
     */
 
     /**
@@ -21,7 +21,6 @@
     include('core/LWREventsWidget.php');                        // EventsWidget Definition
     include('core/LWREventsCalendarWidget.php');                // Calendar Widget, not use yet
     include('core/LWREventsIcs.php');                           // ICS Creator, not in use yet
-    include('core/PHPExcel.php');                               // Excel Generator
     include('core/pupdatechecker/plugin-update-checker.php');   // Plugin Update Checker
 
     if (!class_exists('LWREvents')) {
@@ -42,11 +41,11 @@
 
                 register_activation_hook(__FILE__, array($this, 'lwr_events_activate'));
                 register_deactivation_hook(__FILE__, array($this, 'lwr_events_deactivate'));
-                //register_uninstall_hook(__FILE__, array($this, 'lwr_events_uninstall'));
+                register_uninstall_hook(__FILE__, array($this, 'lwr_events_uninstall'));
 
                 //Update Checker
                 $puc = Puc_v4_Factory::buildUpdateChecker(
-                    'https://github.com/lichtwellenreiter/lwrevents',
+                    'https://github.com/0x49b/lwrevents',
                     __FILE__,
                     'lwrevents',
                     1
@@ -78,6 +77,14 @@
                     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
                     dbDelta($sql);
                 }
+
+                add_option('lwr_empty_events', '');
+                add_option('lwr_events_contact_mail', '');
+                add_option('lwr_signin_for_users', 0);
+                add_option('lwr_future_max', 10);
+                add_option('lwr_all_max', 10);
+                add_option('lwr_archiv_max', 10);
+                add_option('lwr_signin_for_users', false);
             }
 
             /**
@@ -97,6 +104,14 @@
             public function lwr_events_uninstall() {
                 global $wpdb;
                 $wpdb->query("DROP TABLE '" . $wpdb->prefix . "lwrevents_signin'");
+
+                delete_option('lwr_empty_events');
+                delete_option('lwr_events_contact_mail');
+                delete_option('lwr_signin_for_users');
+                delete_option('lwr_future_max');
+                delete_option('lwr_all_max');
+                delete_option('lwr_archiv_max');
+                delete_option('lwr_signin_for_users');
             }
 
             function lwr_events_widget_init() {
@@ -134,6 +149,9 @@
             }
 
             function lwr_events_loadStylesAndJSFrontend() {
+                wp_register_script('lwrjquery', plugin_dir_url(__FILE__) . 'views/assets/js/jquery.min.js');
+                wp_enqueue_script('lwrjquery');
+
                 //Load Fontawesome
                 wp_enqueue_style('fontawesome', plugin_dir_url(__FILE__) . 'views/assets/css/font-awesome.min.css');
                 wp_enqueue_style('lwrevent-style', plugin_dir_url(__FILE__) . 'views/assets/css/lwr-event-style.min.css');
