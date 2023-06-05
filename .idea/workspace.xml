@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7dcfb258-c152-451c-a843-e0f163a4ba46" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/plugins-info.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LWREvents.php" beforeDir="false" afterPath="$PROJECT_DIR$/LWREvents.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,7 +50,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1685968201018</updated>
-      <workItem from="1685968208861" duration="3469000" />
+      <workItem from="1685968208861" duration="3958000" />
     </task>
     <servers />
   </component>
