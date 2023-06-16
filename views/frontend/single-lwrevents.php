@@ -62,9 +62,7 @@
 
         <section id="content" class="primary" role="main">
 
-            <?php if (function_exists('themezee_breadcrumbs')) {
-                themezee_breadcrumbs();
-            }
+            <?php 
                 $loop = new WP_Query(array('post_type' => 'lwrevents',));
                 $lwr = new LWREventsCore($post->ID);
             ?>
