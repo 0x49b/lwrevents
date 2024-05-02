@@ -180,7 +180,7 @@ if (!class_exists('LWREvents')) {
             return $template;
         }
 
-        function lwr_custom_post_type_template($archive_template) {
+        public static function lwr_custom_post_type_template($archive_template) {
             //Get Query Object for actual WP Query
             $qobj = get_queried_object();
             // Check for Taxonomy to display custom archive page

@@ -40,3 +40,6 @@
 
 ### 1.8.0.0
 * PHPExcel ausgebaut und diverse Fehler behoben
+
+### 1.8.0.4
+* Fix für statische Aufrufe der template Function
