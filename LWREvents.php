@@ -5,7 +5,7 @@ Plugin URI: https://github.com/0x49b/lwrevents
 Description: LWREvents ist ein Plugin, um Kurse und Anlässe eines Vereins auf der Webseite darzustellen. Es bietet den registrierten Nutzern ebenfalls die Möglichkeit, sich direkt anzumelden. Ein Widget für die kommenden Anlässe und ein Excel Export der Anmeldungen steht ebenfalls zur Verfügung.
 Author: florian.thievent
 Author URI: http://www.thievent.org
-Version: 1.8.0.6
+Version: 1.8.0.5
 */
 
 /**
