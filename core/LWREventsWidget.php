@@ -3,7 +3,7 @@
 /**
  * User:        Florian Thiévent
  * File:        LWRCore.php
- * Version:     1.0
+ * Version:     1.8.0.6
  * Description: LWR Widget to display next events in Sidebar
  */
 class LWREventsWidget extends WP_Widget

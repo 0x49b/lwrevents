@@ -5,8 +5,7 @@ Plugin URI: https://github.com/0x49b/lwrevents
 Description: LWREvents ist ein Plugin, um Kurse und Anlässe eines Vereins auf der Webseite darzustellen. Es bietet den registrierten Nutzern ebenfalls die Möglichkeit, sich direkt anzumelden. Ein Widget für die kommenden Anlässe und ein Excel Export der Anmeldungen steht ebenfalls zur Verfügung.
 Author: florian.thievent
 Author URI: http://www.thievent.org
-Update URI: https://0x49b.github.io/lwrevents/plugins-info.json
-Version: 1.8.0.5
+Version: 1.8.0.6
 */
 
 /**
@@ -22,9 +21,23 @@ include('core/LWREventsCPT.php');                           // Custom Post Type 
 include('core/LWREventsWidget.php');                        // EventsWidget Definition
 include('core/LWREventsCalendarWidget.php');                // Calendar Widget, not use yet
 include('core/LWREventsIcs.php');                           // ICS Creator, not in use yet
-include('core/pupdatechecker/plugin-update-checker.php');   // Plugin Update Checker
+
+// Plugin Update Checker
+require 'plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
 
 if (!class_exists('LWREvents')) {
+
+    $puc = PucFactory::buildUpdateChecker(
+        'https://github.com/0x49b/lwrevents/',
+        __FILE__,
+        'lwrevents'
+    );
+    
+    //Set the branch that contains the stable release.
+    $puc->setBranch('master');
+
     class LWREvents {
 
         public $lwrCore;
@@ -45,13 +58,13 @@ if (!class_exists('LWREvents')) {
             register_uninstall_hook(__FILE__, array($this, 'lwr_events_uninstall'));
 
             //Update Checker
-            $puc = Puc_v4_Factory::buildUpdateChecker(
-                'https://github.com/0x49b/lwrevents',
-                __FILE__,
-                'lwrevents',
-                1
-            );
-            $puc->setBranch('master');
+            //$puc = Puc_v4_Factory::buildUpdateChecker(
+            //    'https://github.com/0x49b/lwrevents',
+            //    __FILE__,
+            //    'lwrevents',
+            //    1
+            //);
+            //$puc->setBranch('master');
         }
 
 
@@ -238,7 +251,5 @@ if (!function_exists('my_plugin_check_for_updates')) {
             return $update;
 
     }
-
-    add_filter('update_plugins_my-domain.com', 'my_plugin_check_for_updates', 10, 3);
 
 }
