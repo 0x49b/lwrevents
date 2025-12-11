@@ -6,7 +6,7 @@
  * Date: 19.08.16
  * Time: 09:03
  */
-class LWREventsCPT
+class KairosCPT
 {
 
     //Tage in der Checkbox der Metabox
@@ -33,61 +33,6 @@ class LWREventsCPT
         add_action('admin_head', array($this, 'check_post_type_and_remove_media_buttons'));
     }
 
-    private function getEventTitle($eventID)
-    {
-        global $wpdb;
-
-        $title = $wpdb->get_row("SELECT post_title from " . $wpdb->prefix . "posts WHERE ID = '" . $eventID . "'", ARRAY_A);
-
-        return $title['post_title'];
-
-    }
-
-    private function getUsersForList($eventID)
-    {
-        global $wpdb;
-
-        $users = $wpdb->get_results(" SELECT us.user_login, us.user_email, us.display_name, us.user_nicename, ev.status from " . $wpdb->prefix . "users us
-                                JOIN " . $wpdb->prefix . "lwrevents_signin ev ON us.ID = ev.uid
-                                JOIN " . $wpdb->prefix . "posts ps ON ev.eid = ps.ID
-                                WHERE ps.post_type = 'lwrevents' AND ps.ID = " . $eventID . "", ARRAY_A);
-
-        return $users;
-    }
-
-    private function getSignInString($sid)
-    {
-
-        switch ($sid) {
-            case 2:
-                return 'ja';
-                break;
-            case 1:
-                return 'evtl';
-                break;
-            case 0:
-                return 'nein';
-                break;
-        }
-
-    }
-
-	private function checkForComments( $eventID )
-    {
-	    global $wpdb;
-	    $checkSQL = $wpdb->get_var( "SELECT COUNT(comment_ID) AS count FROM " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "'" );
-
-	    return $checkSQL;
-    }
-
-	private function loadCommentsForEvent( $eventID )
-    {
-	    global $wpdb;
-	    $comments = $wpdb->get_results( "SELECT * FROM " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "' AND comment_approved = 1 ORDER BY comment_date ASC", ARRAY_A );
-
-	    return $comments;
-    }
-
     /**
      * Customize Table Heads in Admin Backend
      *
@@ -95,30 +40,30 @@ class LWREventsCPT
      *
      * @return mixed
      */
-	public static function lwr_event_table_head( $defaults )
+    public static function lwr_event_table_head($defaults)
     {
-	    $defaults['lwrOrt']      = 'Ort';
-	    $defaults['lwrDatum']    = 'am/von';
-	    $defaults['lwrAnmelden'] = 'Anmelden bis';
-	    $defaults['lwrMaxTN']    = 'max TN';
-	    $defaults['lwrOK']       = 'OK';
-	    $defaults['lwrAction']   = 'TN Liste';
-	    unset( $defaults['date'] );
+        $defaults['lwrOrt'] = 'Ort';
+        $defaults['lwrDatum'] = 'am/von';
+        $defaults['lwrAnmelden'] = 'Anmelden bis';
+        $defaults['lwrMaxTN'] = 'max TN';
+        $defaults['lwrOK'] = 'OK';
+        $defaults['lwrAction'] = 'TN Liste';
+        unset($defaults['date']);
 
-	    return $defaults;
+        return $defaults;
     }
 
     /**
      * Custom Post type to add a new Event
      */
-    public static function lwr_events_cpt_config()
+    public static function kairos_cpt_config()
     {
 
         // Set UI labels for Custom Post Type
         $labels = array(
-            'name' => __('LWR Events'),
-            'singular_name' => __('LWR Event'),
-            'menu_name' => __('LWR Events'),
+            'name' => __('Kairos'),
+            'singular_name' => __('Kairos Event'),
+            'menu_name' => __('Kairos'),
             'parent_item_colon' => __('Parent Movie'),
             'all_items' => __('Alle Anlässe'),
             'view_item' => __('Anlass Vorschau'),
@@ -134,7 +79,7 @@ class LWREventsCPT
         // Set other options for Custom Post Type
         $args = array(
             'label' => __('lwrevents'),
-            'description' => __('LWR Events ist ein Plugin zur organisation von Events'),
+            'description' => __('Kairos ist ein Plugin zur organisation von Events'),
             'labels' => $labels,
             'supports' => array('title', 'editor', 'comments', 'excerpt'),
             'hierarchical' => false,
@@ -161,76 +106,81 @@ class LWREventsCPT
         ));
     }
 
-	/**
-	 * @return string
-	 */
-	public function getExt() {
-		return $this->ext;
-	}
+    /**
+     * @return string
+     */
+    public function getExt()
+    {
+        return $this->ext;
+    }
 
-	/**
-	 * @param string $ext
-	 */
-	public function setExt( $ext ) {
-		$this->ext = $ext;
-	}
+    /**
+     * @param string $ext
+     */
+    public function setExt($ext)
+    {
+        $this->ext = $ext;
+    }
 
-	/**
-	 * Update Row Actions
-	 *
-	 * @param $actions
-	 *
-	 * @return mixed
-	 */
-	function lwr_event_remove_row_actions( $actions ) {
-		if ( get_post_type() === 'lwrevents' ) { //remove "slider" post_type to whatever post_type you want the row-actions to hide
-			unset( $actions['view'] );    // view
-			unset( $actions['inline hide-if-no-js'] );  // quick edit
-			unset( $actions['edit'] );    // edit
-			unset( $actions['trash'] );    // trash
-		}
+    /**
+     * Update Row Actions
+     *
+     * @param $actions
+     *
+     * @return mixed
+     */
+    function lwr_event_remove_row_actions($actions)
+    {
+        if (get_post_type() === 'lwrevents') { //remove "slider" post_type to whatever post_type you want the row-actions to hide
+            unset($actions['view']);    // view
+            unset($actions['inline hide-if-no-js']);  // quick edit
+            unset($actions['edit']);    // edit
+            unset($actions['trash']);    // trash
+        }
 
-		//return $actions array
-		return $actions;
-	}
+        //return $actions array
+        return $actions;
+    }
 
-	/**
-	 * Populate Customized Table in Admin with Data
-	 *
-	 * @param $column_name
-	 * @param $post_id
-	 */
-	public function lwr_event_table_content( $column_name, $post_id ) {
-		if ( $column_name == 'lwrOrt' ) {
-			echo get_post_meta( $post_id, 'lwrOrt', true );
-		}
-		if ( $column_name == 'lwrDatum' ) {
-			echo get_post_meta( $post_id, 'lwrDatumVon', true );
-		}
-		if ( $column_name == 'lwrAnmelden' ) {
-			echo get_post_meta( $post_id, 'lwrAnmelden', true );
-		}
-		if ( $column_name == 'lwrMaxTN' ) {
-			echo get_post_meta( $post_id, 'lwrMaxTN', true );
-		}
-		if ( $column_name == 'lwrOK' ) {
-			echo get_post_meta( $post_id, 'lwrOK', true );
-		}
-		if ( $column_name == 'lwrAction' ) {
-			echo "<a href='./edit.php?post_type=lwrevents&download=1&eid=" . $post_id . "'><i class=\"fa fa-file-excel-o\" aria-hidden=\"true\"></i></a>";
-		}
+    /**
+     * Populate Customized Table in Admin with Data
+     *
+     * @param $column_name
+     * @param $post_id
+     */
+    public function lwr_event_table_content($column_name, $post_id)
+    {
+        if ($column_name == 'lwrOrt') {
+            echo get_post_meta($post_id, 'lwrOrt', true);
+        }
+        if ($column_name == 'lwrDatum') {
+            echo get_post_meta($post_id, 'lwrDatumVon', true);
+        }
+        if ($column_name == 'lwrAnmelden') {
+            echo get_post_meta($post_id, 'lwrAnmelden', true);
+        }
+        if ($column_name == 'lwrMaxTN') {
+            echo get_post_meta($post_id, 'lwrMaxTN', true);
+        }
+        if ($column_name == 'lwrOK') {
+            echo get_post_meta($post_id, 'lwrOK', true);
+        }
+        if ($column_name == 'lwrAction') {
+            echo "<a href='./edit.php?post_type=lwrevents&download=1&eid=" . $post_id . "'><i class=\"fa fa-file-excel-o\" aria-hidden=\"true\"></i></a>";
+        }
 
-	}
+    }
 
-	/**
-	 * Remove Mediabutton from Editor
-	 */
-	function check_post_type_and_remove_media_buttons() {
-		global $current_screen;
-		if ( 'lwrevents' == $current_screen->post_type ) {
-			remove_action( 'media_buttons', 'media_buttons' );
-		}
-	}
+    /**
+     * Remove Mediabutton from Editor
+     */
+    function check_post_type_and_remove_media_buttons()
+    {
+        global $current_screen;
+        if ('lwrevents' == $current_screen->post_type) {
+            remove_action('media_buttons', 'media_buttons');
+        }
+    }
 
     /**
      * Add the Metabox to the Post
@@ -332,140 +282,155 @@ class LWREventsCPT
 
     }
 
-	/**
-	 * Extract all Days from Metaarray
-	 *
-	 * @param $tagearray
-	 */
-	function extractDaysFromArray( $tagearray ) {
+    /**
+     * Extract all Days from Metaarray
+     *
+     * @param $tagearray
+     */
+    function extractDaysFromArray($tagearray)
+    {
 
-		$tage = explode( ',', $tagearray );
-		//$round = count($tage);
+        $tage = explode(',', $tagearray);
+        //$round = count($tage);
 
-		foreach ( $tage as $tag ) {
-			switch ( $tag ) {
-				case 'mo':
-					$this->setMo( 'checked' );
-					break;
-				case 'di':
-					$this->setDi( 'checked' );
-					break;
-				case 'mi':
-					$this->setMi( 'checked' );
-					break;
-				case 'do':
-					$this->setDo( 'checked' );
-					break;
-				case 'fr':
-					$this->setFr( 'checked' );
-					break;
-				case 'sa':
-					$this->setSa( 'checked' );
-					break;
-				case 'so':
-					$this->setSo( 'checked' );
-					break;
-			}
-		}
-	}
+        foreach ($tage as $tag) {
+            switch ($tag) {
+                case 'mo':
+                    $this->setMo('checked');
+                    break;
+                case 'di':
+                    $this->setDi('checked');
+                    break;
+                case 'mi':
+                    $this->setMi('checked');
+                    break;
+                case 'do':
+                    $this->setDo('checked');
+                    break;
+                case 'fr':
+                    $this->setFr('checked');
+                    break;
+                case 'sa':
+                    $this->setSa('checked');
+                    break;
+                case 'so':
+                    $this->setSo('checked');
+                    break;
+            }
+        }
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getMo() {
-		return $this->mo;
-	}
+    /**
+     * @return string
+     */
+    public function getMo()
+    {
+        return $this->mo;
+    }
 
-	/**
-	 * @param string $mo
-	 */
-	public function setMo( $mo ) {
-		$this->mo = $mo;
-	}
+    /**
+     * @param string $mo
+     */
+    public function setMo($mo)
+    {
+        $this->mo = $mo;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getDi() {
-		return $this->di;
-	}
+    /**
+     * @return string
+     */
+    public function getDi()
+    {
+        return $this->di;
+    }
 
-	/**
-	 * @param string $di
-	 */
-	public function setDi( $di ) {
-		$this->di = $di;
-	}
+    /**
+     * @param string $di
+     */
+    public function setDi($di)
+    {
+        $this->di = $di;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getMi() {
-		return $this->mi;
-	}
+    /**
+     * @return string
+     */
+    public function getMi()
+    {
+        return $this->mi;
+    }
 
-	/**
-	 * @param string $mi
-	 */
-	public function setMi( $mi ) {
-		$this->mi = $mi;
-	}
+    /**
+     * @param string $mi
+     */
+    public function setMi($mi)
+    {
+        $this->mi = $mi;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getDo() {
-		return $this->do;
-	}
+    /**
+     * @return string
+     */
+    public function getDo()
+    {
+        return $this->do;
+    }
 
-	/**
-	 * @param string $do
-	 */
-	public function setDo( $do ) {
-		$this->do = $do;
-	}
+    /**
+     * @param string $do
+     */
+    public function setDo($do)
+    {
+        $this->do = $do;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getFr() {
-		return $this->fr;
-	}
+    /**
+     * @return string
+     */
+    public function getFr()
+    {
+        return $this->fr;
+    }
 
-	/**
-	 * @param string $fr
-	 */
-	public function setFr( $fr ) {
-		$this->fr = $fr;
-	}
+    /**
+     * @param string $fr
+     */
+    public function setFr($fr)
+    {
+        $this->fr = $fr;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getSa() {
-		return $this->sa;
-	}
+    /**
+     * @return string
+     */
+    public function getSa()
+    {
+        return $this->sa;
+    }
 
-	/**
-	 * @param string $sa
-	 */
-	public function setSa( $sa ) {
-		$this->sa = $sa;
-	}
+    /**
+     * @param string $sa
+     */
+    public function setSa($sa)
+    {
+        $this->sa = $sa;
+    }
 
-	/**
-	 * @return string
-	 */
-	public function getSo() {
-		return $this->so;
-	}
+    /**
+     * @return string
+     */
+    public function getSo()
+    {
+        return $this->so;
+    }
 
-	/**
-	 * @param string $so
-	 */
-	public function setSo( $so ) {
-		$this->so = $so;
-	}
+    /**
+     * @param string $so
+     */
+    public function setSo($so)
+    {
+        $this->so = $so;
+    }
 
     /**
      * Save the Metabox Data
@@ -481,7 +446,7 @@ class LWREventsCPT
         // verify this came from the our screen and with proper authorization,
         // because save_post can be triggered at other times
 
-        if (!wp_verify_nonce($_POST['eventmeta_noncename'], plugin_basename(__FILE__))) {
+        if (!isset($_POST['eventmeta_noncename']) || !wp_verify_nonce($_POST['eventmeta_noncename'], plugin_basename(__FILE__))) {
             return $post->ID;
         }
 
@@ -493,32 +458,32 @@ class LWREventsCPT
         // OK, we're authenticated: we need to find and save the data
         // We'll put it into an array to make it easier to loop though.
 
-        $events_meta['lwrOrt'] = $_POST['lwrOrt'];
+        $events_meta['lwrOrt'] = $_POST['lwrOrt'] ?? '';
 
-        $events_meta['lwrDatumVon'] = $_POST['lwrDatumVon'];
-        $events_meta['lwrDatumVonSQL'] = $this->transferDateToSQL($_POST['lwrDatumVon']);
-        $events_meta['lwrDatumZeitVonUnix'] = strtotime($this->transferDateToSQL($_POST['lwrDatumVon']) . ' ' . $_POST['lwrZeitVon'] . ':00');
-        $events_meta['lwrDatumBis'] = $_POST['lwrDatumBis'];
-        $events_meta['lwrDatumBisSQL'] = $this->transferDateToSQL($_POST['lwrDatumBis']);
-        $events_meta['lwrDatumZeitBisUnix'] = strtotime($this->transferDateToSQL($_POST['lwrDatumBis']) . ' ' . $_POST['lwrZeitBis'] . ':00');
+        $events_meta['lwrDatumVon'] = $_POST['lwrDatumVon'] ?? '';
+        $events_meta['lwrDatumVonSQL'] = $this->transferDateToSQL($_POST['lwrDatumVon'] ?? '');
+        $events_meta['lwrDatumZeitVonUnix'] = strtotime($this->transferDateToSQL($_POST['lwrDatumVon'] ?? '') . ' ' . ($_POST['lwrZeitVon'] ?? '00:00') . ':00');
+        $events_meta['lwrDatumBis'] = $_POST['lwrDatumBis'] ?? '';
+        $events_meta['lwrDatumBisSQL'] = $this->transferDateToSQL($_POST['lwrDatumBis'] ?? '');
+        $events_meta['lwrDatumZeitBisUnix'] = strtotime($this->transferDateToSQL($_POST['lwrDatumBis'] ?? '') . ' ' . ($_POST['lwrZeitBis'] ?? '00:00') . ':00');
 
 
-        $events_meta['lwrTage'] = $_POST['lwrTage'];
-        $events_meta['lwrZeitVon'] = $_POST['lwrZeitVon'];
-        $events_meta['lwrZeitBis'] = $_POST['lwrZeitBis'];
+        $events_meta['lwrTage'] = $_POST['lwrTage'] ?? '';
+        $events_meta['lwrZeitVon'] = $_POST['lwrZeitVon'] ?? '';
+        $events_meta['lwrZeitBis'] = $_POST['lwrZeitBis'] ?? '';
 
-        $events_meta['lwrAnmeldenZeit'] = $_POST['lwrAnmeldenZeit'];
-        $events_meta['lwrOK'] = $_POST['lwrOK'];
-        $events_meta['lwrMailOK'] = $_POST['lwrMailOK'];
-        $events_meta['lwrMaxTN'] = $_POST['lwrMaxTN'];
-        $events_meta['lwrVoraussetzung'] = $_POST['lwrVoraussetzung'];
-        $events_meta['lwrAusruestung'] = $_POST['lwrAusruestung'];
-        $events_meta['lwrExtAllowed'] = $_POST['lwrExtAllowed'];
+        $events_meta['lwrAnmeldenZeit'] = $_POST['lwrAnmeldenZeit'] ?? '';
+        $events_meta['lwrOK'] = $_POST['lwrOK'] ?? '';
+        $events_meta['lwrMailOK'] = $_POST['lwrMailOK'] ?? '';
+        $events_meta['lwrMaxTN'] = $_POST['lwrMaxTN'] ?? '';
+        $events_meta['lwrVoraussetzung'] = $_POST['lwrVoraussetzung'] ?? '';
+        $events_meta['lwrAusruestung'] = $_POST['lwrAusruestung'] ?? '';
+        $events_meta['lwrExtAllowed'] = $_POST['lwrExtAllowed'] ?? '';
 
-        if ($_POST['lwrAnmelden'] != '') {
+        if (($_POST['lwrAnmelden'] ?? '') != '') {
             $events_meta['lwrAnmelden'] = $_POST['lwrAnmelden'];
         } else {
-            $events_meta['lwrAnmelden'] = $_POST['lwrDatumVon'];
+            $events_meta['lwrAnmelden'] = $_POST['lwrDatumVon'] ?? '';
         }
 
 
@@ -554,6 +519,57 @@ class LWREventsCPT
         $sqlDate = $date[2] . '-' . $date[1] . '-' . $date[0];
 
         return $sqlDate;
+    }
+
+    private function getEventTitle($eventID)
+    {
+        global $wpdb;
+
+        $title = $wpdb->get_row("SELECT post_title from " . $wpdb->prefix . "posts WHERE ID = '" . $eventID . "'", ARRAY_A);
+
+        return $title['post_title'];
+
+    }
+
+    private function getUsersForList($eventID)
+    {
+        global $wpdb;
+
+        $users = $wpdb->get_results(" SELECT us.user_login, us.user_email, us.display_name, us.user_nicename, ev.status from " . $wpdb->prefix . "users us
+                                JOIN " . $wpdb->prefix . "lwrevents_signin ev ON us.ID = ev.uid
+                                JOIN " . $wpdb->prefix . "posts ps ON ev.eid = ps.ID
+                                WHERE ps.post_type = 'lwrevents' AND ps.ID = " . $eventID . "", ARRAY_A);
+
+        return $users;
+    }
+
+    private function getSignInString($sid)
+    {
+        switch ($sid) {
+            case 2:
+                return 'ja';
+            case 1:
+                return 'evtl';
+            case 0:
+            default:
+                return 'nein';
+        }
+    }
+
+    private function checkForComments($eventID)
+    {
+        global $wpdb;
+        $checkSQL = $wpdb->get_var("SELECT COUNT(comment_ID) AS count FROM " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "'");
+
+        return $checkSQL;
+    }
+
+    private function loadCommentsForEvent($eventID)
+    {
+        global $wpdb;
+        $comments = $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "comments WHERE comment_post_ID = '" . $eventID . "' AND comment_approved = 1 ORDER BY comment_date ASC", ARRAY_A);
+
+        return $comments;
     }
 
 }

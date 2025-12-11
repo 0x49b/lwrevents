@@ -6,20 +6,20 @@
  * Version:     1.8.0.6
  * Description: LWR Widget to display next events in Sidebar
  */
-class LWREventsWidget extends WP_Widget
+class KairosWidget extends WP_Widget
 {
 
     function __construct()
     {
         parent::__construct(// Base ID of your widget
-            'LWREventsWidget',
+                'LWREventsWidget',
 
-            // Widget name will appear in UI
-            __('LWR Events Widget', 'LWREventsWidget_domain'),
+                // Widget name will appear in UI
+                __('Kairos Widget', 'kairos'),
 
-            // Widget description
-            array('description' => __('Das LWR Events Widget stellt eine Komponente bereit, um eine Übersicht über kommende Events den Besuchern der Seite zu 
-            geben.', 'LWREventsWidget_domain'),));
+                // Widget description
+                array('description' => __('Das Kairos Widget stellt eine Komponente bereit, um eine Übersicht über kommende Events den Besuchern der Seite zu
+            geben.', 'kairos'),));
     }
 
     // Creating widget front-end
@@ -40,29 +40,29 @@ class LWREventsWidget extends WP_Widget
             <?php // Create and run custom loop
             $today = date('Y-m-d');
             $args = array(
-                'post_type' => 'lwrevents',
-                'meta_query' => array(
-                    'relation' => 'AND',
-                    'lwrZeitVon' => array(
-                        'key' => 'lwrZeitVon',
-                        'compare' => 'EXISTS',
+                    'post_type' => 'lwrevents',
+                    'meta_query' => array(
+                            'relation' => 'AND',
+                            'lwrZeitVon' => array(
+                                    'key' => 'lwrZeitVon',
+                                    'compare' => 'EXISTS',
+                            ),
+                            'lwrDatumVon' => array(
+                                    'key' => 'lwrDatumVonSQL',
+                                    'compare' => '>=',
+                                    'value' => $today
+                            ),
                     ),
-                    'lwrDatumVon' => array(
-                        'key' => 'lwrDatumVonSQL',
-                        'compare' => '>=',
-                        'value' => $today
-                    ),
-                ),
-                'posts_per_page' => $numOfEvents,
-                'orderby' => array(
-                    'lwrDatumVon' => 'ASC',
-                    'lwrZeitVon' => 'ASC',
-                )
+                    'posts_per_page' => $numOfEvents,
+                    'orderby' => array(
+                            'lwrDatumVon' => 'ASC',
+                            'lwrZeitVon' => 'ASC',
+                    )
             );
 
             $custom_posts = new WP_Query($args);
 
-            $lwr = new LWREventsCore();
+            $lwr = new KairosCore();
             while ($custom_posts->have_posts()) : $custom_posts->the_post();
                 ?>
                 <li><i class="fa fa-bookmark-o"></i>
@@ -105,8 +105,8 @@ class LWREventsWidget extends WP_Widget
             $title = $instance['title'];
             $numOfEvents = $instance['eventNum'];
         } else {
-            $title = __('Überschrift', 'LWREventsWidget_domain');
-            $numOfEvents = __('5', 'LWREventsWidget_domain');
+            $title = __('Überschrift', 'kairos');
+            $numOfEvents = __('5', 'kairos');
         }
         // Widget admin form
         ?>
@@ -117,7 +117,8 @@ class LWREventsWidget extends WP_Widget
                    value="<?php echo esc_attr($title); ?>"/>
         </p>
         <p>
-            <label><label for="<?php echo $this->get_field_id('eventNum'); ?>"><?php _e('Anzahl Events:'); ?></label>
+            <label><label
+                        for="<?php echo $this->get_field_id('eventNum'); ?>"><?php _e('Anzahl Events:'); ?></label>
                 <input class="widefat" id="<?php echo $this->get_field_id('eventNum'); ?>"
                        name="<?php echo $this->get_field_name('eventNum'); ?>"
                        type="text"
@@ -136,8 +137,8 @@ class LWREventsWidget extends WP_Widget
         return $instance;
     }
 
-    function lwr_load_widget()
+    function kairos_load_widget()
     {
-        register_widget('LWREventsWidget');
+        register_widget('KairosWidget');
     }
-} // Class LWREventsWidget ends here
+} // Class KairosWidget ends here

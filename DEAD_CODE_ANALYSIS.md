@@ -24,7 +24,9 @@
 ## 1. COMMENTED OUT CODE BLOCKS
 
 ### File: `LWREvents.php`
+
 **Lines 60-67**
+
 ```php
 //Update Checker
 //$puc = Puc_v4_Factory::buildUpdateChecker(
@@ -35,44 +37,55 @@
 //);
 //$puc->setBranch('master');
 ```
+
 **Type:** Commented out code block
-**Explanation:** Old plugin update checker code that has been replaced with the newer version (v5) at lines 32-39.
+**Explanation:** Old plugin update checker code that has been replaced with the newer version (v5)
+at lines 32-39.
 
 ---
 
 ### File: `core/LWREventsCore.php`
+
 **Lines 24-25**
+
 ```php
 //add_action( 'wp_ajax_signInUserForEvent', array($this, 'signInUserForEvent') );
 //add_action( 'wp_ajax_nopriv_signInUserForEvent', array($this, 'signInUserForEvent') );
 ```
+
 **Type:** Commented out code block
 **Explanation:** Old AJAX action hooks that appear to have been replaced.
 
 ---
 
 **Lines 238-239**
+
 ```php
 //global $wpdb;
 //$setting = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "options WHERE option_name = '" . $option_name . "'", ARRAY_A);
 ```
+
 **Type:** Commented out code block
 **Explanation:** Old database query code replaced with `get_option()` function at line 240.
 
 ---
 
 **Line 353**
+
 ```php
 //echo json_encode($custom_posts->posts);
 ```
+
 **Type:** Commented out debug code
 
 ---
 
 **Line 343**
+
 ```php
 //$round = count($tage);
 ```
+
 **Type:** Commented out unused variable
 
 ---
@@ -82,6 +95,7 @@
 ### File: `core/LWREventsCPT.php`
 
 #### Lines 36-43: `getEventTitle()`
+
 ```php
 private function getEventTitle($eventID)
 {
@@ -90,11 +104,13 @@ private function getEventTitle($eventID)
     return $title['post_title'];
 }
 ```
+
 **Status:** Never called anywhere in codebase
 
 ---
 
 #### Lines 46-56: `getUsersForList()`
+
 ```php
 private function getUsersForList($eventID)
 {
@@ -106,11 +122,13 @@ private function getUsersForList($eventID)
     return $users;
 }
 ```
+
 **Status:** Never called anywhere in codebase
 
 ---
 
 #### Lines 58-73: `getSignInString()`
+
 ```php
 private function getSignInString($sid)
 {
@@ -127,11 +145,13 @@ private function getSignInString($sid)
     }
 }
 ```
+
 **Status:** Never called anywhere in codebase
 
 ---
 
 #### Lines 75-81: `checkForComments()`
+
 ```php
 private function checkForComments( $eventID )
 {
@@ -140,11 +160,13 @@ private function checkForComments( $eventID )
     return $checkSQL;
 }
 ```
+
 **Status:** Never called anywhere in codebase
 
 ---
 
 #### Lines 83-89: `loadCommentsForEvent()`
+
 ```php
 private function loadCommentsForEvent( $eventID )
 {
@@ -153,11 +175,13 @@ private function loadCommentsForEvent( $eventID )
     return $comments;
 }
 ```
+
 **Status:** Never called anywhere in codebase
 
 ---
 
 #### Lines 167-176: `getExt()` and `setExt()`
+
 ```php
 public function getExt() {
     return $this->ext;
@@ -167,6 +191,7 @@ public function setExt( $ext ) {
     this->ext = $ext;
 }
 ```
+
 **Status:** Never called anywhere in codebase. The `$ext` property is also never used.
 
 ---
@@ -174,16 +199,20 @@ public function setExt( $ext ) {
 ### File: `core/LWREventsCore.php`
 
 #### Lines 490-492: `eventTime()`
+
 ```php
 function eventTime($eventID) {
     echo "CLOCK";
 }
 ```
-**Status:** Never called. Stub/placeholder. Actual functionality in `getEventTime()` at lines 501-519.
+
+**Status:** Never called. Stub/placeholder. Actual functionality in `getEventTime()` at lines
+501-519.
 
 ---
 
 #### Lines 772-798: `getPagination()`
+
 ```php
 function getPagination() {
     global $wp_query;
@@ -205,6 +234,7 @@ function getPagination() {
     endif;
 }
 ```
+
 **Status:** Never called anywhere in the plugin
 
 ---
@@ -212,6 +242,7 @@ function getPagination() {
 ### File: `LWREvents.php`
 
 #### Lines 231-254: `my_plugin_check_for_updates()`
+
 ```php
 if (!function_exists('my_plugin_check_for_updates')) {
     function my_plugin_check_for_updates($update, $plugin_data, $plugin_file) {
@@ -230,6 +261,7 @@ if (!function_exists('my_plugin_check_for_updates')) {
     }
 }
 ```
+
 **Status:** Defined but never hooked into WordPress. Not connected to any filter or action.
 
 ---
@@ -237,7 +269,9 @@ if (!function_exists('my_plugin_check_for_updates')) {
 ## 3. ENTIRE UNUSED CLASS
 
 ### File: `core/LWREventsIcs.php`
+
 **Lines 11-92: Complete `LWREventsIcs` class**
+
 ```php
 class LWREventsIcs {
     const DT_FORMAT = 'Ymd\THis\Z';
@@ -260,7 +294,10 @@ class LWREventsIcs {
     private function escape_string($str) { ... }
 }
 ```
-**Status:** File is included at line 23 of `LWREvents.php` with comment "// ICS Creator, not in use yet". The entire class is never instantiated or used anywhere in the codebase. This is significant dead code (entire file with 92 lines).
+
+**Status:** File is included at line 23 of `LWREvents.php` with comment "// ICS Creator, not in use
+yet". The entire class is never instantiated or used anywhere in the codebase. This is significant
+dead code (entire file with 92 lines).
 
 ---
 
@@ -269,6 +306,7 @@ class LWREventsIcs {
 ### File: `LWREvents.php`
 
 #### Lines 97 and 101 - Duplicate option creation
+
 ```php
 // Line 97:
 add_option('lwr_signin_for_users', 0);
@@ -276,11 +314,13 @@ add_option('lwr_signin_for_users', 0);
 // Line 101:
 add_option('lwr_signin_for_users', false);
 ```
+
 **Issue:** Same option added twice with different default values. Second call will never execute.
 
 ---
 
 #### Lines 124 and 128 - Duplicate option deletion
+
 ```php
 // Line 124:
 delete_option('lwr_signin_for_users');
@@ -288,6 +328,7 @@ delete_option('lwr_signin_for_users');
 // Line 128:
 delete_option('lwr_signin_for_users');
 ```
+
 **Issue:** Same option deleted twice. Second deletion has no effect.
 
 ---
@@ -295,6 +336,7 @@ delete_option('lwr_signin_for_users');
 ### File: `core/LWREventsCore.php`
 
 #### Lines 684-686 and 693-696 - Duplicate database save
+
 ```php
 // Lines 684-686:
 $wpdb->replace($wpdb->prefix . 'options', array(
@@ -308,7 +350,9 @@ $wpdb->replace($wpdb->prefix . 'options', array(
     'option_value' => $post['lwr_events_contact_mail'],
 ));
 ```
-**Issue:** The `lwr_events_contact_mail` option is saved twice with the same value. Second save is redundant.
+
+**Issue:** The `lwr_events_contact_mail` option is saved twice with the same value. Second save is
+redundant.
 
 ---
 
@@ -317,6 +361,7 @@ $wpdb->replace($wpdb->prefix . 'options', array(
 ### File: `core/LWREventsCore.php`
 
 **Line 723**
+
 ```php
 function getSettingsSelectList($list_name) {
     $setting = $this->getSettingsFromDB($list_name);
@@ -326,7 +371,9 @@ function getSettingsSelectList($list_name) {
     if ($setting == 'DESC') {
         // ...
 ```
-**Issue:** `var_dump()` statement will output debug information to the page when settings page is loaded.
+
+**Issue:** `var_dump()` statement will output debug information to the page when settings page is
+loaded.
 
 ---
 
@@ -335,9 +382,11 @@ function getSettingsSelectList($list_name) {
 ### File: `views/frontend/single-lwrevents.php`
 
 **Line 118**
+
 ```php
 <td><?php $lwr->eventMeta($post->ID, 'lwrVoraussetzung'); ?><?php ?></td>
 ```
+
 **Issue:** Empty `<?php ?>` tag pair serves no purpose.
 
 ---
@@ -347,6 +396,7 @@ function getSettingsSelectList($list_name) {
 ### File: `core/LWREventsCPT.php`
 
 **Lines 527-540**
+
 ```php
 foreach ($events_meta as $key => $value) {
     if ($post->post_type == 'revision') {
@@ -364,13 +414,17 @@ foreach ($events_meta as $key => $value) {
     }
 }
 ```
-**Issue:** Revision check is inside the foreach loop, so function returns immediately on first iteration if post is a revision. Only first key-value pair is checked. This check should be outside the loop.
+
+**Issue:** Revision check is inside the foreach loop, so function returns immediately on first
+iteration if post is a revision. Only first key-value pair is checked. This check should be outside
+the loop.
 
 ---
 
 ### File: `core/LWREventsCPT.php`
 
 **Lines 62-70**
+
 ```php
 switch ($sid) {
     case 2:
@@ -384,7 +438,9 @@ switch ($sid) {
         break;  // Line 70 - unreachable
 }
 ```
-**Issue:** All `break` statements are unreachable because each case has a `return` statement before it.
+
+**Issue:** All `break` statements are unreachable because each case has a `return` statement before
+it.
 
 ---
 
@@ -393,16 +449,20 @@ switch ($sid) {
 ### File: `core/LWREventsCPT.php`
 
 **Line 516**
+
 ```php
 $events_meta['lwrExtAllowed'] = $_POST['lwrExtAllowed'];
 ```
-**Issue:** The `lwrExtAllowed` meta value is saved to database but never retrieved or used anywhere in the plugin code. Related to the unused `$ext` property.
+
+**Issue:** The `lwrExtAllowed` meta value is saved to database but never retrieved or used anywhere
+in the plugin code. Related to the unused `$ext` property.
 
 ---
 
 ### File: `core/LWREventsCore.php`
 
 **Lines 48, 169-170**
+
 ```php
 // Line 48:
 $todayUnix = strtotime(date('d.m.Y H:i:s'));
@@ -411,35 +471,44 @@ $todayUnix = strtotime(date('d.m.Y H:i:s'));
 $today = date('Y-m-d');
 $todayUnix = strtotime(date('d.m.Y H:i:s'));
 ```
-**Issue:** `$todayUnix` variable is defined in multiple functions (`lwrShortcodeListFuture()` and `lwrGetArchiveForCategory()`) but never used.
+
+**Issue:** `$todayUnix` variable is defined in multiple functions (`lwrShortcodeListFuture()` and
+`lwrGetArchiveForCategory()`) but never used.
 
 ---
 
 ### File: `views/frontend/single-lwrevents.php`
 
 **Line 64**
+
 ```php
 $loop = new WP_Query(array('post_type' => 'lwrevents',));
 ```
-**Issue:** `$loop` variable is created but never used. Template uses default WordPress loop with `have_posts()` instead.
+
+**Issue:** `$loop` variable is created but never used. Template uses default WordPress loop with
+`have_posts()` instead.
 
 ---
 
 ## CLEANUP RECOMMENDATIONS
 
 ### High Priority (Remove Safely)
-1. ✅ Delete `core/LWREventsIcs.php` entirely (92 lines) and remove the include from `LWREvents.php:23`
+
+1. ✅ Delete `core/LWREventsIcs.php` entirely (92 lines) and remove the include from
+   `LWREvents.php:23`
 2. ✅ Remove all 10 unused functions/methods
 3. ✅ Delete all commented-out code blocks (5 instances)
 4. ✅ Remove `var_dump()` debug statement from `LWREventsCore.php:723`
 5. ✅ Fix duplicate operations (remove second occurrences)
 
 ### Medium Priority (Logic Fixes)
+
 6. ⚠️ Move revision check outside the foreach loop in `LWREventsCPT.php:527-540`
 7. ⚠️ Remove unreachable `break` statements from switch cases
 8. ⚠️ Clean up unused variables (`$todayUnix`, `$loop`)
 
 ### Low Priority (Minor Cleanup)
+
 9. ✅ Remove empty PHP tag pair in `single-lwrevents.php:118`
 10. ✅ Consider removing unused meta field `lwrExtAllowed` and related code
 

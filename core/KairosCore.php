@@ -4,11 +4,13 @@
  * User:        Florian Thiévent
  * File:        LWRCore.php
  * Version:     1.0
- * Description: Core Functions of the Wordpress Plugin LWR Events
+ * Description: Core Functions of the Wordpress Plugin Kairos
  */
-class LWREventsCore {
+class KairosCore
+{
 
-    function __construct() {
+    function __construct()
+    {
         // load Ajax Functionality
         $this->registerAJAXFunctions();
 
@@ -20,9 +22,8 @@ class LWREventsCore {
     /**
      * Ajax Funktionen im Core registrieren
      */
-    function registerAJAXFunctions() {
-        //add_action( 'wp_ajax_signInUserForEvent', array($this, 'signInUserForEvent') );
-        //add_action( 'wp_ajax_nopriv_signInUserForEvent', array($this, 'signInUserForEvent') );
+    function registerAJAXFunctions()
+    {
 
         add_action('wp_ajax_user_sign_event', array($this, 'user_sign_event'));
         add_action('wp_ajax_nopriv_user_sign_event', array($this, 'user_sign_event'));
@@ -42,29 +43,30 @@ class LWREventsCore {
      * @return string
      */
 
-    static function lwrShortcodeListFuture() {
-        $lwr = new LWREventsCore();
+    static function kairosShortcodeListFuture()
+    {
+        $lwr = new KairosCore();
         $today = date('Y-m-d');
         $todayUnix = strtotime(date('d.m.Y H:i:s'));
 
         $args = array(
-            'post_type' => 'lwrevents',
-            'posts_per_page' => $lwr->getSettingsFromDB('lwr_future_max'),
-            'meta_query' => array(
-                'relation' => 'AND',
-                'lwrZeitVon' => array(
-                    'key' => 'lwrZeitVon',
-                    'compare' => 'EXISTS',
+                'post_type' => 'lwrevents',
+                'posts_per_page' => $lwr->getSettingsFromDB('lwr_future_max'),
+                'meta_query' => array(
+                        'relation' => 'AND',
+                        'lwrZeitVon' => array(
+                                'key' => 'lwrZeitVon',
+                                'compare' => 'EXISTS',
+                        ),
+                        'lwrDatumVonSQL' => array(
+                                'key' => 'lwrDatumVonSQL',
+                                'compare' => '>=',
+                                'value' => $today,
+                        ),
                 ),
-                'lwrDatumVonSQL' => array(
-                    'key' => 'lwrDatumVonSQL',
-                    'compare' => '>=',
-                    'value' => $today,
-                ),
-            ),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumZeitVonUnix',
-            'order' => $lwr->getSettingsFromDB('lwr_sort_list_future'),
+                'orderby' => 'meta_value',
+                'meta_key' => 'lwrDatumZeitVonUnix',
+                'order' => $lwr->getSettingsFromDB('lwr_sort_list_future'),
         );
 
         $custom_posts = new WP_Query($args);
@@ -107,17 +109,41 @@ class LWREventsCore {
     }
 
     /**
+     * Einstellungen aus der Datenbank laden
+     * @return String
+     */
+    function getSettingsFromDB($option_name)
+    {
+        return get_option($option_name, '');
+    }
+
+    /**
+     * Gibt eine Metainformation für einen Post als String zurück
+     *
+     * @param $id
+     * @param $key
+     *
+     * @return mixed
+     */
+    function getEventMeta($id, $key)
+    {
+
+        return get_post_meta($id, $key, true);
+    }
+
+    /**
      * Return a list with all events ordered by now to the past
      * @return string
      */
-    static function lwrShortcodeList() {
-        $lwr = new LWREventsCore();
+    static function kairosShortcodeList()
+    {
+        $lwr = new KairosCore();
         $args = array(
-            'post_type' => 'lwrevents',
-            'order' => $lwr->getSettingsFromDB('lwr_sort_list'),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumVonSQL',
-            'posts_per_page' => $lwr->getSettingsFromDB('lwr_all_max'),
+                'post_type' => 'lwrevents',
+                'order' => $lwr->getSettingsFromDB('lwr_sort_list'),
+                'orderby' => 'meta_value',
+                'meta_key' => 'lwrDatumVonSQL',
+                'posts_per_page' => $lwr->getSettingsFromDB('lwr_all_max'),
         );
 
         $custom_posts = new WP_Query($args);
@@ -164,38 +190,39 @@ class LWREventsCore {
      * @param $category
      * @return string
      */
-    function lwrGetArchiveForCategory($category) {
-        $lwr = new LWREventsCore();
+    function lwrGetArchiveForCategory($category)
+    {
+        $lwr = new KairosCore();
         $today = date('Y-m-d');
         $todayUnix = strtotime(date('d.m.Y H:i:s'));
 
         $custom_posts = new WP_Query(array(
-            'post_type' => 'lwrevents',
-            'order' => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumVonSQL',
-            'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
-            'tax_query' => array(
-                array(
-                    'taxonomy' => 'Sportart',
-                    'field' => 'slug',
-                    'terms' => $category,
+                'post_type' => 'lwrevents',
+                'order' => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
+                'orderby' => 'meta_value',
+                'meta_key' => 'lwrDatumVonSQL',
+                'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
+                'tax_query' => array(
+                        array(
+                                'taxonomy' => 'Sportart',
+                                'field' => 'slug',
+                                'terms' => $category,
+                        ),
                 ),
-            ),
-            'meta_query' => array(
-                'relation' => 'AND',
-                'lwrZeitVon' => array(
-                    'key' => 'lwrZeitVon',
-                    'compare' => 'EXISTS',
+                'meta_query' => array(
+                        'relation' => 'AND',
+                        'lwrZeitVon' => array(
+                                'key' => 'lwrZeitVon',
+                                'compare' => 'EXISTS',
+                        ),
+                        'lwrDatumVonSQL' => array(
+                                'key' => 'lwrDatumVonSQL',
+                                'compare' => '>=',
+                                'value' => $today,
+                        ),
                 ),
-                'lwrDatumVonSQL' => array(
-                    'key' => 'lwrDatumVonSQL',
-                    'compare' => '>=',
-                    'value' => $today,
-                ),
-            ),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumZeitVonUnix',
+                'orderby' => 'meta_value',
+                'meta_key' => 'lwrDatumZeitVonUnix',
         ));
         $returnstring = '<table id="agendaTable"><thead><tr><th>Datum</th><th>Anlass</th><th>Kommentare</th></tr><thead><tbody>';
 
@@ -231,38 +258,17 @@ class LWREventsCore {
     }
 
     /**
-     * Einstellungen aus der Datenbank laden
-     * @return String
-     */
-    function getSettingsFromDB($option_name) {
-        //global $wpdb;
-        //$setting = $wpdb->get_row("SELECT * FROM " . $wpdb->prefix . "options WHERE option_name = '" . $option_name . "'", ARRAY_A);
-        return get_option($option_name, '');
-    }
-
-    /**
-     * Gibt eine Metainformation für einen Post als String zurück
-     *
-     * @param $id
-     * @param $key
-     *
-     * @return mixed
-     */
-    function getEventMeta($id, $key) {
-
-        return get_post_meta($id, $key, true);
-    }
-
-    /**
      * Funktion Admin Interface laden
      */
-    function loadAdminInterface() {
+    function loadAdminInterface()
+    {
         add_submenu_page('edit.php?post_type=lwrevents', 'Einstellungen', 'Einstellungen', 'manage_options', 'lwr-settings', array(
-            $this, 'lwr_settings_page'));
+                $this, 'lwr_settings_page'));
     }
 
-    function lwr_settings_page() {
-        return (include_once(LWR_PLUGIN_PATH . '/views/backend/lwr-settings-view.php'));
+    function lwr_settings_page()
+    {
+        return (include_once(KAIROS_PLUGIN_PATH . '/views/backend/lwr-settings-view.php'));
     }
 
 
@@ -270,15 +276,16 @@ class LWREventsCore {
      * Generate .ics for Event
      * @param $post_id
      */
-    function generate_calendar() {
+    function generate_calendar()
+    {
 
         $postid = $_GET['eventID'];
         $post = get_post($postid, ARRAY_A, 'raw');
         $postmeta = get_post_meta($postid);
 
         $event = array(
-            'postinfo' => $post,
-            'postmeta' => $postmeta,
+                'postinfo' => $post,
+                'postmeta' => $postmeta,
         );
 
         echo json_encode($event);
@@ -290,41 +297,42 @@ class LWREventsCore {
      * Generate .ics for Event
      * @param $post_id
      */
-    function generate_calendar_category() {
+    function generate_calendar_category()
+    {
 
         $category = $_GET['category'];
 
-        $lwr = new LWREventsCore();
+        $lwr = new KairosCore();
         $today = date('Y-m-d');
         $todayUnix = strtotime(date('d.m.Y H:i:s'));
 
         $custom_posts = new WP_Query(array(
-            'post_type' => 'lwrevents',
-            'order' => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumVonSQL',
-            'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
-            'tax_query' => array(
-                array(
-                    'taxonomy' => 'Sportart',
-                    'field' => 'slug',
-                    'terms' => $category,
+                'post_type' => 'lwrevents',
+                'order' => $lwr->getSettingsFromDB('lwr_sort_list_archive'),
+                'orderby' => 'meta_value',
+                'meta_key' => 'lwrDatumVonSQL',
+                'posts_per_page' => $lwr->getSettingsFromDB('lwr_archiv_max'),
+                'tax_query' => array(
+                        array(
+                                'taxonomy' => 'Sportart',
+                                'field' => 'slug',
+                                'terms' => $category,
+                        ),
                 ),
-            ),
-            'meta_query' => array(
-                'relation' => 'AND',
-                'lwrZeitVon' => array(
-                    'key' => 'lwrZeitVon',
-                    'compare' => 'EXISTS',
+                'meta_query' => array(
+                        'relation' => 'AND',
+                        'lwrZeitVon' => array(
+                                'key' => 'lwrZeitVon',
+                                'compare' => 'EXISTS',
+                        ),
+                        'lwrDatumVonSQL' => array(
+                                'key' => 'lwrDatumVonSQL',
+                                'compare' => '>=',
+                                'value' => $today,
+                        ),
                 ),
-                'lwrDatumVonSQL' => array(
-                    'key' => 'lwrDatumVonSQL',
-                    'compare' => '>=',
-                    'value' => $today,
-                ),
-            ),
-            'orderby' => 'meta_value',
-            'meta_key' => 'lwrDatumZeitVonUnix',
+                'orderby' => 'meta_value',
+                'meta_key' => 'lwrDatumZeitVonUnix',
         ));
 
         $postarr = array();
@@ -350,7 +358,6 @@ class LWREventsCore {
             }
         }
 
-        //echo json_encode($custom_posts->posts);
         echo json_encode($postarr);
         die();
 
@@ -360,7 +367,8 @@ class LWREventsCore {
      * Nach der Anmeldung die Tabelle der Anmeldungen aktualisieren.
      * Ajax Call update_sign_table
      */
-    function update_sign_table() {
+    function update_sign_table()
+    {
         $eventID = $_POST['eventID'];
 
         $cJa = $this->getDataForUserTable($eventID, 2);
@@ -368,22 +376,24 @@ class LWREventsCore {
         $cNein = $this->getDataForUserTable($eventID, 0);
 
         $returnarray = array(
-            'ja' => array('count' => count($cJa), 'users' => $this->getUsernamesForTable($cJa)),
-            'evtl' => array('count' => count($cEvtl), 'users' => $this->getUsernamesForTable($cEvtl)),
-            'nein' => array('count' => count($cNein), 'users' => $this->getUsernamesForTable($cNein)),
+                'ja' => array('count' => count($cJa), 'users' => $this->getUsernamesForTable($cJa)),
+                'evtl' => array('count' => count($cEvtl), 'users' => $this->getUsernamesForTable($cEvtl)),
+                'nein' => array('count' => count($cNein), 'users' => $this->getUsernamesForTable($cNein)),
         );
 
         echo json_encode($returnarray, JSON_FORCE_OBJECT);
         die();
     }
 
-    private function getDataForUserTable($eventID, $status) {
+    private function getDataForUserTable($eventID, $status)
+    {
         global $wpdb;
 
         return $wpdb->get_results("SELECT * FROM " . $wpdb->prefix . "lwrevents_signin lwr JOIN " . $wpdb->prefix . "users us ON lwr.uid = us.ID WHERE eid = '" . $eventID . "' AND status = '" . $status . "'", ARRAY_A);
     }
 
-    private function getUsernamesForTable($aData) {
+    private function getUsernamesForTable($aData)
+    {
         $retarr = '';
         $count = count($aData);
         $i = 0;
@@ -404,7 +414,8 @@ class LWREventsCore {
     /**
      * Anmeldung des Users in der DB speichern. Dies ist ein AJAX Request mit user_sign_event
      */
-    function user_sign_event() {
+    function user_sign_event()
+    {
         global $wpdb;
 
         $signInState = $_POST['signInState'];
@@ -419,9 +430,9 @@ class LWREventsCore {
 
         if ($check == 0) {
             $wpdb->insert($lwrtable, array(
-                'eid' => $eventID,
-                'uid' => $userID,
-                'status' => $signInState,
+                    'eid' => $eventID,
+                    'uid' => $userID,
+                    'status' => $signInState,
             ));
         } else {
             $wpdb->query("UPDATE " . $lwrtable . " SET status = '" . $signInState . "' WHERE uid = '" . $userID . "' AND eid = '" . $eventID . "'");
@@ -433,7 +444,8 @@ class LWREventsCore {
         die();
     }
 
-    private function sendEmail($userID, $eventID, $status) {
+    private function sendEmail($userID, $eventID, $status)
+    {
 
         global $wpdb;
         $adminMail = $this->getKursleiterEmail($eventID);
@@ -448,7 +460,8 @@ class LWREventsCore {
         }
     }
 
-    private function getKursleiterEmail($eventID) {
+    private function getKursleiterEmail($eventID)
+    {
 
         $adminMailraw = $this->getEventMeta($eventID, 'lwrMailOK');
         $adminSplit = explode(',', $adminMailraw);
@@ -462,11 +475,13 @@ class LWREventsCore {
      * @param $id
      * @param $key
      */
-    function eventMeta($id, $key) {
+    function eventMeta($id, $key)
+    {
         echo get_post_meta($id, $key, true);
     }
 
-    function checkSignInForEvent($eventID) {
+    function checkSignInForEvent($eventID)
+    {
         global $wpdb;
 
         $maxNum = $this->getEventMeta($eventID, 'lwrMaxTN');
@@ -487,7 +502,8 @@ class LWREventsCore {
      *
      * @return String
      */
-    function eventTime($eventID) {
+    function eventTime($eventID)
+    {
         echo "CLOCK";
     }
 
@@ -498,7 +514,8 @@ class LWREventsCore {
      *
      * @return String
      */
-    function getEventTime($eventID) {
+    function getEventTime($eventID)
+    {
 
         $dateFrom = $this->getEventMeta($eventID, 'lwrDatumVon');
         $timeFrom = $this->getEventMeta($eventID, 'lwrZeitVon');
@@ -525,7 +542,8 @@ class LWREventsCore {
      *
      * @return string
      */
-    function getDayString($dayA) {
+    function getDayString($dayA)
+    {
 
         $days = explode(',', $dayA);
         $daysString = '';
@@ -583,7 +601,8 @@ class LWREventsCore {
      *
      * @return array|null|object
      */
-    function getSigninUsersForEventAndStatus($eventID, $status) {
+    function getSigninUsersForEventAndStatus($eventID, $status)
+    {
         global $wpdb;
         $userstring = '';
 
@@ -614,7 +633,8 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'", ARRAY_A)
      *
      * @return int
      */
-    function getSigninCountForEventAndStatus($eventID, $status) {
+    function getSigninCountForEventAndStatus($eventID, $status)
+    {
         global $wpdb;
 
         //Status: 0=nein, 1=vielleicht, 2=ja
@@ -633,7 +653,8 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
      *
      * @return null|string
      */
-    function getEventUserState($postID, $userID) {
+    function getEventUserState($postID, $userID)
+    {
         global $wpdb;
 
         $state = $wpdb->get_var("SELECT status FROM " . $wpdb->prefix . "lwrevents_signin WHERE uid = '" . $userID . "' AND eid = '" . $postID . "'");
@@ -646,64 +667,60 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
      *
      * @param $post
      */
-    function saveSettingsInDB($post) {
+    function saveSettingsInDB($post)
+    {
         global $wpdb;
 
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_sort_list_future',
-            'option_value' => $post['lwr_sort_list_future'],
+                'option_name' => 'lwr_sort_list_future',
+                'option_value' => $post['lwr_sort_list_future'],
         ));
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_future_max',
-            'option_value' => $post['lwr_future_max'],
+                'option_name' => 'lwr_future_max',
+                'option_value' => $post['lwr_future_max'],
         ));
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_archiv_max',
-            'option_value' => $post['lwr_archiv_max'],
+                'option_name' => 'lwr_archiv_max',
+                'option_value' => $post['lwr_archiv_max'],
         ));
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_all_max',
-            'option_value' => $post['lwr_all_max'],
+                'option_name' => 'lwr_all_max',
+                'option_value' => $post['lwr_all_max'],
         ));
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_sort_list',
-            'option_value' => $post['lwr_sort_list'],
+                'option_name' => 'lwr_sort_list',
+                'option_value' => $post['lwr_sort_list'],
         ));
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_sort_list_archive',
-            'option_value' => $post['lwr_sort_list_archive'],
+                'option_name' => 'lwr_sort_list_archive',
+                'option_value' => $post['lwr_sort_list_archive'],
         ));
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_events_contact_mail',
-            'option_value' => $post['lwr_events_contact_mail'],
+                'option_name' => 'lwr_empty_events',
+                'option_value' => $post['lwr_empty_events'],
         ));
 
         $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_empty_events',
-            'option_value' => $post['lwr_empty_events'],
-        ));
-
-        $wpdb->replace($wpdb->prefix . 'options', array(
-            'option_name' => 'lwr_events_contact_mail',
-            'option_value' => $post['lwr_events_contact_mail'],
+                'option_name' => 'lwr_events_contact_mail',
+                'option_value' => $post['lwr_events_contact_mail'],
         ));
 
         if ($post['lwr_signin_for_users'] == 1) {
             $wpdb->replace($wpdb->prefix . 'options', array(
-                'option_name' => 'lwr_signin_for_users',
-                'option_value' => $post['lwr_signin_for_users'],
+                    'option_name' => 'lwr_signin_for_users',
+                    'option_value' => $post['lwr_signin_for_users'],
             ));
         } else {
             $wpdb->replace($wpdb->prefix . 'options', array(
-                'option_name' => 'lwr_signin_for_users',
-                'option_value' => 0,
+                    'option_name' => 'lwr_signin_for_users',
+                    'option_value' => 0,
             ));
         }
 
@@ -716,12 +733,9 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
      *
      * @return String $list_entry
      */
-    function getSettingsSelectList($list_name) {
-
+    function getSettingsSelectList($list_name)
+    {
         $setting = $this->getSettingsFromDB($list_name);
-
-        var_dump($setting);
-
         if ($setting == 'DESC') {
             $list_entry = '<option value="DESC" selected>absteigend</option><option value="ASC">aufsteigend</option>';
         } elseif ($setting == 'ASC') {
@@ -729,7 +743,6 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
         } else {
             $list_entry = '<option value="DESC">absteigend</option><option value="ASC">aufsteigend</option>';
         }
-
         return $list_entry;
     }
 
@@ -738,7 +751,8 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
      *
      * @param $state
      */
-    function getCheckboxState($checkbox) {
+    function getCheckboxState($checkbox)
+    {
 
         $state = $this->getSettingsFromDB($checkbox);
 
@@ -757,7 +771,8 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
      *
      * @return bool
      */
-    function getCheckboxStateBool($checkbox) {
+    function getCheckboxStateBool($checkbox)
+    {
 
         $state = $this->getSettingsFromDB($checkbox);
 
@@ -769,20 +784,20 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
 
     }
 
-    function getPagination() {
-
+    function getPagination()
+    {
         global $wp_query;
 
         $big = 999999999; // need an unlikely integer
 
         $paginate_links = paginate_links(array(
-            'base' => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
-            'format' => '?paged=%#%',
-            'current' => max(1, get_query_var('paged')),
-            'total' => $wp_query->max_num_pages,
-            'next_text' => '&raquo;',
-            'prev_text' => '&laquo',
-            'add_args' => false,
+                'base' => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+                'format' => '?paged=%#%',
+                'current' => max(1, get_query_var('paged')),
+                'total' => $wp_query->max_num_pages,
+                'next_text' => '&raquo;',
+                'prev_text' => '&laquo',
+                'add_args' => false,
         ));
 
         // Display the pagination if more than one page is found
@@ -801,7 +816,8 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
     /**
      * Get the metadata for a post an display them on the page
      */
-    function lwrDisplayPostMeta() {
+    function lwrDisplayPostMeta()
+    {
 
         // Get Theme Options from Database
         $theme_options = array('meta_date' => true, 'meta_author' => true);
@@ -810,14 +826,14 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
         if (isset($theme_options['meta_date']) and $theme_options['meta_date'] == true) : ?>
 
             <span class="meta-date sep">
-			<?php printf('<a href="%1$s" title="%2$s" rel="bookmark"><time class="entry-date published updated" datetime="%3$s">%4$s</time></a>',
-                esc_url(get_permalink()),
-                esc_attr(get_the_time()),
-                esc_attr(get_the_date('c')),
-                esc_html(get_the_date())
+            <?php printf('<a href="%1$s" title="%2$s" rel="bookmark"><time class="entry-date published updated" datetime="%3$s">%4$s</time></a>',
+                    esc_url(get_permalink()),
+                    esc_attr(get_the_time()),
+                    esc_attr(get_the_date('c')),
+                    esc_html(get_the_date())
             );
             ?>
-			</span>
+            </span>
 
         <?php endif;
 
@@ -825,21 +841,21 @@ WHERE lwr.status = '" . $status . "' AND lwr.eid = '" . $eventID . "'");
         if (isset($theme_options['meta_author']) and $theme_options['meta_author'] == true) : ?>
 
             <span class="meta-author sep">
-			<?php printf('<span class="author vcard"><a class="fn" href="%1$s" title="%2$s" rel="author">%3$s</a></span>',
-                esc_url(get_author_posts_url(get_the_author_meta('ID'))),
-                esc_attr(sprintf(__('View all posts by %s', 'dynamic-news-lite'), get_the_author())),
-                get_the_author()
+            <?php printf('<span class="author vcard"><a class="fn" href="%1$s" title="%2$s" rel="author">%3$s</a></span>',
+                    esc_url(get_author_posts_url(get_the_author_meta('ID'))),
+                    esc_attr(sprintf(__('View all posts by %s', 'dynamic-news-lite'), get_the_author())),
+                    get_the_author()
             );
             ?>
-			</span>
+            </span>
 
         <?php endif;
 
         if (comments_open()) : ?>
 
             <span class="meta-comments">
-				<?php comments_popup_link(__('Leave a comment', 'dynamic-news-lite'), __('One comment', 'dynamic-news-lite'), __('% comments', 'dynamic-news-lite')); ?>
-			</span>
+                <?php comments_popup_link(__('Leave a comment', 'dynamic-news-lite'), __('One comment', 'dynamic-news-lite'), __('% comments', 'dynamic-news-lite')); ?>
+            </span>
 
         <?php endif; ?>
 
